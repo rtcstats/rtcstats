@@ -3,7 +3,6 @@ export default function(wsURL) {
   var buffer;
   var connection;
   var trace = function() {
-    //console.log.apply(console, arguments);
     // TODO: drop getStats when not connected?
     var args = Array.prototype.slice.call(arguments);
     args.push(new Date().getTime());
@@ -22,6 +21,7 @@ export default function(wsURL) {
   trace.close = function() {
     connection.close();
   };
+
   trace.connect = function() {
     buffer = [];
     if (connection) {
@@ -50,6 +50,7 @@ export default function(wsURL) {
     };
     */
   };
+
   trace.connect();
   return trace;
 };
