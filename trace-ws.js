@@ -1,4 +1,4 @@
-const PROTOCOL_VERSION = '2.0';
+const PROTOCOL_VERSION = '1.0';
 export default function(wsURL) {
   var buffer;
   var connection;
