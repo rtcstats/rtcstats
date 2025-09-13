@@ -1,0 +1,43 @@
+rtcStats:
+    # File format header version to generate.
+    fileFormat: 3
+
+server:
+    # HTTP port to listen on.
+    httpPort: 8080
+    # Directory where files are being stored while the websocket is still active.
+    workDirectory: work
+    # Directory where files are stored after preprocessed and when ready to upload.
+    uploadDirectory: upload
+    # Setting these to false is useful in dev environments where one needs to look at the generated files.
+    deleteAtStart: true
+    deleteAfterUpload: true
+    # Whether to obfuscate IP addresses for privacy reasons.
+    obfuscateIpAddresses: true
+
+authorization:
+    # JWT secret key to use for authorizing clients. If not set, no authorization is performed.
+    jwtSecret:
+
+maxmind:
+    # maxmind is used to provide geolocation together with ip address obfuscation
+    path:
+    
+storage:
+    # Amazon S3 based storage (or compatible APIs like supabase).
+    s3:
+        credentials:
+            accessKeyId:
+            secretAccessKey:
+        region:
+        endpoint:
+        bucket:
+
+database:
+    # Database settings, postgres and supabase primarily.
+    postgres:
+        tableName: internals
+        connectionString:
+        ssl: # https://node-postgres.com/features/ssl
+            capath: # path to root cert.
+            mode: # e.g. 'verify-full'.

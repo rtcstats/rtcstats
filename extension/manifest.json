@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "permissions": ["scripting", "activeTab"],
+  "name": "RTCStats Extension",
+  "content_scripts": [{
+    "matches": [ "https://webrtc.github.io/*" ],
+    "js": ["dist/main.js"],
+    "run_at": "document_start",
+    "world": "MAIN"
+   }],
+  "author": "Philipp Hancke",
+  "version": "0.0.1"
+}

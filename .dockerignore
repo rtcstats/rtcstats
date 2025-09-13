@@ -1,0 +1,13 @@
+packages/rtcstats-server/node_modules/
+packages/rtcstats-server/package-lock.json
+packages/rtcstats-server/coverage/
+packages/rtcstats-server/config/development.yaml
+packages/rtcstats-server/work/*
+packages/rtcstats-server/upload/*
+
+packages/rtcstats-js/node_modules/
+packages/rtcstats-js/coverage/
+packages/rtcstats-js/browsers/
+
+packages/rtcstats-shared/node_modules/
+packages/rtcstats-shared/test/

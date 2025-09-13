@@ -1,0 +1,13 @@
+{
+  "name": "rtcstats-extension",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "webpack-cli": "^6.0.1"
+  },
+  "scripts": {
+    "build": "webpack-cli ./rtcstats-extension.js",
+    "lint": "eslint *.js",
+    "test": "npm run lint"
+  }
+}

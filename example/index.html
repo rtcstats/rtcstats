@@ -1,0 +1,61 @@
+<script type="importmap">
+{
+    "imports": {
+        "rtcstats-js": "../packages/rtcstats-js/rtcstats.js",
+        "@rtcstats/rtcstats-shared": "../packages/rtcstats-shared/index.js"
+    }
+}
+</script>
+<script type="module">
+import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices} from 'rtcstats-js';
+import {WebSocketTrace} from 'rtcstats-js';
+
+const trace = new WebSocketTrace();
+wrapRTCPeerConnection(trace, window, {getStatsInterval: 500});
+wrapGetUserMedia(trace, window);
+wrapEnumerateDevices(trace, window);
+
+trace.connect('ws://' + window.location.host + '/example' + window.location.search);
+
+let pc;
+let stream;
+document.getElementById('start').onclick = async () => {
+    document.getElementById('start').disabled = true;
+    pc = new RTCPeerConnection();
+    pc.createDataChannel('somechannel');
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await pc.createOffer();
+    await pc.setLocalDescription({type: 'rollback'});
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+
+    stream = await navigator.mediaDevices.getUserMedia({video: true});
+    await stream.getTracks()[0].applyConstraints({width: 320});
+
+    const sender = pc.addTrack(stream.getTracks()[0], stream);
+    sender.replaceTrack(null);
+
+    document.getElementById('stop').disabled = false;
+};
+document.getElementById('stop').onclick = async () => {
+    document.getElementById('stop').disabled = true;
+
+    pc.close();
+    stream.getTracks().forEach(t => t.stop());
+
+    trace.close();
+    const el = document.getElementById('log');
+    el.innerText = 'Done, you should see a new file being created in the rtcstats-server directory. Check the server console.log output to find out the file name.';
+};
+</script>
+<html>
+    <body>
+        <div id="log">
+            RTCStats will run some WebRTC API calls when you click the "start" button.
+            The "stop" button will be enabled after a while.
+        </div>
+        <button id="start">start</button>
+        <button id="stop" disabled>stop</button>
+    </body>
+</html

@@ -1,0 +1,25 @@
+{
+  "name": "@rtcstats/rtcstats-server",
+  "private": true,
+  "version": "1.0.0",
+  "author": "rtcstats.com",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint *.js",
+    "coverage": "c8 --reporter html mocha test",
+    "test": "npm run lint && npm run coverage",
+    "start": "npm i && node app.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.888.0",
+    "@aws-sdk/lib-storage": "^3.888.0",
+    "config": "^4.1.1",
+    "globals": "^16.2.0",
+    "maxmind": "^5.0.0",
+    "postgres": "^3.4.7",
+    "sdp": "^3.2.1",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.3"
+  }
+}

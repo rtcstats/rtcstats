@@ -1,0 +1,21 @@
+{
+  "name": "@rtcstats/rtcstats-shared",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "gather WebRTC API traces and statistics",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtcstats/rtcstats.git"
+  },
+  "scripts": {
+    "lint": "eslint *.js test/",
+    "coverage": "c8 --reporter html mocha test",
+    "test": "npm run lint && npm run coverage"
+  },
+  "author": "rtcstats.com",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

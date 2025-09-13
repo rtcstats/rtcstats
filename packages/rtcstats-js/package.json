@@ -1,0 +1,33 @@
+{
+  "name": "@rtcstats/rtcstats-js",
+  "version": "1.0.0",
+  "description": "gather WebRTC API traces and statistics",
+  "main": "rtcstats.js",
+  "type": "module",
+  "devDependencies": {
+    "@puppeteer/browsers": "^2.10.9",
+    "jest": "^30.1.3",
+    "karma": "^6.4.4",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-firefox-launcher": "^2.1.3",
+    "karma-mocha": "^2.0.1",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-webpack": "^5.0.1"
+  },
+  "scripts": {
+    "lint": "eslint *.js test/",
+    "coverage": "c8 karma start test/karma.conf.js",
+    "test": "npm run lint && npm run coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtcstats/rtcstats.git"
+  },
+  "author": "rtcstats.com",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

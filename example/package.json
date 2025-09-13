@@ -1,0 +1,18 @@
+{
+  "name": "rtcstats-example",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "gather WebRTC API traces and statistics",
+  "author": "rtcstats.com",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint *.js",
+    "test": "npm run lint",
+    "start": "NODE_ENV=example NODE_CONFIG_DIR='../packages/rtcstats-server/config' node example.js"
+  },
+  "dependencies": {
+    "config": "^4.1.1",
+    "opener": "^1.5.2"
+  }
+}

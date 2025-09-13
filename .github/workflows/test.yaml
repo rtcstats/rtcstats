@@ -1,0 +1,43 @@
+name: test
+
+on: [pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm install
+    - run: npm run lint --workspaces --if-present
+  coverage-rtcstats-shared:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm install
+    - run: npm run coverage --workspace=packages/rtcstats-shared
+  coverage-rtcstats-server:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm install
+    - run: npm run coverage --workspace=packages/rtcstats-server
+  coverage-rtcstats-js:
+    # This needs 22.04, see https://github.com/webrtc/samples/issues/1692
+    runs-on: ubuntu-22.04
+    needs: lint
+    strategy:
+      matrix:
+        browser: [chrome]
+        version: [stable]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm install
+    - run: sudo rm /usr/bin/chromedriver # remove preinstalled github chromedriver from $PATH
+    - run: Xvfb :99 &
+    - run: BROWSER=${{matrix.browser}} BVER=${{matrix.version}} DISPLAY=:99.0 npm run coverage --workspace=packages/rtcstats-js

@@ -1,0 +1,4 @@
+node_modules/
+coverage/
+browsers/
+package-lock.json

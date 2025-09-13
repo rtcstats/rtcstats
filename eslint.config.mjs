@@ -1,0 +1,36 @@
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig([{
+    rules: {
+        'no-underscore-dangle': 0,
+        'no-eq-null': 'error',
+        // "no-console": "error",
+        'no-alert': 'error',
+        'spaced-comment': 'error',
+        'valid-jsdoc': 0,
+        'prefer-arrow-callback': 'error',
+        'prefer-rest-params': 'error',
+        'no-var': 'error',
+        'strict': 'error',
+        // "func-names": "error",
+        // "no-plusplus": "error",
+        // "prefer-template": "error",
+        'object-shorthand': 'error',
+        // "no-undef": "error",
+        'new-cap': 'error',
+        'no-param-reassign': 'error',
+        'consistent-this': 'error',
+        // "no-warning-comments": "error",
+        'comma-dangle': ['error', {
+            arrays: 'only-multiline',
+            objects: 'only-multiline',
+            imports: 'only-multiline',
+            exports: 'only-multiline',
+            functions: 'never',
+        }],
+        'indent': ['error', 4],
+        'semi': ['error', 'always'],
+        'quotes': ['error', 'single'],
+        'eqeqeq': ['error', 'always'],
+    },
+}]);

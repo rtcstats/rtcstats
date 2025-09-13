@@ -1,0 +1,14 @@
+{
+  "name": "dump-importer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint *.js",
+    "test": "npm run lint",
+    "start": "http-server .. -p 8000 -c-1 -o dump-importer/"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
