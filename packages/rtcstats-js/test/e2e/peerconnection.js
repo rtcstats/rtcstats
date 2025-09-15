@@ -1,3 +1,5 @@
+import { expect } from '@esm-bundle/chai';
+
 import {wrapRTCPeerConnection} from '../../peerconnection.js';
 import {createTestSink} from '../sink.js';
 import {statsDecompression} from '@rtcstats/rtcstats-shared';

@@ -1,3 +1,5 @@
+import { expect } from '@esm-bundle/chai';
+
 import {wrapGetUserMedia, wrapEnumerateDevices} from '../../media.js';
 import {createTestSink} from '../sink.js';
 import {dumpTrackWithStreams} from '@rtcstats/rtcstats-shared';
