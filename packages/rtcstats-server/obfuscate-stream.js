@@ -1,7 +1,8 @@
 // Applies IP address obfuscation to a dump file.
 import readline from 'node:readline';
 
-import {decompressMethod, obfuscateAddress} from '@rtcstats/rtcstats-shared/address-obfuscator.js';
+import {decompressMethod} from '@rtcstats/rtcstats-shared';
+import {obfuscateAddress} from '@rtcstats/rtcstats-shared/address-obfuscator.js';
 
 export async function obfuscateStream(readStream, writeStream) {
     const readLine = readline.createInterface({
