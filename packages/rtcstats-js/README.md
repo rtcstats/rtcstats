@@ -27,19 +27,11 @@ The main rtcstats.js exports a number of methods that facilitate this:
 
 Typical usage looks like this:
 ```
-import {wrapRTCPeerConnection} from '@rtcstats/rtcstats-js';
-import {wrapGetUserMedia, wrapEnumerateDevices} from '@rtcstats/rtcstats-js';
-import {WebSocketTrace} from '@rtcstats/rtcstats-js';
+import {wrapRTCStatsWithDefaultOptions} from '@rtcstats/rtcstats-js';
 
-// Instantiate a trace function, e.g. as an instance of the Websocket trace.
-const trace = WebSocketTrace();
-
-// Wrap RTCPeerConnection-related APIs and events
-wrapRTCPeerConnection(trace, window, {getStatsInterval: 1000});
-// Wrap getUserMedia, getDisplayMedia and related events.
-wrapGetUserMedia(trace, window);
-// Wrap enumerateDevices.
-wrapEnumerateDevices(trace, window);
+// Instantiate a trace function, using the helper with default options.
+// See the example for a more fine-grained approach to wrapping.
+const trace = wrapRTCStatsWithDefaultOptions();
 
 // Connect to the rtcstats-server instance.
 trace.connect('ws://localhost:8080' + window.location.pathname);
