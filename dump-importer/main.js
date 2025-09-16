@@ -23,6 +23,6 @@ document.getElementById('import').onchange = async (evt) => {
         return;
     }
     window.importer = new RTCStatsDumpImporter(container);
-    importer.process(await blob.slice(13).text());
+    importer.process(await blob.text());
 };
 

@@ -9,8 +9,15 @@ import {
     processDescriptionEvent,
 } from './import-common.js';
 
-export function decompressRtcStats(lines) {
-    // The first line must be a JSON object with metadata.
+export async function readRTCStatsDump(textBlob) {
+    const firstLine = await textBlob.slice(0, 13);
+    if (firstLine !== 'RTCStatsDump\n') {
+        console.error('Not an RTCStatsDump');
+        return;
+    }
+    const lines = (await textBlob.slice(13)).split('\n');
+
+    // The second line must be a JSON object with metadata.
     const data = JSON.parse(lines.shift());
     data.peerConnections = {};
     data.eventSizes = {};
@@ -28,18 +35,18 @@ export function decompressRtcStats(lines) {
         let [method, connection_id, value, ...extra] = jsonData;
         method = decompressMethod(method);
 
-        // TODO: server-side close is currently not a delta.
         lastTime = extra.pop() + lastTime;
         const time = new Date(lastTime);
+
+        if (method === 'getStats') { // delta-compressed stats
+            value = statsDecompression(baseStats[connection_id], value);
+            baseStats[connection_id] = JSON.parse(JSON.stringify(value));
+        }
 
         // TODO: more explicit handling via create and close?
         if (!data.peerConnections[connection_id]) {
             data.peerConnections[connection_id] = [];
             baseStats[connection_id] = {};
-        }
-        if (method === 'getStats') { // delta-compressed stats
-            value = statsDecompression(baseStats[connection_id], value);
-            baseStats[connection_id] = JSON.parse(JSON.stringify(value));
         }
         data.peerConnections[connection_id].push({
             time,
@@ -103,8 +110,8 @@ export class RTCStatsDumpImporter extends EventTarget {
         this.containers = {};
     }
 
-    process(blob) {
-        this.data = decompressRtcStats(blob.split('\n'));
+    async process(blob) {
+        this.data = await readRTCStatsDump(blob);
         this.processUserAgent();
         this.processGetUserMedia();
         this.importUpdatesAndStats();
