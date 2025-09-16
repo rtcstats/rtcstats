@@ -1,38 +1,10 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import config from 'config';
 import opener from 'opener';
 import jwt from 'jsonwebtoken';
 
 import {RTCStatsServer} from '@rtcstats/rtcstats-server/rtcstats-server.js';
+import {setupDirectory} from '@rtcstats/rtcstats-server/utils.js';
 
-// Synchronous setup for work and upload directories.
-export function setupDirectory(name) {
-    try {
-        if (fs.existsSync(name)) {
-            fs.readdirSync(name).forEach(fname => {
-                try {
-                    console.log(`Removing file ${path.join(name, fname)}`);
-                    fs.unlinkSync(path.join(name, fname));
-                } catch (e) {
-                    console.error(`Error while unlinking file ${fname} - ${e.message}`);
-                }
-            });
-        } else {
-            console.log(`Creating working dir ${name}`);
-            fs.mkdirSync(name);
-        }
-    } catch (e) {
-        console.error(`Error while accessing working dir ${name} - ${e.message}`);
-    }
-}
-
-// Setup up work and upload directories.
-setupDirectory(config.server.workDirectory);
-setupDirectory(config.server.uploadDirectory);
-
-config.server.deleteAfterUpload = false;
 class RTCStatsAndHttpServer extends RTCStatsServer{
     // Override HTTP behavior.
     handleHttpRequest(request, response) {
@@ -67,6 +39,11 @@ class RTCStatsAndHttpServer extends RTCStatsServer{
     }
 }
 
+// Setup up work and upload directories.
+setupDirectory(config, config.server.workDirectory);
+setupDirectory(config, config.server.uploadDirectory);
+
+config.server.deleteAfterUpload = false;
 const server = new RTCStatsAndHttpServer();
 server.listen();
 
