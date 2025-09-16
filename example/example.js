@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import config from 'config';
 import opener from 'opener';
 import jwt from 'jsonwebtoken';
