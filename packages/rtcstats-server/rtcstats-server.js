@@ -121,7 +121,17 @@ export class RTCStatsServer {
         return this.database.dump(clientid, startTime, endTime, blobUrl, metadata);
     }
 
-    listen() {
-        this.server.listen(config.server.httpPort);
+    async listen() {
+        return new Promise((resolve, reject) => {
+            this.server.listen(config.server.httpPort, (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+    }
+    async close() {
+        return this.server.close();
     }
 }
