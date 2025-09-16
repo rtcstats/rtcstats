@@ -72,10 +72,12 @@ export class RTCStatsServer {
 
         const startTime = Date.now();
         const clientid = uuidv4();
-        const writeStream = fs.createWriteStream(
-            path.join(config.server.workDirectory, clientid));
+        const workPath = path.join(config.server.workDirectory, clientid);
+        const writeStream = fs.createWriteStream(workPath);
         const {numberOfMessages, metadata} = await handleWebSocket(socket, clientid, upgradeRequest, authData, writeStream);
         if (numberOfMessages === 0) {
+            // Drop empty files.
+            await fsPromises.unlink(workPath);
             return;
         }
         const endTime = Date.now();
