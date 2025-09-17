@@ -19,10 +19,10 @@ document.getElementById('import').onchange = async (evt) => {
     if (!magic.startsWith('RTCStatsDump\n')) {
         console.warn('Not a supported format, maybe webrtc-internals?');
         window.importer = new WebRTCInternalsDumpImporter(container);
-        importer.process(await blob.text());
+        importer.process(blob);
         return;
     }
     window.importer = new RTCStatsDumpImporter(container);
-    importer.process(await blob.text());
+    importer.process(blob);
 };
 

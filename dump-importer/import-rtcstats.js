@@ -9,7 +9,8 @@ import {
     processDescriptionEvent,
 } from './import-common.js';
 
-export async function readRTCStatsDump(textBlob) {
+export async function readRTCStatsDump(blob) {
+    const textBlob = await blob.text();
     const firstLine = await textBlob.slice(0, 13);
     if (firstLine !== 'RTCStatsDump\n') {
         console.error('Not an RTCStatsDump');
