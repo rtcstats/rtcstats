@@ -13,6 +13,14 @@ a formal specification of the dump file format.
 
 Compared to previous iterations of rtcstats-server, feature extraction is currently not supported.
 
+## Building
+
+Running
+```
+npm test
+```
+will run linting and unit/e2e tests for rtcstats-server.
+
 ## Usage with Docker
 See the Dockerfile in the toplevel directory.
 
