@@ -55,7 +55,7 @@ export class RTCStatsServer {
         return await new Promise(resolve => {
             jwt.verify(urlParts.query['rtcstats-token'], config.authorization.jwtSecret, (err, res) => {
                 if (err) {
-                    console.warn('Authenication failed', err);
+                    console.warn('JWT authorization failed', err);
                     return resolve(false);
                 }
                 resolve(res);

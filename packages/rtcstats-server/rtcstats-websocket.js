@@ -9,13 +9,13 @@ async function lookupAddress(ipAddress) {
     return maxmindLookup.get(ipAddress);
 }
 
-export async function handleWebSocket(client, clientid, upgradeReq, authData, writeStream) {
-    // the url the client is coming from
-    const {origin} = upgradeReq.headers;
+export async function extractMetadata(upgradeReq, authData) {
+    // The url the client is coming from
     const url = upgradeReq.url;
     // TODO: check origin against known/valid urls?
+    const {origin} = upgradeReq.headers;
 
-    const ua = upgradeReq.headers['user-agent'];
+    const userAgent = upgradeReq.headers['user-agent'];
 
     const forwardedFor = upgradeReq.headers['x-forwarded-for'];
     let remoteAddresses;
@@ -33,13 +33,10 @@ export async function handleWebSocket(client, clientid, upgradeReq, authData, wr
 
     const clientProtocol = upgradeReq.headers['sec-websocket-protocol'];
 
-    // First line is 'RTCStatsDump'. File format version is on second line in JSON.
-    writeStream.write('RTCStatsDump\n');
-    // Second line of the file is a JS(ON) object.
-    const metadata = {
+    return {
         url,
         origin,
-        userAgent: ua,
+        userAgent,
         startTime: Date.now(),
         remoteAddresses,
         locations,
@@ -47,6 +44,14 @@ export async function handleWebSocket(client, clientid, upgradeReq, authData, wr
         authData,
         fileFormat: config.rtcStats.fileFormat,
     };
+}
+
+export async function handleWebSocket(client, clientid, upgradeReq, authData, writeStream) {
+    const metadata = extractMetadata(upgradeReq, authData);
+
+    // First line is 'RTCStatsDump'. File format version is on second line in JSON.
+    writeStream.write('RTCStatsDump\n');
+    // Second line of the file is a JS(ON) object.
     writeStream.write(JSON.stringify(metadata) + '\n');
 
     let lastMessage = Date.now();
