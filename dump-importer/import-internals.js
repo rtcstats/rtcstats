@@ -10,8 +10,8 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         this.containers = {};
     }
 
-    process(blob) {
-        this.data = JSON.parse(blob);
+    async process(blob) {
+        this.data = JSON.parse(await blob.text());
         this.processUserAgent();
         this.processGetUserMedia();
         this.importUpdatesAndStats();
