@@ -41,3 +41,7 @@ jobs:
     - run: sudo rm /usr/bin/chromedriver # remove preinstalled github chromedriver from $PATH
     - run: Xvfb :99 &
     - run: BROWSER=${{matrix.browser}} BVER=${{matrix.version}} DISPLAY=:99.0 npm run coverage --workspace=packages/rtcstats-js
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
