@@ -13,17 +13,9 @@ export class  StatsRatesCalculatorAdapter {
             statsReport.set(id, report[id]);
         });
         this.calculator.addStatsReport(statsReport);
-        const entries = this.calculator.currentReport.calculatedStatsById.entries();
         const result = {}
-        for (const [statsId, calculatedStats] of entries) {
-            for (const [_, calculatedMetrics] of calculatedStats.calculatedMetricsByOriginalName) {
-                for (const calculatedMetric of calculatedMetrics) {
-                    if (!result[statsId]) {
-                        result[statsId] = {};
-                    }
-                    result[statsId][calculatedMetric.name] = calculatedMetric.value;
-                }
-            }
+        for (const [id, report] of this.calculator.currentReport.entries()) {
+            result[id] = report;
         }
         return result;
     }
