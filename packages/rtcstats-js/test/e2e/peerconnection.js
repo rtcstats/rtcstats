@@ -276,10 +276,10 @@ describe('RTCPeerConnection', () => {
             await pc.setLocalDescription(answer);
 
             const events = testSink.reset();
-            expect(events).to.have.length(10);
-            expect(events[7][0]).to.equal('setLocalDescription');
-            expect(events[7][2]).to.deep.equal({type: 'answer', sdp: 'v=\r\nm=\r\n'});
-            expect(events[7][3]).to.be.a('string');
+            expect(events).to.have.length(11);
+            expect(events[8][0]).to.equal('setLocalDescription');
+            expect(events[8][2]).to.deep.equal({type: 'answer', sdp: 'v=\r\nm=\r\n'});
+            expect(events[8][3]).to.be.a('string');
         });
 
         it('serializes the error', async () => {
