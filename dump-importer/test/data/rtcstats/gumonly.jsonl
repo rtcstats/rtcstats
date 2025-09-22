@@ -1,0 +1,6 @@
+RTCStatsDump
+{"url":"/samples/src/content/getusermedia/gum/","origin":"https://webrtc.github.io","userAgent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36","startTime":1758602115667,"remoteAddresses":["::1"],"locations":[null],"clientProtocol":"rtcstats#4.0","authData":true,"fileFormat":3}
+[39,null,{"hardwareConcurrency":16,"userAgentData":{"brands":[{"brand":"Chromium","version":"140"},{"brand":"Not=A?Brand","version":"24"},{"brand":"Google Chrome","version":"140"}],"mobile":false,"platform":"Linux"},"deviceMemory":8,"screen":{"width":1920,"height":1080,"devicePixelRatio":1},"window":{"width":1280,"height":720}},1758602115670]
+[60,null,{"audio":false,"video":true},"60-0",2153]
+[61,null,[["video","4e4f3d4b-687a-4f10-9994-9bb28748d063","3352be13-e025-45ea-90d3-1e02a1aacd9b"]],"60-0",1040]
+["close",null,1001,2353]
