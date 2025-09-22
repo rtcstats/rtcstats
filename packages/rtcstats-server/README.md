@@ -24,6 +24,27 @@ will run linting and unit/e2e tests for rtcstats-server.
 ## Usage with Docker
 See the Dockerfile in the toplevel directory.
 
+# JWT-based authentication
+By default, rtcstats-server will accept any websocket connection.
+
+It is preferable to authorize such connections using [JSON Web Token](https://en.wikipedia.org/wiki/JSON_Web_Token).
+This also allows secure identification of users, conferences and sessions.
+
+rtcstats-js supports adding JWT tokens to the WebSocket URL as part of the query string, i.e.
+```
+trace.connect('wss://example.com?rtcstats-token=...
+```
+When configured with `authorization.jwtSecret`, rtcstats-server will validate the token.
+If the token is not valid, the WebSocket connection will be closed with a `policy-violation`
+(code 1008) error.
+If the token is valid, RTCStats-server will extract the `rtcstats` object and export the
+following fields to the database:
+* user: a long-lived service-defined identifer for the user
+* session: a short-lived service-defined identiﬁier for the user session.
+* conference: a service-defined identifier for a conference or call. This can be used to search and groups dumps with multiple users.
+
+See the [example](/example/) for how such a integration looks like.
+
 # RTCStats dump file format
 
 RTCStats dump files are line-oriented JSON as described in [JSON Lines](https://jsonlines.org/).

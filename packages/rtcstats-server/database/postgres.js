@@ -14,17 +14,22 @@ export function createPostgres(config) {
         dump: (name, startTime, stopTime, blobUrl, metadata) => {
             const startDate = new Date(startTime);
             const stopDate = new Date(stopTime);
+
+            // Extract authentication data.
             let userId = null;
             let conferenceId = null;
+            let sessionId = null;
             if (metadata && metadata.authData && metadata.authData.rtcStats) {
                 userId = metadata.authData.rtcStats.user;
                 conferenceId = metadata.authData.rtcStats.conference;
+                sessionId = metadata.authData.rtcStats.session;
             }
             return sql`insert into ${sql(config.tableName)}
-                    (session_start, session_end, blob_url, metadata, rtcstats_user, rtcstats_conference)
+                    (session_start, session_end, blob_url, metadata,
+                     rtcstats_user, rtcstats_conference, rtcstats_session)
                     values
                     (${startDate.toISOString()}, ${stopDate.toISOString()},
-                     ${blobUrl}, ${metadata}, ${userId}, ${conferenceId})
+                     ${blobUrl}, ${metadata}, ${userId}, ${conferenceId}, ${sessionId})
                     returning id`;
         },
         fetchUnprocessedDump: () => {
