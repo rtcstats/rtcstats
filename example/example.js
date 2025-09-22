@@ -59,6 +59,7 @@ config.authorization.jwtSecret = 'secret';
 jwt.sign({
     rtcStats: {
         user: 'example',
+        session: 'unique-id',
         conference: 'krankygeek',
     },
 }, config.authorization.jwtSecret, {expiresIn: 60/* seconds */}, (err, token) => {

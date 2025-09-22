@@ -9,7 +9,7 @@ async function lookupAddress(ipAddress) {
     return maxmindLookup.get(ipAddress);
 }
 
-export async function extractMetadata(upgradeReq, authData) {
+async function extractMetadata(upgradeReq, authData) {
     // The url the client is coming from
     const url = upgradeReq.url;
     // TODO: check origin against known/valid urls?
@@ -47,7 +47,7 @@ export async function extractMetadata(upgradeReq, authData) {
 }
 
 export async function handleWebSocket(client, clientid, upgradeReq, authData, writeStream) {
-    const metadata = extractMetadata(upgradeReq, authData);
+    const metadata = await extractMetadata(upgradeReq, authData);
 
     // First line is 'RTCStatsDump'. File format version is on second line in JSON.
     writeStream.write('RTCStatsDump\n');
