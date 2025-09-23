@@ -25,7 +25,6 @@ export default {
     coverage: true,
     coverageConfig: {
         reporters: ['html', 'lcov'],
-        exclude: ['../rtcstats-shared/dump.js', '../../node_modules/**'],
     },
     browsers: [
         chromeLauncher({
