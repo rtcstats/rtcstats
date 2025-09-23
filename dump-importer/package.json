@@ -4,11 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint *.js",
-    "test": "npm run lint",
+    "coverage": "mocha -t 10000 test/",
+    "lint": "eslint *.js test/",
+    "test": "npm run lint && npm run coverage",
     "start": "http-server .. -p 8000 -c-1 -o dump-importer/"
   },
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "mocha": "^11.7.2",
+    "selenium-webdriver": "^4.35.0"
   }
 }

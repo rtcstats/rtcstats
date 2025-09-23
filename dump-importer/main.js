@@ -20,9 +20,10 @@ document.getElementById('import').onchange = async (evt) => {
         console.warn('Not a supported format, maybe webrtc-internals?');
         window.importer = new WebRTCInternalsDumpImporter(container);
         importer.process(blob);
-        return;
+    } else {
+        window.importer = new RTCStatsDumpImporter(container);
+        importer.process(blob);
     }
-    window.importer = new RTCStatsDumpImporter(container);
-    importer.process(blob);
+    window.rtcStatsDumpImporterSuccess = true;
 };
 
