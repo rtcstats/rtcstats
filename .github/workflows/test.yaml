@@ -18,6 +18,10 @@ jobs:
     - uses: actions/setup-node@v4
     - run: npm install
     - run: npm run coverage --workspace=packages/rtcstats-shared
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
   coverage-rtcstats-server:
     runs-on: ubuntu-latest
     needs: lint

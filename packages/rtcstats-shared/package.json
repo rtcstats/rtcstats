@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint *.js test/",
-    "coverage": "c8 --reporter html mocha test",
+    "coverage": "c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage"
   },
   "author": "rtcstats.com",
