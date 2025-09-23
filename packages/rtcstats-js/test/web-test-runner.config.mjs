@@ -23,6 +23,10 @@ export default {
     files: ['test/e2e/*.js'],
     nodeResolve: true,
     coverage: true,
+    coverageConfig: {
+        reporters: ['html', 'lcov'],
+        exclude: ['../rtcstats-shared/dump.js', '../../node_modules/**'],
+    },
     browsers: [
         chromeLauncher({
             launchOptions: {

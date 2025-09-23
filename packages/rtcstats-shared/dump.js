@@ -10,7 +10,17 @@ export async function readRTCStatsDump(blob) {
     const lines = (await textBlob.slice(13)).split('\n');
 
     // The second line must be a JSON object with metadata.
-    const data = JSON.parse(lines.shift());
+    let data;
+    try {
+        data = JSON.parse(lines.shift());
+    } catch(e) {
+        console.error('Second line is not JSON data');
+        return;
+    }
+    if (typeof data !== 'object' || Array.isArray(data)) {
+        console.error('Second line must be an object');
+        return;
+    }
     data.peerConnections = {};
     data.eventSizes = {};
 
@@ -20,7 +30,13 @@ export async function readRTCStatsDump(blob) {
         if (!line.length) {
             continue; // Ignore empty lines.
         }
-        const jsonData = JSON.parse(line);
+        let jsonData;
+        try {
+            jsonData = JSON.parse(line);
+        } catch(e) {
+            console.error('Parsing line as JSON failed');
+            return;
+        }
         if (!Array.isArray(jsonData)) {
             continue; // Ignore non-array lines.
         }
