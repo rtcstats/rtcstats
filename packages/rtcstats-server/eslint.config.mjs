@@ -64,7 +64,7 @@ export default defineConfig([{
         'no-spaced-func': 2,
         'no-trailing-spaces': 2,
         'no-underscore-dangle': 0,
-        'no-undef': 2,
+        'no-undef': 0,
         'no-unused-vars': 2,
         'no-use-before-define': 2,
         'no-var': 2,

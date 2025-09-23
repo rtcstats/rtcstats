@@ -119,7 +119,6 @@ describe('address obfuscation', () => {
                 sdp: sdp + 'a=' + candidateSdp,
             }];
             obfuscateAddress('setRemoteDescription', e);
-            console.log(e[2].sdp);
             expect(e[2].sdp).not.to.contain('192.168.0.1');
             expect(e[2].sdp).to.contain('192.168.0.x');
         });
@@ -129,7 +128,6 @@ describe('address obfuscation', () => {
                 sdp: sdp + 'a=' + relayCandidateSdp,
             }];
             obfuscateAddress('setRemoteDescription', e);
-            console.log(e[2].sdp);
             expect(e[2].sdp).to.contain('8.8.8.8 9 typ relay raddr 1.1.1.x');
         });
     });
