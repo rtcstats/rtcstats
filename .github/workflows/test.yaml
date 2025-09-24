@@ -18,6 +18,7 @@ jobs:
     - uses: actions/setup-node@v4
     - run: npm install
     - run: npm run coverage --workspace=packages/rtcstats-shared
+    - run: sed -i 's|packages/rtcstats-shared||g' packages/rtcstats-shared/coverage/tmp/*
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:
@@ -30,6 +31,7 @@ jobs:
     - uses: actions/setup-node@v4
     - run: npm install
     - run: npm run coverage --workspace=packages/rtcstats-server
+    - run: sed -i 's|packages/rtcstats-shared||g' packages/rtcstats-server/coverage/tmp/*
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:
