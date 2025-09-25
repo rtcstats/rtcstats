@@ -1,4 +1,5 @@
 import {createContainers, processGetUserMedia, createCandidateTable, processDescriptionEvent, createGraphOptions} from './import-common.js';
+import {createInternalsTimeSeries} from './timeseries.js';
 
 const SDPUtils = window.adapter.sdp;
 
@@ -115,31 +116,34 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
             : undefined;
         this.graphs[connectionId] = {};
 
-        const reportobj = createInternalsTimeSeries(peerConnectionTrace);
-        if (reportobj) {
-            const lastStats = {};
-            for (let id in reportobj) {
-                const report = reportobj[id];
-                const lastReport = {type: report.type};
-                Object.keys(report).forEach(property => {
-                    if (!Array.isArray(report[property])) return;
-                    const [key, values] = report[property];
-                    lastReport[key] = values[values.length - 1][1];
-                });
-                lastStats[id] = lastReport;
-            }
-            createCandidateTable(lastStats, this.containers[connectionId].candidates);
+        const timeSeries = createInternalsTimeSeries(peerConnectionTrace);
+        const lastStats = {};
+        for (const statsId in timeSeries) {
+            const report = timeSeries[statsId];
+            const lastReport = {type: report.type};
+            Object.keys(report).forEach(property => {
+                if (!Array.isArray(report[property])) return;
+                const [key, values] = report[property];
+                lastReport[property] = report[property][report[property].length - 1][1];
+            });
+            lastStats[statsId] = lastReport;
         }
+        createCandidateTable(lastStats, this.containers[connectionId].candidates);
 
-        Object.keys(reportobj).forEach(reportname => {
-            const reports = reportobj[reportname];
+        for (const statsId in timeSeries) {
+            const reports = timeSeries[statsId];
             const statsType = reports.type;
-            // ignore useless graphs
-            if (['local-candidate', 'remote-candidate', 'codec', 'stream', 'track'].includes(statsType)) return;
+            // ignore some graphs.
+            if (['local-candidate', 'remote-candidate', 'codec'].includes(statsType)) continue;
 
-            const graphOptions = createGraphOptions(reportname, statsType, reports, referenceTime);
+            // recreate the webrtc-internals format (for now)
+            const data = Object.keys(reports).filter(name => name !== 'type').map(name => {
+                return [name, reports[name], reports.type];
+            });
+
+            const graphOptions = createGraphOptions(statsId, statsType, data, referenceTime);
             if (!graphOptions) {
-                return;
+                continue;
             }
 
             const container = document.createElement('details');
@@ -173,7 +177,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
             container.appendChild(d);
 
             const graph = new Highcharts.Chart(d, graphOptions);
-            this.graphs[connectionId][reportname] = graph;
+            this.graphs[connectionId][statsId] = graph;
 
             // expand the graph when opening
             container.ontoggle = () => container.open && graph.reflow();
@@ -192,8 +196,8 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
                     });
                     graph.redraw();
                 };
-            })(reportname, container, graph);
-        });
+            })(statsId, container, graph);
+        }
 
         const ev = new Event('processed-stats');
         ev.connectionId = connectionId;
@@ -358,45 +362,3 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
     }
 }
 
-function createInternalsTimeSeries(connection) {
-    const series = {};
-    for (let reportname in connection.stats) {
-        if (reportname.startsWith('Conn-')) {
-            return {}; // legacy stats, no longer supported. Warning is shown above.
-        }
-    }
-    for (let reportname in connection.stats) {
-        // special casing of computed stats, in particular [a-b]
-        let statsId;
-        let statsProperty;
-        if (reportname.indexOf('[') !== -1) {
-            const t = reportname.split('[');
-            statsProperty = '[' + t.pop();
-            statsId = t.join('');
-            statsId = statsId.substr(0, statsId.length - 1);
-        } else {
-            const t = reportname.split('-');
-            statsProperty = t.pop();
-            statsId = t.join('-');
-        }
-        const stats = connection.stats[reportname];
-
-        if (!series.hasOwnProperty(statsId)) {
-            series[statsId] = [];
-            series[statsId].type = stats.statsType;
-            series[statsId].startTime = new Date(stats.startTime).getTime();
-            series[statsId].endTime = new Date(stats.endTime).getTime();
-        }
-        let values = JSON.parse(stats.values);
-        // Individual timestamps were added in crbug.com/1462567 in M117.
-        if (connection.stats[statsId + '-timestamp']) {
-            const timestamps = JSON.parse(connection.stats[statsId + '-timestamp'].values);
-            values = values.map((currentValue, index) => [timestamps[index], currentValue]);
-        } else {
-            // Fallback to the assumption that stats were gathered every second.
-            values = values.map((currentValue, index) => [series[statsId].startTime + 1000 * index, currentValue]);
-        }
-        series[statsId].push([statsProperty, values]);
-    }
-    return series;
-}

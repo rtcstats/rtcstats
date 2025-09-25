@@ -17,7 +17,7 @@ document.getElementById('import').onchange = async (evt) => {
     const blob = await (new Response(stream)).blob();
     const magic = await blob.slice(0, 13).text();
     if (!magic.startsWith('RTCStatsDump\n')) {
-        console.warn('Not a supported format, maybe webrtc-internals?');
+        console.warn('Dump is not in the RTCStats format, trying webrtc-internals');
         window.importer = new WebRTCInternalsDumpImporter(container);
         importer.process(blob);
     } else {

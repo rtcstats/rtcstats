@@ -1,6 +1,7 @@
 import {readRTCStatsDump} from 'rtcstats-shared';
 
 import {StatsRatesCalculatorAdapter} from './chromium/stats_rates_calculator_adapter.js';
+import {createRtcStatsTimeSeries} from './timeseries.js';
 
 import {
     createCandidateTable,
@@ -8,39 +9,6 @@ import {
     createGraphOptions,
     processDescriptionEvent,
 } from './import-common.js';
-
-function createRtcStatsTimeSeries(trace) {
-    const series = {};
-    for (let i = 0; i < trace.length; i++) {
-        if (trace[i].type !== 'getStats') {
-            continue;
-        }
-        const stats = trace[i].value;
-        Object.keys(stats).forEach(id => {
-            const report = stats[id];
-            Object.keys(report).forEach(name=> {
-                if (name === 'timestamp') return;
-                if (name === 'type') return;
-                if (!series[id]) {
-                    series[id] = {};
-                    series[id].type = stats[id].type;
-                }
-                const timeSeries = series[id];
-                if (!timeSeries[name]) {
-                    timeSeries[name] = [];
-                } else {
-                    const lastTime = timeSeries[name][timeSeries[name].length - 1][0];
-                    if (lastTime && report.timestamp && report.timestamp - lastTime > 20000) {
-                        // Insert a null value to create a gap.
-                        timeSeries[name].push([stats[id].timestamp || new Date(trace[i].time).getTime(), null]);
-                    }
-                }
-                timeSeries[name].push([report.timestamp, report[name]]);
-            });
-        });
-    }
-    return series;
-}
 
 export class RTCStatsDumpImporter extends EventTarget {
     constructor(container) {
@@ -129,6 +97,7 @@ export class RTCStatsDumpImporter extends EventTarget {
         this.graphs[connectionId] = {};
         for (const statsId in timeSeries) {
             const report = timeSeries[statsId];
+            // ignore some graphs.
             if (['local-candidate', 'remote-candidate', 'codec'].includes(report.type)) continue;
             const graphType = report.type;
 
