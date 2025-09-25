@@ -1,5 +1,5 @@
 import {createContainers, processGetUserMedia, createCandidateTable, processDescriptionEvent, createGraphOptions} from './import-common.js';
-import {createInternalsTimeSeries} from './timeseries.js';
+import {createInternalsTimeSeries} from 'rtcstats-shared';
 
 const SDPUtils = window.adapter.sdp;
 
