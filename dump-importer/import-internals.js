@@ -109,6 +109,21 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         this.dispatchEvent(ev);
     }
 
+    _showCandidateGrid(connectionId, timeSeries) {
+        const lastStats = {};
+        for (const statsId in timeSeries) {
+            const report = timeSeries[statsId];
+            const lastReport = {type: report.type};
+            for (const property in report) {
+                if (!Array.isArray(report[property])) continue;
+                const [key, values] = report[property];
+                lastReport[property] = report[property][report[property].length - 1][1];
+            }
+            lastStats[statsId] = lastReport;
+        }
+        createCandidateTable(lastStats, this.containers[connectionId].candidates);
+    }
+
     processStats(connectionId) {
         const peerConnectionTrace = this.data.PeerConnections[connectionId];
         const referenceTime = document.getElementById('useReferenceTime').checked && peerConnectionTrace.updateLog.length
@@ -117,18 +132,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         this.graphs[connectionId] = {};
 
         const timeSeries = createInternalsTimeSeries(peerConnectionTrace);
-        const lastStats = {};
-        for (const statsId in timeSeries) {
-            const report = timeSeries[statsId];
-            const lastReport = {type: report.type};
-            Object.keys(report).forEach(property => {
-                if (!Array.isArray(report[property])) return;
-                const [key, values] = report[property];
-                lastReport[property] = report[property][report[property].length - 1][1];
-            });
-            lastStats[statsId] = lastReport;
-        }
-        createCandidateTable(lastStats, this.containers[connectionId].candidates);
+        this._showCandidateGrid(connectionId, timeSeries);
 
         for (const statsId in timeSeries) {
             const reports = timeSeries[statsId];
@@ -346,13 +350,13 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         // Likewise, highlight (ice)connectionstates.
         if (['iceconnectionstatechange', 'connectionstatechange'].includes(traceEvent.type)) {
             switch(traceEvent.value) {
-            case 'connected':
-            case 'completed':
+            case 'connected': // <M142
+            case 'completed': // <M142
             case '"connected"':
             case '"completed"':
                 row.style.backgroundColor = 'green';
                 break;
-            case 'failed':
+            case 'failed': // <M142
             case '"failed"':
                 row.style.backgroundColor = 'red';
                 break;
