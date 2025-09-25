@@ -5,7 +5,7 @@ import {StatsRatesCalculatorAdapter} from './chromium/stats_rates_calculator_ada
 import {
     createCandidateTable,
     createContainers,
-    createGraphOptions,
+    createGraphAndContainer,
     processDescriptionEvent,
 } from './import-common.js';
 
@@ -95,101 +95,13 @@ export class RTCStatsDumpImporter extends EventTarget {
         const timeSeries = createRtcStatsTimeSeries(peerConnectionTrace);
         this.graphs[connectionId] = {};
         for (const statsId in timeSeries) {
-            const report = timeSeries[statsId];
-            // ignore some graphs.
-            if (['local-candidate', 'remote-candidate', 'codec'].includes(report.type)) continue;
-            const graphType = report.type;
-
-            // recreate the webrtc-internals format (for now)
-            const data = Object.keys(report).filter(name => name !== 'type').map(name => {
-                return [name, report[name], report.type];
-            });
-
-            const graphOptions = createGraphOptions(statsId, report.type, data);
-            if (!graphOptions) {
+            const result = createGraphAndContainer(statsId, timeSeries[statsId]);
+            if (!result) {
                 continue;
             }
-            // Determine if a series visibility was toggled.
-            let previouslyVisible = graphOptions.series.map(s => s.visible);
-            graphOptions.chart.events = {
-                redraw: () => {
-                    graph.series.forEach((series, index) => {
-                        const visible = series.visible;
-                        if (visible === previouslyVisible[index]) return;
-                        if (visible && !previouslyVisible[index]) {
-                            console.log('SERIES SHOWN', series.name, series);
-                        } else {
-                            console.log('SERIES HIDDEN', series.name, series);
-                        }
-                    });
-                    previouslyVisible = graph.series.map(s => s.visible);
-                    // coalesce into a single event and emit?
-                },
-                selection: (event) => {
-                    // Determine if a graph was zoomed in or zoomed out.
-                    if (event.xAxis) {
-                        console.log('zoom in to', event.xAxis[0]);
-                    } else {
-                        console.log('zoom out');
-                    }
-                },
-            };
-
-            const container = document.createElement('details');
-            container.addEventListener('toggle', (event) => {
-                // This graph was opened (see event.newState) so must be interesting?
-            });
-            if (graphOptions.series.statsType) {
-                container.attributes['data-statsType'] = graphOptions.series.statsType;
-            }
-            this.containers[connectionId].graphs.appendChild(container);
-            // TODO: keep in sync with
-            // https://source.chromium.org/chromium/chromium/src/+/main:content/browser/webrtc/resources/stats_helper.js
-            const title = [
-                'type', 'kind',
-                'ssrc', 'rtxSsrc', 'fecSsrc',
-                'mid', 'rid', 'encodingIndex',
-                'label',
-                '[codec]',
-                'encoderImplementation', 'decoderImplementation',
-                'trackIdentifier',
-                'id',
-                'visibleSeries', // importer extension.
-            ].filter(key => graphOptions.labels[key] !== undefined)
-                .map(key => {
-                    return ({statsType: 'type', trackIdentifier: 'track'}[key] || key) + '=' + JSON.stringify(graphOptions.labels[key]);
-                }).join(', ');
-
-            const titleElement = document.createElement('summary');
-            titleElement.innerText = title;
-            container.appendChild(titleElement);
-
-            const d = document.createElement('div');
-            d.id = 'chart_' + Date.now();
-            d.classList.add('graph');
-            container.appendChild(d);
-
-            const graph = new Highcharts.Chart(d, graphOptions);
+            const {graph, container} = result;
             this.graphs[connectionId][statsId] = graph;
-
-            // expand the graph when opening
-            container.ontoggle = () => container.open && graph.reflow();
-
-            // draw checkbox to turn off everything
-            ((container, graph) => {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                container.appendChild(checkbox);
-                const label = document.createElement('label');
-                label.innerText = 'Turn on/off all data series';
-                container.appendChild(label);
-                checkbox.onchange = function() {
-                    graph.series.forEach(series => {
-                        series.setVisible(!checkbox.checked, false);
-                    });
-                    graph.redraw();
-                };
-            })(container, graph);
+            this.containers[connectionId].graphs.appendChild(container);
         }
         if (Object.keys(this.graphs[connectionId]).length === 0) {
             this.containers[connectionId].graphs.style.display = 'none';

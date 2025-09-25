@@ -6,6 +6,8 @@ document.getElementById('import').onchange = async (evt) => {
     evt.target.disabled = 'disabled';
     document.getElementById('useReferenceTime').disabled = true;
 
+    const useReferenceTime = document.getElementById('useReferenceTime').checked;
+
     const files = evt.target.files;
     const file = files[0];
     let stream;
@@ -18,7 +20,7 @@ document.getElementById('import').onchange = async (evt) => {
     const magic = await blob.slice(0, 13).text();
     if (!magic.startsWith('RTCStatsDump\n')) {
         console.warn('Dump is not in the RTCStats format, trying webrtc-internals');
-        window.importer = new WebRTCInternalsDumpImporter(container);
+        window.importer = new WebRTCInternalsDumpImporter(container, {useReferenceTime});
         importer.process(blob);
     } else {
         window.importer = new RTCStatsDumpImporter(container);
