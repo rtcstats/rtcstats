@@ -379,6 +379,7 @@ export function createGraphOptions(statsId, statsType, reports, referenceTime) {
     };
     reports.sort().forEach(report => {
         const [name, data, statsType] = report;
+        if (!Array.isArray(data)) return;
         // set up a x-axis plotbands:
         // https://www.highcharts.com/docs/chart-concepts/plot-bands-and-plot-lines
         if (name === 'active' && statsType === 'outbound-rtp') {

@@ -1,7 +1,7 @@
 import {StatsRatesCalculator} from './stats_rates_calculator.js';
 
 // Adapter class for the Chromium StatsRatesCalculator.
-export class  StatsRatesCalculatorAdapter {
+export class StatsRatesCalculatorAdapter {
     constructor() {
         this.calculator = new StatsRatesCalculator();
     }
@@ -10,6 +10,7 @@ export class  StatsRatesCalculatorAdapter {
         // as derived metrics have already been calculated.
         const statsReport = new Map();
         Object.keys(report).forEach(id => {
+            report[id].id = id;
             statsReport.set(id, report[id]);
         });
         this.calculator.addStatsReport(statsReport);
