@@ -20,8 +20,6 @@ describe('webrtc-internals timeseries', () => {
         expect(result).to.deep.equal({
             CP1AiWle3t_ovSpjMG1: {
                 type: 'candidate-pair',
-                startTime: 1758794658088,
-                endTime: 1758794664377,
                 '[bytesReceived_in_bits/s]': [
                     [1758794658088.537, 0],
                     [1758794659086.322, 6414.208414645307],
@@ -47,8 +45,6 @@ describe('webrtc-internals timeseries', () => {
         expect(result).to.deep.equal({
             CP1AiWle3t_ovSpjMG1: {
                 type: 'candidate-pair',
-                startTime: 1758794658088,
-                endTime: 1758794664377,
                 '[bytesReceived_in_bits/s]': [
                     [1758794658088, 0],
                     [1758794659088, 6414.208414645307],

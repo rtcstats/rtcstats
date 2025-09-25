@@ -24,8 +24,6 @@ export function createInternalsTimeSeries(connection) {
         if (!series.hasOwnProperty(statsId)) {
             series[statsId] = {
                 type: stats.statsType,
-                startTime: new Date(stats.startTime).getTime(),
-                endTime: new Date(stats.endTime).getTime(),
             };
         }
         let values = JSON.parse(stats.values);
@@ -35,7 +33,7 @@ export function createInternalsTimeSeries(connection) {
             values = values.map((currentValue, index) => [timestamps[index], currentValue]);
         } else {
             // Fallback to the assumption that stats were gathered every second.
-            values = values.map((currentValue, index) => [series[statsId].startTime + 1000 * index, currentValue]);
+            values = values.map((currentValue, index) => [new Date(stats.startTime).getTime() + 1000 * index, currentValue]);
         }
         series[statsId][statsProperty] = values;
     }
