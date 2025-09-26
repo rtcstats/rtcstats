@@ -20,6 +20,13 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
 
     async process(blob) {
         this.data = JSON.parse(await blob.text());
+        if (!this.data.UserAgentData) { // Added in M138.
+            const el = document.createElement('div');
+            el.innerHTML = 'Unsupported webrtc-internals dump without UserAgentData (added in M138 mid-2025) detected. ' +
+                'Please use the <a href="https://fippo.github.io/webrtc-dump-importer/">old dump-importer</a> instead.';
+            document.body.appendChild(el);
+            return;
+        }
         this.processUserAgent();
         this.processGetUserMedia();
         this.importUpdatesAndStats();
@@ -55,20 +62,6 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         for (let connectionId in this.data.PeerConnections) {
             const container = createContainers(connectionId, this.data.PeerConnections[connectionId].url, this.containers);
             this.container.appendChild(container);
-        }
-        for (let connectionId in this.data.PeerConnections) {
-            const connection = this.data.PeerConnections[connectionId];
-            let legacy = false;
-            for (let reportname in connection.stats) {
-                if (reportname.startsWith('Conn-')) {
-                    legacy = true;
-                    break;
-                }
-            }
-            if (legacy) {
-                document.getElementById('legacy').style.display = 'block';
-                break;
-            }
         }
         setTimeout(this.processConnections.bind(this), 0, Object.keys(this.data.PeerConnections));
     }
