@@ -10,11 +10,12 @@ import {createInternalsTimeSeries} from 'rtcstats-shared';
 const SDPUtils = window.adapter.sdp;
 
 export class WebRTCInternalsDumpImporter extends EventTarget {
-    constructor(container) {
+    constructor(container, options) {
         super();
         this.graphs = {};
         this.container = container;
         this.containers = {};
+        this.options = options;
     }
 
     async process(blob) {
@@ -132,7 +133,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
 
     processStats(connectionId) {
         const peerConnectionTrace = this.data.PeerConnections[connectionId];
-        const referenceTime = document.getElementById('useReferenceTime').checked && peerConnectionTrace.updateLog.length
+        const referenceTime = this.options.useReferenceTime && peerConnectionTrace.updateLog.length
             ? new Date(peerConnectionTrace.updateLog[0].time).getTime()
             : undefined;
         this.graphs[connectionId] = {};

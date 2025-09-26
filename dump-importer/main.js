@@ -1,5 +1,6 @@
 import {RTCStatsDumpImporter} from './import-rtcstats.js';
 import {WebRTCInternalsDumpImporter} from './import-internals.js';
+import {detectRTCStatsDump, detectWebRTCInternalsDump} from 'rtcstats-shared';
 
 const container = document.getElementById('tables');
 document.getElementById('import').onchange = async (evt) => {
@@ -17,14 +18,14 @@ document.getElementById('import').onchange = async (evt) => {
         stream = file.stream();
     }
     const blob = await (new Response(stream)).blob();
-    const magic = await blob.slice(0, 13).text();
-    if (!magic.startsWith('RTCStatsDump\n')) {
-        console.warn('Dump is not in the RTCStats format, trying webrtc-internals');
+    if (detectRTCStatsDump(blob)) {
+        window.importer = new RTCStatsDumpImporter(container);
+        importer.process(blob);
+    } else if (detectWebRTCInternalsDump(blob)) {
         window.importer = new WebRTCInternalsDumpImporter(container, {useReferenceTime});
         importer.process(blob);
     } else {
-        window.importer = new RTCStatsDumpImporter(container);
-        importer.process(blob);
+        console.error('Unrecognized format');
     }
     window.rtcStatsDumpImporterSuccess = true;
 };
