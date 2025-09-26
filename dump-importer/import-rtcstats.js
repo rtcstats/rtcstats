@@ -203,11 +203,12 @@ export class RTCStatsDumpImporter extends EventTarget {
     }
 
     _processTraceEvent(traceEvent) {
+        const date = new Date(traceEvent.timestamp);
         const row = document.createElement('tr');
         let el = document.createElement('td');
         el.setAttribute('nowrap', '');
-        el.innerText = traceEvent.time.toLocaleTimeString(); // TODO: make this configurable via settings.
-        el.title = traceEvent.time.toISOString().split('T'); // Only way to get milliseconds.
+        el.innerText = date.toLocaleTimeString(); // TODO: make this configurable via settings.
+        el.title = date.toISOString().split('T'); // Only way to get milliseconds.
         row.appendChild(el);
 
         el = document.createElement('td');
