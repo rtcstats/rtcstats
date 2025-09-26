@@ -2,10 +2,7 @@ import {statsDecompression, decompressMethod} from './compression.js';
 
 export async function detectRTCStatsDump(blob) {
     const magic = await blob.slice(0, 13).text();
-    if (magic.startsWith('RTCStatsDump\n')) {
-        return true;
-    }
-    return false;
+    return magic.startsWith('RTCStatsDump\n');
 }
 
 export async function detectWebRTCInternalsDump(blob) {

@@ -18,10 +18,10 @@ document.getElementById('import').onchange = async (evt) => {
         stream = file.stream();
     }
     const blob = await (new Response(stream)).blob();
-    if (detectRTCStatsDump(blob)) {
+    if (await detectRTCStatsDump(blob)) {
         window.importer = new RTCStatsDumpImporter(container);
         importer.process(blob);
-    } else if (detectWebRTCInternalsDump(blob)) {
+    } else if (await detectWebRTCInternalsDump(blob)) {
         window.importer = new WebRTCInternalsDumpImporter(container, {useReferenceTime});
         importer.process(blob);
     } else {
