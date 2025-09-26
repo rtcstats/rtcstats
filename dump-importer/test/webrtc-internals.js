@@ -2,7 +2,7 @@ import {TestHTTPServer, buildDriver, webdriver, loadDump} from './utils.cjs';
 
 let driver;
 let server;
-const port = 4404;
+const port = 4405;
 describe('dump-importer with webrtc-internals', () => {
     before(async () => {
         server = new TestHTTPServer(port);

@@ -1,6 +1,23 @@
-import {readRTCStatsDump} from '../dump.js';
+import {
+    detectRTCStatsDump,
+    detectWebRTCInternalsDump,
+    readRTCStatsDump,
+} from '../dump.js';
 
 describe('RTCStats dump', () => {
+    describe('format detection', () => {
+        it('detects the RTCStats format', async () => {
+            const blob = new Blob(['RTCStatsDump\n']);
+            expect(await detectRTCStatsDump(blob)).to.equal(true);
+            expect(await detectWebRTCInternalsDump(blob)).to.equal(false);
+        });
+        it('detects the webrtc-internals format', async () => {
+            const blob = new Blob(['{}']);
+            expect(await detectRTCStatsDump(blob)).to.equal(false);
+            expect(await detectWebRTCInternalsDump(blob)).to.equal(true);
+        });
+    });
+
     describe('reading', () => {
         it('reads a minimal sample dump', async () => {
             const blob = new Blob(['RTCStatsDump\n' +

@@ -1,5 +1,17 @@
 import {statsDecompression, decompressMethod} from './compression.js';
 
+export async function detectRTCStatsDump(blob) {
+    const magic = await blob.slice(0, 13).text();
+    if (magic.startsWith('RTCStatsDump\n')) {
+        return true;
+    }
+    return false;
+}
+
+export async function detectWebRTCInternalsDump(blob) {
+    return (await blob.text()).startsWith('{');
+}
+
 export async function readRTCStatsDump(blob) {
     const textBlob = await blob.text();
     const firstLine = await textBlob.slice(0, 13);
