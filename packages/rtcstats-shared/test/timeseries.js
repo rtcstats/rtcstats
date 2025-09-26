@@ -32,7 +32,7 @@ describe('webrtc-internals timeseries', () => {
         });
     });
 
-    it('gets transformed to the common format without timestamps', () => {
+    it('does not parse the <M117 legacy format without timestamps', () => {
         const input = {
             'CP1AiWle3t_ovSpjMG1-[bytesReceived_in_bits/s]': {
                 endTime: '2025-09-25T10:04:24.377Z',
@@ -42,15 +42,7 @@ describe('webrtc-internals timeseries', () => {
             },
         };
         const result = createInternalsTimeSeries({stats: input});
-        expect(result).to.deep.equal({
-            CP1AiWle3t_ovSpjMG1: {
-                type: 'candidate-pair',
-                '[bytesReceived_in_bits/s]': [
-                    [1758794658088, 0],
-                    [1758794659088, 6414.208414645307],
-                ],
-            },
-        });
+        expect(result).to.equal(undefined);
     });
 });
 

@@ -26,16 +26,17 @@ export function createInternalsTimeSeries(connection) {
                 type: stats.statsType,
             };
         }
-        let values = JSON.parse(stats.values);
-        // Individual timestamps were added in crbug.com/1462567 in M117.
-        if (connection.stats[statsId + '-timestamp']) {
-            const timestamps = JSON.parse(connection.stats[statsId + '-timestamp'].values);
-            values = values.map((currentValue, index) => [timestamps[index], currentValue]);
-        } else {
-            // Fallback to the assumption that stats were gathered every second.
-            values = values.map((currentValue, index) => [new Date(stats.startTime).getTime() + 1000 * index, currentValue]);
+        if (!connection.stats[statsId + '-timestamp']) {
+            // Individual timestamps were added in crbug.com/1462567 in M117.
+            // This version is not supported anymore.
+            console.error('webrtc-internals dump missing timestamps for stats added in M117.');
+            return;
         }
-        series[statsId][statsProperty] = values;
+        const timestamps = JSON.parse(connection.stats[statsId + '-timestamp'].values);
+        series[statsId][statsProperty] = JSON.parse(stats.values).map((currentValue, index) => {
+            return [timestamps[index], currentValue];
+        });
+
     }
     return series;
 }
@@ -68,7 +69,7 @@ export function createRtcStatsTimeSeries(trace) {
                     const lastTime = timeSeries[name][timeSeries[name].length - 1][0];
                     if (lastTime && report.timestamp && report.timestamp - lastTime > 20000) {
                         // Insert a null value to create a gap.
-                        timeSeries[name].push([stats[id].timestamp || new Date(traceEvent.time).getTime(), null]);
+                        timeSeries[name].push([stats[id].timestamp || traceEvent.timestamp, null]);
                     }
                 }
                 timeSeries[name].push([report.timestamp, report[name]]);

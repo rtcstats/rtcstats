@@ -30,6 +30,7 @@ describe('RTCStats dump', () => {
                 peerConnections: {null: [{
                     extra: [],
                     time: new Date(1),
+                    timestamp: 1,
                     type: 'close',
                     value: 1001
                 }]},
@@ -93,16 +94,19 @@ describe('RTCStats dump', () => {
                 peerConnections: {1: [{
                     extra: [],
                     time: new Date(1),
+                    timestamp: 1,
                     type: 'create',
                     value: {},
                 }, {
                     extra: [],
                     time: new Date(2),
+                    timestamp: 2,
                     type: 'getStats',
                     value: {},
                 }, {
                     extra: [],
                     time: new Date(3),
+                    timestamp: 3,
                     type: 'close',
                     value: 1001,
                 }]},

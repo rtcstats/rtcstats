@@ -66,7 +66,8 @@ export async function readRTCStatsDump(blob) {
             baseStats[connection_id] = {};
         }
         data.peerConnections[connection_id].push({
-            time,
+            time, // deprecated, prefer timestamp.
+            timestamp: lastTime,
             type: method,
             value,
             extra,
