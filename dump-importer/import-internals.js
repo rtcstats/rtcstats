@@ -5,7 +5,10 @@ import {
     processDescriptionEvent,
     createGraphAndContainer,
 } from './import-common.js';
-import {createInternalsTimeSeries} from 'rtcstats-shared';
+import {
+    createInternalsTimeSeries,
+    readWebRTCInternalsDump,
+} from 'rtcstats-shared';
 
 const SDPUtils = window.adapter.sdp;
 
@@ -19,7 +22,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
     }
 
     async process(blob) {
-        this.data = JSON.parse(await blob.text());
+        this.data = await readWebRTCInternalsDump(blob);
         if (!this.data.UserAgentData) { // Added in M138.
             const el = document.createElement('div');
             el.innerHTML = 'Unsupported webrtc-internals dump without UserAgentData (added in M138 mid-2025) detected. ' +
