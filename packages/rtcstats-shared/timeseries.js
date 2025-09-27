@@ -36,7 +36,6 @@ export function createInternalsTimeSeries(connection) {
         series[statsId][statsProperty] = JSON.parse(stats.values).map((currentValue, index) => {
             return [timestamps[index], currentValue];
         });
-
     }
     return series;
 }
@@ -54,28 +53,34 @@ export function createRtcStatsTimeSeries(trace) {
         const stats = traceEvent.value;
         for (const id in stats) {
             const report = stats[id];
-            for (const name in report) {
-                if (name === 'timestamp') continue;
-                if (name === 'type') continue;
-                if (name === 'id') continue;
-                if (!series[id]) {
-                    series[id] = {};
-                    series[id].type = stats[id].type;
-                }
+            if (!series[id]) {
+                series[id] = {};
+                series[id].type = stats[id].type;
+            }
+            for (const statsProperty in report) {
+                if (['timestamp', 'type', 'id'].includes(statsProperty)) continue;
                 const timeSeries = series[id];
-                if (!timeSeries[name]) {
-                    timeSeries[name] = [];
-                } else {
-                    const lastTime = timeSeries[name][timeSeries[name].length - 1][0];
-                    if (lastTime && report.timestamp && report.timestamp - lastTime > 20000) {
-                        // Insert a null value to create a gap.
-                        timeSeries[name].push([stats[id].timestamp || traceEvent.timestamp, null]);
-                    }
+                if (!timeSeries[statsProperty]) {
+                    timeSeries[statsProperty] = [];
                 }
-                timeSeries[name].push([report.timestamp, report[name]]);
+                timeSeries[statsProperty].push([report.timestamp, report[statsProperty]]);
             }
         }
     }
     return series;
 }
 
+// Inserts null values for gaps in timeseries which creates a gap in Highcharts plots.
+// TODO: figure out how to show the markers for this point.
+// Possibly using https://api.highcharts.com/highcharts/plotOptions.series.zones
+export function insertNullForGapsIntoTimeSeries(timeSeries, gapSizeMs = 5000) {
+    const newSeries = [timeSeries[0]];;
+    for (let i = 1; i < timeSeries.length; i++) {
+        const delta = timeSeries[i][0] - timeSeries[i - 1][0];
+        if (delta > gapSizeMs) {
+            newSeries.push([timeSeries[i][0], null]);
+        }
+        newSeries.push([timeSeries[i][0], timeSeries[i][1]]);
+    }
+    return newSeries;
+}

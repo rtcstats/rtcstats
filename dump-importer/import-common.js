@@ -1,5 +1,6 @@
 const SDPUtils = window.adapter.sdp;
 
+import {insertNullForGapsIntoTimeSeries} from 'rtcstats-shared';
 import {
     isBoring,
 } from './timeseries.js';
@@ -496,7 +497,7 @@ function createGraphOptions(statsId, statsType, stats, referenceTime) {
         const hidden = isBoring(name, data);
         series.push({
             name,
-            data,
+            data: insertNullForGapsIntoTimeSeries(data),
             visible: !hidden,
             yAxis: secondYAxis.includes(name) ? 1 : 0,
         });
@@ -535,6 +536,9 @@ function createGraphOptions(statsId, statsType, stats, referenceTime) {
         ],
         chart: {
             zoomType: 'x',
+        },
+        plotOptions: {
+            series: {connectNulls: false},
         },
         series,
         labels,
