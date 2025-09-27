@@ -87,3 +87,7 @@ export async function readRTCStatsDump(blob) {
     return data;
 }
 
+export async function readWebRTCInternalsDump(blob) {
+    const textBlob = await blob.text();
+    return JSON.parse(textBlob);
+}
