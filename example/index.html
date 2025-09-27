@@ -10,11 +10,13 @@
 import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices} from 'rtcstats-js';
 import {WebSocketTrace} from 'rtcstats-js';
 
+// Could alternatively use wrapRTCStatsWithDefaultOptions.
 const trace = new WebSocketTrace();
 wrapRTCPeerConnection(trace, window, {getStatsInterval: 500});
 wrapGetUserMedia(trace, window);
 wrapEnumerateDevices(trace, window);
 
+// Establish the connection.
 trace.connect('ws://' + window.location.host + '/example' + window.location.search);
 
 let pc;
