@@ -34,7 +34,13 @@ describe('RTCStats dump', () => {
                     type: 'close',
                     value: 1001
                 }]},
-                eventSizes: {},
+                eventSizes: {
+                    null: [{
+                        method: 'close',
+                        x: 1,
+                        y: 21,
+                    }],
+                },
             });
         });
 
