@@ -16,9 +16,9 @@ export function createPostgres(config) {
             const stopDate = new Date(stopTime);
 
             // Extract authentication data.
-            let userId = null;
-            let conferenceId = null;
-            let sessionId = null;
+            let userId;
+            let conferenceId;
+            let sessionId;
             if (metadata && metadata.authData && metadata.authData.rtcStats) {
                 userId = metadata.authData.rtcStats.user;
                 conferenceId = metadata.authData.rtcStats.conference;
@@ -29,8 +29,9 @@ export function createPostgres(config) {
                      rtcstats_user, rtcstats_conference, rtcstats_session)
                     values
                     (${startDate.toISOString()}, ${stopDate.toISOString()},
-                     ${blobUrl}, ${metadata}, ${userId}, ${conferenceId}, ${sessionId})
-                    returning id`;
+                     ${blobUrl}, ${metadata},
+                     ${userId || null}, ${conferenceId || null}, ${sessionId || null}
+                    ) returning id`;
         },
         fetchUnprocessedDump: () => {
             return sql`select blob_url from ${sql(config.tableName)}
