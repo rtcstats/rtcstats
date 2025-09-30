@@ -79,3 +79,21 @@ Every line after this is a JSON array with RTCStats events.
 ## Old versions
 Versions 1 and 2 were used by the legacy RTCStats server. They are not supported.
 
+# Postgres tables
+rtcstats-server currently expects the following table format:
+```
+CREATE TABLE public.rtcstats(
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    rtcstats_user text,
+    rtcstats_conference text,
+    rtcstats_session text,
+    metadata jsonb,
+    blob_url text,
+    features_url text,
+    session_start timestamp with time zone,
+    session_end timestamp with time zone
+);
+```
+
+Note: a future version will move this definition to database migrations.
