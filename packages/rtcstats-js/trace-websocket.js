@@ -16,14 +16,16 @@ export function WebSocketTrace() {
         }
         const method = args[0];
         args[0] = compressMethod(method);
-        if (connection.readyState === WebSocket.OPEN) {
-            if (buffer.length === 0) {
-                connection.send(JSON.stringify(args));
-            } else {
-                buffer.push(args);
+        if (connection) {
+            if (connection.readyState === WebSocket.OPEN) {
+                if (buffer.length === 0) {
+                    connection.send(JSON.stringify(args));
+                } else {
+                    buffer.push(args);
+                }
+            } else if (connection.readyState >= WebSocket.CLOSING) {
+                // no-op. Possibly log?
             }
-        } else if (connection.readyState >= WebSocket.CLOSING) {
-            // no-op. Possibly log?
         } else {
             buffer.push(args);
         }
