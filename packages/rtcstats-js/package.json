@@ -1,12 +1,12 @@
 {
   "name": "@rtcstats/rtcstats-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "type": "module",
   "devDependencies": {
-    "@puppeteer/browsers": "^2.10.9",
     "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@puppeteer/browsers": "^2.10.9",
     "@web/test-runner": "^0.20.2"
   },
   "scripts": {
@@ -22,5 +22,8 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@rtcstats/rtcstats-shared": "^1.0.0"
   }
 }
