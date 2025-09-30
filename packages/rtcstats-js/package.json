@@ -1,6 +1,6 @@
 {
   "name": "@rtcstats/rtcstats-js",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
   "type": "module",
