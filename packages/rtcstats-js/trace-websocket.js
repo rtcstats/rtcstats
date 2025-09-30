@@ -35,7 +35,6 @@ export function WebSocketTrace() {
         connection.close();
     };
     trace.connect = (wsURL) => {
-        buffer = [];
         if (connection) {
             connection.close();
         }
