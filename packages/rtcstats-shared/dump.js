@@ -73,16 +73,14 @@ export async function readRTCStatsDump(blob) {
             extra,
         });
 
-        if (!(connection_id === null && method === 'close')) {
-            if (!data.eventSizes[connection_id]) {
-                data.eventSizes[connection_id] = [];
-            }
-            data.eventSizes[connection_id].push({
-                x: lastTime,
-                y: line.length,
-                method,
-            });
+        if (!data.eventSizes[connection_id]) {
+            data.eventSizes[connection_id] = [];
         }
+        data.eventSizes[connection_id].push({
+            x: lastTime,
+            y: line.length,
+            method,
+        });
     }
     return data;
 }
