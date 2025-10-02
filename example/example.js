@@ -3,10 +3,9 @@ import path from 'node:path';
 
 import config from 'config';
 import opener from 'opener';
-import jwt from 'jsonwebtoken';
 
 import {RTCStatsServer} from '@rtcstats/rtcstats-server/rtcstats-server.js';
-import {setupDirectory} from '@rtcstats/rtcstats-server/utils.js';
+import {generateAuthToken, setupDirectory} from '@rtcstats/rtcstats-server/utils.js';
 
 class RTCStatsAndHttpServer extends RTCStatsServer{
     // Override HTTP behavior.
@@ -47,6 +46,7 @@ setupDirectory(config, config.server.workDirectory);
 setupDirectory(config, config.server.uploadDirectory);
 
 config.server.deleteAfterUpload = false;
+config.authorization.jwtSecret = 'secret';
 const server = new RTCStatsAndHttpServer(config);
 server.listen();
 
@@ -55,18 +55,11 @@ server.listen();
 // authenticated user and conference (or session) metadata.
 // This is passed to the sample page which passes the token during
 // the websocket connection.
-config.authorization.jwtSecret = 'secret';
-jwt.sign({
-    rtcStats: {
-        user: 'example',
-        session: 'unique-id',
-        conference: 'krankygeek',
-    },
-}, config.authorization.jwtSecret, {expiresIn: 60/* seconds */}, (err, token) => {
-    if (err) {
-        console.error(err);
-        return;
-    }
+generateAuthToken({
+    user: 'example',
+    session: 'unique-id',
+    conference: 'krankygeek',
+}, config.authorization.jwtSecret).then((token) => {
     // Open the browser at the indicated url.
     opener('http://localhost:' + config.server.httpPort + '/?rtcstats-token=' + token);
 });
