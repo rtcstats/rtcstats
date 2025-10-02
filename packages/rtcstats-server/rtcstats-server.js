@@ -6,7 +6,6 @@ import url from 'node:url';
 
 import {WebSocketServer} from 'ws';
 import {v4 as uuidv4} from 'uuid';
-import config from 'config';
 import jwt from 'jsonwebtoken';
 
 import {handleWebSocket} from './rtcstats-websocket.js';
@@ -15,13 +14,14 @@ import {createStorage} from './storage/index.js';
 import {createDatabase} from './database/index.js';
 
 export class RTCStatsServer {
-    constructor() {
+    constructor(config) {
         this.storage = this.createStorage(config.storage);
         this.database = this.createDatabase(config.database);
         this.server = http.Server({}, () => { })
             .on('request', this.handleHttpRequest.bind(this));
         this.wss = new WebSocketServer({server: this.server});
         this.wss.on('connection', this.handleWebSocket.bind(this));
+        this.config = config;
     }
 
     createStorage(storageConfig) {
@@ -44,7 +44,7 @@ export class RTCStatsServer {
     }
 
     async authorizeWebSocket(socket, upgradeRequest) {
-        if (!(config.authorization && config.authorization.jwtSecret)) {
+        if (!(this.config.authorization && this.config.authorization.jwtSecret)) {
             return true;
         }
         const urlParts = url.parse(upgradeRequest.headers.origin + upgradeRequest.url, true);
@@ -53,7 +53,7 @@ export class RTCStatsServer {
             return false;
         }
         return await new Promise(resolve => {
-            jwt.verify(urlParts.query['rtcstats-token'], config.authorization.jwtSecret, (err, res) => {
+            jwt.verify(urlParts.query['rtcstats-token'], this.config.authorization.jwtSecret, (err, res) => {
                 if (err) {
                     console.warn('JWT authorization failed', err);
                     return resolve(false);
@@ -72,7 +72,7 @@ export class RTCStatsServer {
 
         const startTime = Date.now();
         const clientid = uuidv4();
-        const workPath = path.join(config.server.workDirectory, clientid);
+        const workPath = path.join(this.config.server.workDirectory, clientid);
         const writeStream = fs.createWriteStream(workPath);
         const {numberOfMessages, metadata} = await handleWebSocket(socket, clientid, upgradeRequest, authData, writeStream);
         if (numberOfMessages === 0) {
@@ -95,9 +95,9 @@ export class RTCStatsServer {
 
     async postProcess(clientid) {
         // Take the file and obfuscate IP addresses.
-        const sourcePath = path.join(config.server.workDirectory, clientid);
-        const destPath = path.join(config.server.uploadDirectory, clientid);
-        if (config.server.obfuscateIpAddresses) {
+        const sourcePath = path.join(this.config.server.workDirectory, clientid);
+        const destPath = path.join(this.config.server.uploadDirectory, clientid);
+        if (this.config.server.obfuscateIpAddresses) {
             const source = await fsPromises.open(sourcePath);
             const dest = await fsPromises.open(destPath, 'w');
             await obfuscateStream(source.createReadStream(), dest.createWriteStream());
@@ -113,7 +113,7 @@ export class RTCStatsServer {
     async uploadDump(clientid, destPath) {
         // Upload to storage and unlink the destination path.
         const blobLocation = await this.storage.put(clientid, destPath);
-        if (config.server.deleteAfterUpload) {
+        if (this.config.server.deleteAfterUpload) {
             await fsPromises.unlink(destPath);
         }
         return blobLocation;
@@ -125,7 +125,7 @@ export class RTCStatsServer {
 
     async listen() {
         return new Promise((resolve, reject) => {
-            this.server.listen(config.server.httpPort, (err) => {
+            this.server.listen(this.config.server.httpPort, (err) => {
                 if (err) {
                     return reject(err);
                 }
