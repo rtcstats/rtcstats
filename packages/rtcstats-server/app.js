@@ -7,5 +7,5 @@ import {setupDirectory} from './utils.js';
 setupDirectory(config, config.server.workDirectory);
 setupDirectory(config, config.server.uploadDirectory);
 
-const server = new RTCStatsServer();
+const server = new RTCStatsServer(config);
 server.listen();

@@ -30,7 +30,7 @@ class RTCStatsAndHttpServer extends RTCStatsServer{
         return {
             put: async (key, filename) => {
                 console.log('RTCStats dump generated in ' +
-                            path.join(process.cwd(), config.server.workDirectory, filename));
+                            path.join(process.cwd(), this.config.server.workDirectory, filename));
             },
         };
     }
@@ -47,7 +47,7 @@ setupDirectory(config, config.server.workDirectory);
 setupDirectory(config, config.server.uploadDirectory);
 
 config.server.deleteAfterUpload = false;
-const server = new RTCStatsAndHttpServer();
+const server = new RTCStatsAndHttpServer(config);
 server.listen();
 
 // This section shows JWT-based authorization with a shared secret.
