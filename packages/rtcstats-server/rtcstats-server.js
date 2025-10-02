@@ -43,7 +43,7 @@ export class RTCStatsServer {
         }
     }
 
-    async authorizeWebSocket(socket, upgradeRequest) {
+    async authorizeWebSocket(upgradeRequest) {
         if (!(this.config.authorization && this.config.authorization.jwtSecret)) {
             return true;
         }
@@ -64,12 +64,14 @@ export class RTCStatsServer {
     }
 
     async handleWebSocket(socket, upgradeRequest) {
-        const authData = await this.authorizeWebSocket(socket, upgradeRequest);
+        // Pause the socket so we can subscribe to the events later.
+        socket.pause();
+        const authData = await this.authorizeWebSocket(upgradeRequest);
         if (authData === false) {
+            socket.resume();
             socket.close(1008); // Policy-violation error.
             return;
         }
-
         const startTime = Date.now();
         const clientid = uuidv4();
         const workPath = path.join(this.config.server.workDirectory, clientid);
