@@ -46,41 +46,35 @@ async function extractMetadata(upgradeReq, authData) {
     };
 }
 
-export async function handleWebSocket(client, clientid, upgradeReq, authData, writeStream) {
-    let metadata = {};
+export async function handleWebSocket(socket, clientid, upgradeReq, authData, writeStream) {
+    const metadata = await extractMetadata(upgradeReq, authData);
+
+    // First line is 'RTCStatsDump'. File format version is on second line in JSON.
+    writeStream.write('RTCStatsDump\n');
+    // Second line of the file is a JS(ON) object.
+    writeStream.write(JSON.stringify(metadata) + '\n');
+
+    // Subscribe to events. Socket should be paused.
     let lastMessage = Date.now();
     let messages = 0;
-    let buffer = [];
-    client.on('message', msg => {
+    socket.on('message', msg => {
         messages++;
         lastMessage = Date.now();
-        if (buffer !== undefined) {
-            buffer.push(msg);
-            return;
-        }
         writeStream.write(msg + '\n');
     });
-    // Note: this may be called with metadata still not extracted.
-    client.on('close', (code) => {
+    socket.on('close', (code) => {
         // Code is the websocket close error.
         writeStream.write(JSON.stringify(['close', null, code, Date.now() - lastMessage]));
         // Update metadata.
         metadata.websocketClose = code;
         metadata.numberOfMessages = messages;
         metadata.stopTime = Date.now();
+
+        // Close the write stream.
+        writeStream.end();
     });
-
-    metadata = await extractMetadata(upgradeReq, authData);
-    // First line is 'RTCStatsDump'. File format version is on second line in JSON.
-    writeStream.write('RTCStatsDump\n');
-    // Second line of the file is a JS(ON) object.
-    writeStream.write(JSON.stringify(metadata) + '\n');
-
-    // Write pending messages.
-    for (const msg of buffer) {
-        writeStream.write(msg + '\n');
-    }
-    buffer = undefined;
+    // Resume the socket.
+    socket.resume();
 
     // Return number of messages handled and metadata.
     return new Promise(resolve => {
