@@ -35,6 +35,25 @@ describe('RTCStatsServer', () => {
         await server.close();
     });
 
+    it('writes data', async () => {
+        const confWithoutAuth = structuredClone(config);
+        confWithoutAuth.authorization = {};
+        server = new RTCStatsServer(confWithoutAuth);
+        await server.listen();
+
+        const ws = new WebSocket('ws://localhost:' + config.server.httpPort);
+        const sendPromise = new Promise(resolve => {
+            ws.on('open', async () => {
+                ws.send(JSON.stringify(['create', 'PC_0', {}, Date.now()]), () => {
+                    ws.close();
+                    resolve();
+                });
+            });
+        });
+        await sendPromise;
+        await server.close();
+    });
+
     describe('JWT authorization', () => {
         const jwtSecret = 'testSecret';
         it('rejects a websocket if authorization is configured', async () => {
