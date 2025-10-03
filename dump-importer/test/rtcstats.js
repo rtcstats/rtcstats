@@ -9,7 +9,7 @@ describe('dump-importer with rtcstats', () => {
         driver = await buildDriver();
     });
     after(() => {
-        driver.quit();
+        if (driver) driver.quit();
         server.close();
     });
 

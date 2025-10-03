@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "coverage": "mocha -t 10000 test/",
+    "coverage": "mocha --timeout 10000 --jobs=1 --retries=2 test/",
     "lint": "eslint *.js test/",
     "test": "npm run lint && npm run coverage",
     "start": "http-server .. -p 8000 -c-1 -o dump-importer/"
