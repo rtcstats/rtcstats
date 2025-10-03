@@ -9,7 +9,7 @@ describe('dump-importer with webrtc-internals', () => {
         driver = await buildDriver();
     });
     after(() => {
-        driver.quit();
+        if (driver) driver.quit();
         server.close();
     });
 
