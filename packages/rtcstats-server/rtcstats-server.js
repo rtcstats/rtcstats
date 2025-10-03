@@ -76,12 +76,13 @@ export class RTCStatsServer {
         const clientid = uuidv4();
         const workPath = path.join(this.config.server.workDirectory, clientid);
         const writeStream = fs.createWriteStream(workPath);
-        const {numberOfMessages, metadata} = await handleWebSocket(socket, clientid, upgradeRequest, authData, writeStream);
+        const {numberOfMessages, metadata} = await handleWebSocket(socket, clientid, upgradeRequest, writeStream);
         if (numberOfMessages === 0) {
             // Drop empty files.
             await fsPromises.unlink(workPath);
             return;
         }
+        metadata.authData = authData;
         const endTime = Date.now();
         process.nextTick(async() => {
             this.process(clientid, startTime, endTime, metadata);
