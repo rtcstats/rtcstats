@@ -9,21 +9,21 @@ async function lookupAddress(ipAddress) {
     return maxmindLookup.get(ipAddress);
 }
 
-async function extractMetadata(upgradeReq, authData) {
+async function extractMetadata(upgradeRequest) {
     // The url the client is coming from
-    const url = upgradeReq.url;
+    const url = upgradeRequest.url;
     // TODO: check origin against known/valid urls?
-    const {origin} = upgradeReq.headers;
+    const {origin} = upgradeRequest.headers;
 
-    const userAgent = upgradeReq.headers['user-agent'];
+    const userAgent = upgradeRequest.headers['user-agent'];
 
-    const forwardedFor = upgradeReq.headers['x-forwarded-for'];
+    const forwardedFor = upgradeRequest.headers['x-forwarded-for'];
     let remoteAddresses;
     if (forwardedFor) {
         const forwardedIPs = forwardedFor.split(',');
         remoteAddresses = forwardedIPs;
     } else {
-        const {remoteAddress} = upgradeReq.connection;
+        const {remoteAddress} = upgradeRequest.connection;
         remoteAddresses = [remoteAddress];
     }
     let locations;
@@ -31,7 +31,7 @@ async function extractMetadata(upgradeReq, authData) {
         locations = await Promise.all(remoteAddresses.map(lookupAddress));
     }
 
-    const clientProtocol = upgradeReq.headers['sec-websocket-protocol'];
+    const clientProtocol = upgradeRequest.headers['sec-websocket-protocol'];
 
     return {
         url,
@@ -41,13 +41,12 @@ async function extractMetadata(upgradeReq, authData) {
         remoteAddresses,
         locations,
         clientProtocol,
-        authData,
         fileFormat: config.rtcStats.fileFormat,
     };
 }
 
-export async function handleWebSocket(socket, clientid, upgradeReq, authData, writeStream) {
-    const metadata = await extractMetadata(upgradeReq, authData);
+export async function handleWebSocket(socket, clientid, upgradeRequest, writeStream) {
+    const metadata = await extractMetadata(upgradeRequest);
 
     // First line is 'RTCStatsDump'. File format version is on second line in JSON.
     writeStream.write('RTCStatsDump\n');
