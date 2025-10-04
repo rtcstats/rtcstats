@@ -10,11 +10,9 @@ export function map2obj(m) {
     if (!m.entries) {
         return m;
     }
-    const o = {};
-    m.forEach((v, k) => {
-        o[k] = v;
-    });
-    return o;
+    return [...m.entries()].reduce((o, [k, v]) => {
+        o[k] = v; return o;
+    }, {});
 }
 
 /**
