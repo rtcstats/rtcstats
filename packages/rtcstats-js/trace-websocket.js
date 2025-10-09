@@ -1,6 +1,6 @@
 import {compressMethod} from '@rtcstats/rtcstats-shared';
 
-const PROTOCOL_VERSION = '4.0';
+const PROTOCOL_VERSION = '5.0';
 
 export function WebSocketTrace() {
     let buffer = [];
