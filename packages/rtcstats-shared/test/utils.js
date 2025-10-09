@@ -13,19 +13,21 @@ describe('utils', () => {
             expect(map2obj(m)).to.deep.equal({abc: 'def'});
         });
     });
+
     describe('dumpTrackWithStreams', () => {
-        const track = {kind: 'audio', id: '123'};
+        const track = {kind: 'audio', id: '123', label: 'tracklabel'};
         const streams = [{id: 's1'}, {id: 's2'}];
         it('serializes without a stream', () => {
-            expect(dumpTrackWithStreams(track)).to.deep.equal(['audio', '123']);
+            expect(dumpTrackWithStreams(track)).to.deep.equal(['audio', '123', 'tracklabel']);
         });
         it('serializes with a single stream', () => {
-            expect(dumpTrackWithStreams(track, streams[0])).to.deep.equal(['audio', '123', 's1']);
+            expect(dumpTrackWithStreams(track, streams[0])).to.deep.equal(['audio', '123', 'tracklabel', 's1']);
         });
         it('serializes with multiple streams', () => {
-            expect(dumpTrackWithStreams(track, ...streams)).to.deep.equal(['audio', '123', 's1', 's2']);
+            expect(dumpTrackWithStreams(track, ...streams)).to.deep.equal(['audio', '123', 'tracklabel', 's1', 's2']);
         });
     });
+
     describe('copyAndSanitizeConfig', () => {
         it('serializeѕ the empty config', () => {
             expect(copyAndSanitizeConfig()).to.equal(undefined);

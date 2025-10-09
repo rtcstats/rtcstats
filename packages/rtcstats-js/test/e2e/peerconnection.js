@@ -722,7 +722,7 @@ describe('RTCPeerConnection', () => {
             expect(events).to.have.length(5);
             const trackEvent = events.find(e => e[0] === 'ontrack');
             expect(trackEvent[0]).to.equal('ontrack');
-            expect(trackEvent[2]).to.deep.equal(['audio',  track.id, 'streamid']);
+            expect(trackEvent[2]).to.deep.equal(['audio',  track.id, track.id, 'streamid']);
         });
 
         it('serializes onicecandidate', async () => {
