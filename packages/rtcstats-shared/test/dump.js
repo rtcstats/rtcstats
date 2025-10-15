@@ -89,10 +89,10 @@ describe('RTCStats dump', () => {
 
         it('reads a dump with getStats', async () => {
             const blob = new Blob(['RTCStatsDump\n' +
-                                  JSON.stringify({fileFormat: 3}) + '\n' +
-                                  JSON.stringify(['create','1',{},1]) + '\n' +
-                                  JSON.stringify(['getStats','1',{},1]) + '\n' +
-                                  JSON.stringify(['close','1',1001,1]) + '\n'
+                JSON.stringify({fileFormat: 3}) + '\n' +
+                JSON.stringify(['create','1',{},1]) + '\n' +
+                JSON.stringify(['getStats','1',{},1]) + '\n' +
+                JSON.stringify(['close','1',1001,1]) + '\n'
             ]);
             const result = await readRTCStatsDump(blob);
             expect(result).to.deep.equal({
@@ -122,6 +122,54 @@ describe('RTCStats dump', () => {
                     method: 'getStats', x: 2, y: 21,
                 }, {
                     method: 'close', x: 3, y: 20,
+                }]},
+            });
+        });
+
+        it('reads a dump with compressed sdp', async () => {
+            const blob = new Blob(['RTCStatsDump\n' +
+                JSON.stringify({fileFormat: 3}) + '\n' +
+                JSON.stringify(['create','1',{},1]) + '\n' +
+                JSON.stringify(['createOfferOnSuccess','1',{type: 'offer', sdp: 'v=0\r\n'},1]) + '\n' +
+                JSON.stringify(['setLocalDescription','1',{type: 'offer', sdp: 'v=\r\n'},1]) + '\n' +
+                JSON.stringify(['createOfferOnSuccess','1',{type: 'offer', sdp: 'v=\r\n'},1]) + '\n'
+            ]);
+            const result = await readRTCStatsDump(blob);
+            expect(result).to.deep.equal({
+                fileFormat: 3,
+                peerConnections: {1: [{
+                    extra: [],
+                    time: new Date(1),
+                    timestamp: 1,
+                    type: 'create',
+                    value: {},
+                }, {
+                    extra: [],
+                    time: new Date(2),
+                    timestamp: 2,
+                    type: 'createOfferOnSuccess',
+                    value: {type: 'offer', sdp: 'v=0\r\n'},
+                }, {
+                    extra: [],
+                    time: new Date(3),
+                    timestamp: 3,
+                    type: 'setLocalDescription',
+                    value: {type: 'offer', sdp: 'v=0\r\n'},
+                }, {
+                    extra: [],
+                    time: new Date(4),
+                    timestamp: 4,
+                    type: 'createOfferOnSuccess',
+                    value: {type: 'offer', sdp: 'v=0\r\n'},
+                }]},
+                eventSizes: {1: [{
+                    method: 'create', x: 1, y: 19,
+                }, {
+                    method: 'createOfferOnSuccess', x: 2, y: 63,
+                }, {
+                    method: 'setLocalDescription', x: 3, y: 61,
+                }, {
+                    method: 'createOfferOnSuccess', x: 4, y: 62,
                 }]},
             });
         });

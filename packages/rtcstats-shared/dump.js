@@ -1,4 +1,8 @@
-import {statsDecompression, decompressMethod} from './compression.js';
+import {
+    decompressMethod,
+    descriptionDecompression,
+    statsDecompression,
+} from './compression.js';
 
 export async function detectRTCStatsDump(blob) {
     const magic = await blob.slice(0, 13).text();
@@ -58,6 +62,30 @@ export async function readRTCStatsDump(blob) {
         if (method === 'getStats') { // delta-compressed stats
             value = statsDecompression(baseStats[connection_id], value);
             baseStats[connection_id] = JSON.parse(JSON.stringify(value));
+        } else if (method === 'setLocalDescription') {
+            let createCall;
+            for (let previousIndex = data.peerConnections[connection_id].length - 1; previousIndex >= 0; previousIndex--) {
+                if ((value.type === 'offer' && data.peerConnections[connection_id][previousIndex].type === 'createOfferOnSuccess') ||
+                    (value.type === 'answer' && data.peerConnections[connection_id][previousIndex].type === 'createAnswerOnSuccess')) {
+                    createCall = data.peerConnections[connection_id][previousIndex];
+                    break;
+                }
+            }
+            if (createCall) {
+                value = descriptionDecompression(createCall.value, value);
+            }
+        } else if (['createOfferOnSuccess', 'createAnswerOnSuccess'].includes(method)) {
+            let sldCall;
+            for (let previousIndex = data.peerConnections[connection_id].length - 1; previousIndex >= 0; previousIndex--) {
+                if ((value.type === 'offer' && data.peerConnections[connection_id][previousIndex].type === 'setLocalDescription') ||
+                    (value.type === 'answer' && data.peerConnections[connection_id][previousIndex].type === 'setLocalDescription')) {
+                    sldCall = data.peerConnections[connection_id][previousIndex];
+                    break;
+                }
+            }
+            if (sldCall) {
+                value = descriptionDecompression(sldCall.value, value);
+            }
         }
 
         // TODO: more explicit handling via create and close?
