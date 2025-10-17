@@ -1,6 +1,6 @@
 {
   "name": "@rtcstats/rtcstats-shared",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "description": "gather WebRTC API traces and statistics",
   "type": "module",
