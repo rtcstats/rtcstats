@@ -79,9 +79,8 @@ export function statsCompression(baseStatsInput, newStatsInput, statsIdMap) {
         delta[compressStatsProperty('timestamp')] = timestamp;
     }
 
-    // Remove mostly useless things like certificate and codec stats.
+    // Remove mostly useless things like certificate stats.
     removeCertificateStats(delta);
-    removeCodecStats(delta);
     removeObsoleteProperties(delta);
 
     // Replace the semi-structured ids with numerically increasing ones.
@@ -225,23 +224,6 @@ function removeCertificateStats(stats) {
         if (report.type === 'transport') {
             delete report.localCertificateId;
             delete report.remoteCertificateId;
-        }
-    });
-}
-
-/**
- * Removes codec stats and references to them.
- * @protected
- * @param stats {stats} - JSON stats object.
- */
-function removeCodecStats(stats) {
-    Object.keys(stats).forEach((id) => {
-        const report = stats[id];
-        if (report.type === 'codec') {
-            delete stats[id];
-        }
-        if (report.codecId !== undefined) {
-            delete report.codecId;
         }
     });
 }
