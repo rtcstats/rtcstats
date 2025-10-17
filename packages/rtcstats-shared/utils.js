@@ -25,7 +25,7 @@ export function map2obj(m) {
  * @returns {String[]} - serialized representation.
  */
 export function dumpTrackWithStreams(track, ...streams) {
-    return [track.kind, track.id, ...streams.map(s => s.id)];
+    return [track.kind, track.id, track.label, ...streams.map(s => s.id)];
 }
 
 /**
