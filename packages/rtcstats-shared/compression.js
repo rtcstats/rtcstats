@@ -396,6 +396,8 @@ const methodTable = {
     'MediaStreamTrack.onended': 72,
     'MediaStreamTrack.onmute': 73,
     'MediaStreamTrack.onunmute': 74,
+    // HTMLMediaElement
+    'HTMLMediaElement.resize': 80,
 };
 const reverseMethodTable = Object.keys(methodTable).reduce((table, method) => {
     table[methodTable[method]] = method;
