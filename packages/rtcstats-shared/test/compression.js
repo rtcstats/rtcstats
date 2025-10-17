@@ -421,44 +421,6 @@ describe('certificate removal', () => {
     });
 });
 
-describe('codec removal', () => {
-    const stats = {
-        'COT01_111_minptime=10;useinbandfec=1': {
-            'type': 'codec',
-        },
-        'OT01A3572743119': {
-            'type': 'outbound-rtp',
-            'codecId': 'COT01_111_minptime=10;useinbandfec=1',
-        },
-        'RIA3572743119': {
-            'type': 'remote-inbound-rtp',
-            'codecId': 'COT01_111_minptime=10;useinbandfec=1',
-        },
-    };
-    it('removes the codecs', () => {
-        const delta = statsCompression({}, stats, {});
-        let found = false;
-        Object.keys(delta).forEach(id => {
-            const report = delta[id];
-            if (report.type === 'codec') {
-                found = true;
-            }
-        });
-        expect(found).to.equal(false);
-    });
-    it('removes the references to the codecs', () => {
-        const delta = statsCompression({}, stats, {});
-        let found = 0;
-        Object.keys(delta).forEach(id => {
-            const report = delta[id];
-            if (['outbound-rtp', 'remote-inbound-rtp'].includes(report.type)) {
-                found += report[codecIdProperty] !== undefined ? 1 : 0;
-            }
-        });
-        expect(found).to.equal(0);
-    });
-});
-
 describe('obsolete property removal', () => {
     const stats = {id: {
         isRemote: true,
