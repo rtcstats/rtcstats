@@ -484,6 +484,21 @@ describe('RTCPeerConnection', () => {
             expect(events[2][3]).to.be.a('string');
         });
 
+        it('serializes with kind and streams', async () => {
+            pc = new RTCPeerConnection();
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+            pc.addTransceiver('audio', {streams: [stream]});
+            const events = testSink.reset();
+            expect(events).to.have.length(3);
+            expect(events[1][0]).to.equal('addTransceiver');
+            expect(events[1][2]).to.deep.equal([
+                'audio',
+                {
+                    streams: [stream.id],
+                }
+            ]);
+        });
+
         it('serializes with track and sendEncodings', async () => {
             pc = new RTCPeerConnection();
             const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
