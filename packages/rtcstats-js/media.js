@@ -67,7 +67,7 @@ export function wrapGetUserMedia(trace, {navigator, MediaStreamTrack}) {
                     stream.getTracks().forEach(track => {
                         track.__rtcStatsId = trackingId;
                         track.addEventListener('ended', () => {
-                            trace('MediaStreamTrack.onended', null, this.id, this.__rtcStatsId);
+                            trace('MediaStreamTrack.onended', null, track.id, track.__rtcStatsId);
                         });
                         wrapTrackProperty(track, 'enabled', trace);
                         wrapTrackProperty(track, 'contentHint', trace);

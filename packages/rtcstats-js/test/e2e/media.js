@@ -98,6 +98,19 @@ describe('getUserMedia', () => {
         expect(events[2][4]).to.equal(track.__rtcStatsId);
     });
 
+    it('serializes track.onended()', async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        const [track] = stream.getTracks();
+        track.dispatchEvent(new Event('ended'));
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(3);
+        expect(events[2][0]).to.equal('MediaStreamTrack.onended');
+        expect(events[2][1]).to.equal(null);
+        expect(events[2][2]).to.equal(track.id);
+        expect(events[2][3]).to.equal(track.__rtcStatsId);
+    });
+
     it('serializes track.applyConstraints()', async () => {
         const stream = await navigator.mediaDevices.getUserMedia({video: true});
         const [track] = stream.getTracks();
