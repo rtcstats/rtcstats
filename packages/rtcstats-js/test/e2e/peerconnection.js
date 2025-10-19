@@ -725,6 +725,38 @@ describe('RTCPeerConnection', () => {
             expect(trackEvent[2]).to.deep.equal(['audio',  track.id, track.id, 'streamid']);
         });
 
+        it('serializeѕ MediaStreamTrack.on(un)mute', async () => {
+            pc1 = new RTCPeerConnection();
+            pc2 = new RTCPeerConnection();
+            const stream = await navigator.mediaDevices.getUserMedia({video: true});
+            stream.getTracks().forEach(t => pc1.addTrack(t, stream));
+            const waitForUnmute = new Promise(resolve => {
+                pc2.addEventListener('track', ({track}) => {
+                    track.addEventListener('unmute', () => resolve(), {once: true});
+                }, {once: true});
+            });
+            const waitForMute = new Promise(resolve => {
+                pc2.addEventListener('track', ({track}) => {
+                    track.addEventListener('mute', () => resolve(), {once: true});
+                }, {once: true});
+            });
+            await negotiate(pc1, pc2);
+            await waitForUnmute;
+
+            pc1.getTransceivers()[0].direction = 'inactive';
+            await negotiate(pc1, pc2);
+            await waitForMute;
+
+            const events = testSink.reset();
+            const unmuteEvent = events.find(e => e[0] === 'MediaStreamTrack.onunmute');
+            expect(unmuteEvent[0]).to.equal('MediaStreamTrack.onunmute');
+            expect(unmuteEvent[2]).to.deep.equal(pc2.getReceivers()[0].track.id);
+
+            const muteEvent = events.find(e => e[0] === 'MediaStreamTrack.onmute');
+            expect(muteEvent[0]).to.equal('MediaStreamTrack.onmute');
+            expect(muteEvent[2]).to.deep.equal(pc2.getReceivers()[0].track.id);
+        });
+
         it('serializes onicecandidate', async () => {
             pc = new RTCPeerConnection();
 
@@ -770,7 +802,7 @@ describe('RTCPeerConnection', () => {
             });
             pc1.createDataChannel('test');
 
-            negotiate(pc1, pc2);
+            await negotiate(pc1, pc2);
 
             const channel = await onchannel;
 
@@ -928,7 +960,7 @@ describe('RTCPeerConnection', () => {
             });
             pc1.createDataChannel('test');
 
-            negotiate(pc1, pc2);
+            await negotiate(pc1, pc2);
             const channel = await onchannel;
             await (new Promise(resolve => setTimeout(resolve, 0.1 * getStatsInterval)));
 
@@ -950,7 +982,7 @@ describe('RTCPeerConnection', () => {
             });
             pc1.createDataChannel('test');
 
-            negotiate(pc1, pc2);
+            await negotiate(pc1, pc2);
             const channel = await onchannel;
             await (new Promise(resolve => setTimeout(resolve, 0.1 * getStatsInterval)));
             await (new Promise(resolve => setTimeout(resolve, 1.2 * getStatsInterval)));
@@ -974,7 +1006,7 @@ describe('RTCPeerConnection', () => {
             });
             pc1.createDataChannel('test');
 
-            negotiate(pc1, pc2);
+            await negotiate(pc1, pc2);
             await onchannel;
             await (new Promise(resolve => setTimeout(resolve, 0.1 * getStatsInterval)));
             pc1.close();
@@ -1006,7 +1038,7 @@ describe('RTCPeerConnection', () => {
                     });
                 });
             });
-            negotiate(pc1, pc2);
+            await negotiate(pc1, pc2);
             await waitForResize;
 
             const events = testSink.reset()
