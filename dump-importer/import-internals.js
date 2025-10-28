@@ -130,7 +130,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
     processStats(connectionId) {
         const peerConnectionTrace = this.data.PeerConnections[connectionId];
         const referenceTime = this.options.useReferenceTime && peerConnectionTrace.updateLog.length
-            ? new Date(peerConnectionTrace.updateLog[0].time).getTime()
+            ? peerConnectionTrace.updateLog[0].timestamp || new Date(peerConnectionTrace.updateLog[0].time).getTime()
             : undefined;
         this.graphs[connectionId] = {};
 
@@ -185,7 +185,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         const row = document.createElement('tr');
         let el = document.createElement('td');
         el.setAttribute('nowrap', '');
-        el.innerText = traceEvent.time;
+        el.innerText = traceEvent.timestamp ? new Date(traceEvent.timestamp) : traceEvent.time;
         row.appendChild(el);
 
         // recreate the HTML of webrtc-internals
