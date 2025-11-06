@@ -132,7 +132,8 @@ describe('RTCStats dump', () => {
                 JSON.stringify(['create','1',{},1]) + '\n' +
                 JSON.stringify(['createOfferOnSuccess','1',{type: 'offer', sdp: 'v=0\r\n'},1]) + '\n' +
                 JSON.stringify(['setLocalDescription','1',{type: 'offer', sdp: 'v=\r\n'},1]) + '\n' +
-                JSON.stringify(['createOfferOnSuccess','1',{type: 'offer', sdp: 'v=\r\n'},1]) + '\n'
+                JSON.stringify(['createOfferOnSuccess','1',{type: 'offer', sdp: 'v=\r\n'},1]) + '\n' +
+                JSON.stringify(['setLocalDescription','1',null,1]) + '\n'
             ]);
             const result = await readRTCStatsDump(blob);
             expect(result).to.deep.equal({
@@ -161,6 +162,12 @@ describe('RTCStats dump', () => {
                     timestamp: 4,
                     type: 'createOfferOnSuccess',
                     value: {type: 'offer', sdp: 'v=0\r\n'},
+                }, {
+                    extra: [],
+                    time: new Date(5),
+                    timestamp: 5,
+                    type: 'setLocalDescription',
+                    value: null,
                 }]},
                 eventSizes: {1: [{
                     method: 'create', x: 1, y: 19,
@@ -170,6 +177,8 @@ describe('RTCStats dump', () => {
                     method: 'setLocalDescription', x: 3, y: 61,
                 }, {
                     method: 'createOfferOnSuccess', x: 4, y: 62,
+                }, {
+                    method: 'setLocalDescription', x: 5, y: 34,
                 }]},
             });
         });
