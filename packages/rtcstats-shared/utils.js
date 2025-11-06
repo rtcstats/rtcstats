@@ -29,6 +29,20 @@ export function dumpTrackWithStreams(track, ...streams) {
 }
 
 /**
+ * Parses the serialized track and returns an object (which is not a track).
+ *
+ * @returns {Object} - representation of the track with streams.
+ */
+export function parseTrackWithStreams(serialized) {
+    return {
+        kind: serialized[0],
+        id: serialized[1],
+        label: serialized[2],
+        streams: serialized.slice(3),
+    };
+}
+
+/**
  * Sanitizes a RTCConfiguration by hiding the TURN server credentials and
  * making the certificates serializable.
  *

@@ -1,5 +1,5 @@
 import {map2obj} from '../utils.js';
-import {dumpTrackWithStreams} from '../utils.js';
+import {dumpTrackWithStreams, parseTrackWithStreams} from '../utils.js';
 import {copyAndSanitizeConfig} from '../utils.js';
 
 describe('utils', () => {
@@ -25,6 +25,17 @@ describe('utils', () => {
         });
         it('serializes with multiple streams', () => {
             expect(dumpTrackWithStreams(track, ...streams)).to.deep.equal(['audio', '123', 'tracklabel', 's1', 's2']);
+        });
+    });
+    describe('parseTrackWithStreams', () => {
+        it('parse the expected format', () => {
+            expect(parseTrackWithStreams(['audio', '123', 'tracklabel', 's1', 's2']))
+                .to.deep.equal({
+                    kind: 'audio',
+                    id: '123',
+                    label: 'tracklabel',
+                    streams: ['s1', 's2'],
+                });
         });
     });
 
