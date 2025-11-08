@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import postgres from 'postgres';
 
-// TODO: add table and database migrations.
 export function createPostgres(config) {
     // TODO: add pool size from config.
     const sql = postgres(config.connectionString, {
@@ -11,6 +10,7 @@ export function createPostgres(config) {
         },
     });
     return {
+        sql, // raw SQL access.
         dump: (name, startTime, stopTime, blobUrl, metadata) => {
             const startDate = new Date(startTime);
             const stopDate = new Date(stopTime);
@@ -33,15 +33,8 @@ export function createPostgres(config) {
                      ${userId || null}, ${conferenceId || null}, ${sessionId || null}
                     ) returning id`;
         },
-        fetchUnprocessedDump: () => {
-            return sql`select blob_url from ${sql(config.tableName)}
-                    where features_url is null
-                    order by created_at desc
-                    limit 1`
-                .then(result => {
-                    if (!result.length) return undefined;
-                    return result[0].blob_url.split('/').slice(3)[0];
-                });
+        close: () => {
+            return sql.close();
         },
     };
 }
