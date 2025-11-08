@@ -4,6 +4,5 @@ export function createNoDatabase() {
         dump: (name, startTime, stopTime, blobUrl, metadata) => {
             console.log('Not writing to database', name, startTime, stopTime, blobUrl, metadata);
         },
-        fetchUnprocessedDump: () => {},
     };
 }
