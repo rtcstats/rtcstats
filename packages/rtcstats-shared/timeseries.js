@@ -42,7 +42,7 @@ export function createInternalsTimeSeries(connection) {
 
 /**
  * Creates a timeseries from rtcstats.
- * Returns an object with stats by id and an object of property=> [[ts, value], ...].
+ * Returns an object with stats by id and an object of property => [[ts, value], ...].
  */
 export function createRtcStatsTimeSeries(trace) {
     const series = {};

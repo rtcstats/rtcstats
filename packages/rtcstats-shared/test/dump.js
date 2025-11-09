@@ -2,6 +2,8 @@ import {
     detectRTCStatsDump,
     detectWebRTCInternalsDump,
     readRTCStatsDump,
+    readWebRTCInternalsDump,
+    extractTracks,
 } from '../dump.js';
 
 describe('RTCStats dump', () => {
@@ -10,11 +12,6 @@ describe('RTCStats dump', () => {
             const blob = new Blob(['RTCStatsDump\n']);
             expect(await detectRTCStatsDump(blob)).to.equal(true);
             expect(await detectWebRTCInternalsDump(blob)).to.equal(false);
-        });
-        it('detects the webrtc-internals format', async () => {
-            const blob = new Blob(['{}']);
-            expect(await detectRTCStatsDump(blob)).to.equal(false);
-            expect(await detectWebRTCInternalsDump(blob)).to.equal(true);
         });
     });
 
@@ -182,5 +179,111 @@ describe('RTCStats dump', () => {
                 }]},
             });
         });
+    });
+
+    describe('extractTracks', () => {
+        it('extracts from addTrack', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['addTrack','1',['audio','trackId','trackLabel','streamId'],1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'outbound-rtp', mediaSourceId: '8'},
+                    8: {type: 'media-source', trackIdentifier: 'trackId'}
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackLabel',
+                startTime: 1,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
+        it('extracts from addTransceiver', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['addTransceiver','1',[['audio','trackId','trackLabel'],{streams:['streamId']}],1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'outbound-rtp', mediaSourceId: '8'},
+                    8: {type: 'media-source', trackIdentifier: 'trackId'}
+                },1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'outbound-rtp', mediaSourceId: '8'},
+                    8: {type: 'media-source', trackIdentifier: 'trackId'}
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackLabel',
+                startTime: 1,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
+        it('extracts from addTransceiver and replaceTrack', async () => {
+            const blob = new Blob(['RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['addTransceiver','1',['audio'],1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'outbound-rtp'},
+                },1]) + '\n',
+                JSON.stringify(['replaceTrack','1',[null, ['audio', 'trackId', 'trackLabel']],1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackLabel',
+                startTime: 3,
+                streams: [],
+                // statsId: '7',
+            }]);
+        });
+        it('extracts from ontrack', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['ontrack','1',['audio','trackId','trackId','streamId'],1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'inbound-rtp', trackIdentifier: 'trackId'},
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'inbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackId',
+                startTime: 1,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
+    });
+});
+
+describe('webrtc-internals dump', () => {
+    it('detects the webrtc-internals format', async () => {
+        const blob = new Blob(['{}']);
+        expect(await detectRTCStatsDump(blob)).to.equal(false);
+        expect(await detectWebRTCInternalsDump(blob)).to.equal(true);
+    });
+    it('reads a minimal sample dump', async () => {
+        const blob = new Blob(['{}']);
+        const result = await readWebRTCInternalsDump(blob);
+        expect(result).to.deep.equal({});
     });
 });
