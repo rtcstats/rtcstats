@@ -1,21 +1,17 @@
 {
-  "name": "@rtcstats/rtcstats-server",
+  "name": "@rtcstats/rtcstats-features",
   "private": true,
   "version": "1.0.0",
   "author": "rtcstats.com",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "lint": "eslint *.js test/",
+    "lint": "eslint *.js",
     "coverage": "c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage",
-    "start": "npm i && node app.js"
+    "start": "npm i && NODE_CONFIG_DIR=../rtcstats-server/config/ node app.js"
   },
   "dependencies": {
-    "config": "^4.1.1",
-    "globals": "^16.2.0",
-    "maxmind": "^5.0.0",
-    "uuid": "^11.1.0",
-    "ws": "^8.18.3"
+    "config": "^4.1.1"
   }
 }
