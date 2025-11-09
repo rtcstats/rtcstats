@@ -8,8 +8,8 @@ describe('dump-importer with rtcstats', () => {
         server = new TestHTTPServer(port);
         driver = await buildDriver();
     });
-    after(() => {
-        if (driver) driver.quit();
+    after(async () => {
+        if (driver) await driver.quit();
         server.close();
     });
 
