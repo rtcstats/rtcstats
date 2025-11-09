@@ -30,6 +30,20 @@ export function WebSocketTrace() {
             buffer.push(args);
         }
     };
+    trace('create', null, {
+        hardwareConcurrency: navigator.hardwareConcurrency,
+        userAgentData: navigator.userAgentData,
+        deviceMemory: navigator.deviceMemory,
+        screen: {
+            width: window.screen.availWidth,
+            height: window.screen.availHeight,
+            devicePixelRatio: window.devicePixelRatio,
+        },
+        window: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        },
+    });
 
     trace.close = () => {
         connection.close();
@@ -48,20 +62,6 @@ export function WebSocketTrace() {
         });
 
         connection.addEventListener('open', () => {
-            trace('create', null, {
-                hardwareConcurrency: navigator.hardwareConcurrency,
-                userAgentData: navigator.userAgentData,
-                deviceMemory: navigator.deviceMemory,
-                screen: {
-                    width: window.screen.availWidth,
-                    height: window.screen.availHeight,
-                    devicePixelRatio: window.devicePixelRatio,
-                },
-                window: {
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                },
-            });
             setTimeout(function flush() {
                 if (!buffer.length) {
                     return;
