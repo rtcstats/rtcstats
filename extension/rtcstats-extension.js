@@ -1,9 +1,14 @@
 // npx webpack-cli ./rtcstats-extension.js
-import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices, WebSocketTrace } from '../packages/rtcstats-js';
+import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices } from '../packages/rtcstats-js';
+import {IndexedDBTrace} from './trace-indexeddb.js';
 
-const trace = new WebSocketTrace();
+const trace = new IndexedDBTrace();
+trace.connect();
 
 wrapRTCPeerConnection(trace, window, {getStatsInterval: 1000});
 wrapGetUserMedia(trace, window);
 wrapEnumerateDevices(trace, window);
-trace.connect('ws://localhost:8080' + window.location.pathname);
+
+window.rtcstatsDownload = async () => {
+    await trace.download();
+};
