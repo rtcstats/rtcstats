@@ -1,11 +1,9 @@
-'use strict';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const http = require('node:http');
-const fs = require('node:fs');
-const path = require('node:path');
-
-const webdriver = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
+import * as webdriver from 'selenium-webdriver';
+import * as chrome from 'selenium-webdriver/chrome.js';
 
 async function buildDriver() {
     const chromeOptions = new chrome.Options()
@@ -57,7 +55,7 @@ class TestHTTPServer {
     }
 }
 
-module.exports = {
+export {
     buildDriver,
     loadDump,
     webdriver,
