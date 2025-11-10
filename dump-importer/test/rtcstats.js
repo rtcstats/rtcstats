@@ -1,4 +1,4 @@
-import {TestHTTPServer, buildDriver, webdriver, loadDump} from './utils.cjs';
+import {TestHTTPServer, buildDriver, webdriver, loadDump} from './utils.js';
 
 let driver;
 let server;
