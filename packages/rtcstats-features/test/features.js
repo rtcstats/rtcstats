@@ -1,4 +1,8 @@
-import {extractClientFeatures} from '../features.js';
+import {
+    extractClientFeatures,
+    extractConnectionFeatures,
+    extractTrackFeatures,
+} from '../features.js';
 
 describe('features.js', () => {
     describe('extractClientFeatures', () => {
@@ -83,6 +87,66 @@ describe('features.js', () => {
             expect(features.calledGetUserMediaCombined).to.be.true;
             expect(features.calledGetUserMediaAudio).to.be.true;
             expect(features.calledGetUserMediaVideo).to.be.true;
+        });
+    });
+
+    describe('extractConnectionFeatures', () => {
+        it('should extract features from a simple trace', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+                { type: 'setLocalDescription', timestamp: 1001 },
+                { type: 'getStats', timestamp: 1002 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features).to.deep.equal({
+                closed: false,
+                duration: 2,
+                numberOfEvents: 3,
+                numberOfEventsNotGetStats: 2,
+                startTime: 1000,
+            });
+        });
+
+        it('should identify a closed connection', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+                { type: 'close', timestamp: 1001 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.closed).to.be.true;
+            expect(features.duration).to.equal(1);
+        });
+    });
+
+    describe('extractTrackFeatures', () => {
+        const trackInfo = {
+            id: 'track1',
+            kind: 'audio',
+            direction: 'sendonly',
+            startTime: 1000,
+        };
+
+        it('should extract features for a track', () => {
+            const pcTrace = [
+                { type: 'getStats', timestamp: 1001 },
+                { type: 'getStats', timestamp: 1002 },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features).to.deep.equal({
+                direction: 'sendonly',
+                duration: 2,
+                kind: 'audio',
+                startTime: 1000,
+                trackId: 'track1',
+            });
+        });
+
+        it('should have a duration of 0 if no getStats are present', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1001 },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.duration).to.equal(0);
         });
     });
 });
