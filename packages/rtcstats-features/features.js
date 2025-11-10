@@ -2,7 +2,7 @@
 import {parseTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
 export function extractClientFeatures(clientTrace) {
-    // This should always exist.
+    // A trace will always have at least one event.
     const create = clientTrace.find(traceEvent => traceEvent.type === 'create').value;
     const getUserMedia = {
         calledGetUserMedia: clientTrace.find(traceEvent => {
@@ -74,11 +74,10 @@ export function extractClientFeatures(clientTrace) {
 }
 
 export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
+    // A trace will always have at least one event.
     return {
         closed: peerConnectionTrace[peerConnectionTrace.length - 1].type === 'close',
-        duration: peerConnectionTrace.length
-            ? peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp
-            : 0,
+        duration: peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp,
         numberOfEvents: peerConnectionTrace.length,
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
         startTime: peerConnectionTrace[0].timestamp,
