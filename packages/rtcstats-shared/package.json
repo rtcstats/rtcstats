@@ -17,8 +17,5 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
-  },
-  "dependencies": {
-    "sdp": "^3.2.1"
   }
 }

@@ -100,10 +100,12 @@ describe('features.js', () => {
             const features = extractConnectionFeatures([], pcTrace);
             expect(features).to.deep.equal({
                 closed: false,
+                iceConnected: false,
                 duration: 2,
                 numberOfEvents: 3,
                 numberOfEventsNotGetStats: 2,
                 startTime: 1000,
+                usingIceLite: false,
             });
         });
 
@@ -115,6 +117,24 @@ describe('features.js', () => {
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.closed).to.be.true;
             expect(features.duration).to.equal(1);
+        });
+
+        it('should identify a connected connection', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+                { type: 'oniceconnectionstatechange', value: 'connected', timestamp: 1001 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.iceConnected).to.be.true;
+        });
+
+        it('should identify if the remote side uses ice-lite', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+                { type: 'setRemoteDescription', value: { sdp: 'v=0\r\no=- 12345 12345 IN IP4 127.0.0.1\r\na=ice-lite\r\n' }, timestamp: 1001 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.usingIceLite).to.be.true;
         });
     });
 
