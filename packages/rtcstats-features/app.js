@@ -51,14 +51,26 @@ async function extract(id, dump) {
          start_time, duration,
          user_agent_data,
          hardware_concurrency, device_memory,
-         screen, ${sql('window')}
+         screen, ${sql('window')},
+         called_getusermedia, called_getusermedia_audio, called_getusermedia_combined, called_getusermedia_video,
+         called_getdisplaymedia, called_getdisplaymedia_audio, called_getdisplaymedia_video,
+         getusermedia_success_count, getusermedia_error_count,
+         getdisplaymedia_success_count, getdisplaymedia_error_count,
+         getusermedia_error,
+         enumerate_devices_count
         )
         values
         (${dumpId},
          ${clientFeatures.startTime}, ${clientFeatures.duration},
          ${clientFeatures.userAgentData},
          ${clientFeatures.hardwareConcurrency}, ${clientFeatures.deviceMemory},
-         ${clientFeatures.screen}, ${clientFeatures.window}
+         ${clientFeatures.screen}, ${clientFeatures.window},
+         ${clientFeatures.calledGetUserMedia}, ${clientFeatures.calledGetUserMediaAudio}, ${clientFeatures.calledGetUserMediaCombined}, ${clientFeatures.calledGetUserMediaVideo},
+         ${clientFeatures.calledGetDisplayMedia}, ${clientFeatures.calledGetDisplayMediaAudio}, ${clientFeatures.calledGetDisplayMediaVideo},
+         ${clientFeatures.getUserMediaSuccessCount}, ${clientFeatures.getUserMediaErrorCount},
+         ${clientFeatures.getDisplayMediaSuccessCount}, ${clientFeatures.getDisplayMediaErrorCount},
+         ${clientFeatures.getUserMediaError},
+         ${clientFeatures.enumerateDevicesCount}
         )`;
 
     // Extract connection features, ignoring the `null` connection which provides client information.
@@ -106,7 +118,6 @@ async function extract(id, dump) {
         join features_connection on features_connection.dump_id = features_metadata.id
         join features_track on features_track.connection_id = features_connection.id
         where server.id = ${id}`;
-    console.log('inserted', result.length);
     for (const row of result) {
         // console.log('ROW', row);
     }

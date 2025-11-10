@@ -1,0 +1,13 @@
+ALTER TABLE "public"."features_client" ADD COLUMN called_getusermedia BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN called_getusermedia_audio BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN called_getusermedia_combined BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN called_getusermedia_video BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN called_getdisplaymedia BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN called_getdisplaymedia_audio BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN called_getdisplaymedia_video BOOLEAN DEFAULT FALSE;
+ALTER TABLE "public"."features_client" ADD COLUMN getusermedia_success_count INTEGER DEFAULT 0;
+ALTER TABLE "public"."features_client" ADD COLUMN getusermedia_error_count INTEGER DEFAULT 0;
+ALTER TABLE "public"."features_client" ADD COLUMN getdisplaymedia_success_count INTEGER DEFAULT 0;
+ALTER TABLE "public"."features_client" ADD COLUMN getdisplaymedia_error_count INTEGER DEFAULT 0;
+ALTER TABLE "public"."features_client" ADD COLUMN getusermedia_error text;
+ALTER TABLE "public"."features_client" ADD COLUMN enumerate_devices_count INTEGER DEFAULT 0;
