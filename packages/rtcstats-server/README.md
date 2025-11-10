@@ -84,21 +84,25 @@ Every line after this is a JSON array with RTCStats events.
 ## Old versions
 Versions 1 and 2 were used by the legacy RTCStats server. They are not supported.
 
-# Postgres tables
-rtcstats-server currently expects the following table format:
-```
-CREATE TABLE public.rtcstats(
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    rtcstats_user text,
-    rtcstats_conference text,
-    rtcstats_session text,
-    metadata jsonb,
-    blob_url text,
-    features_url text,
-    session_start timestamp with time zone,
-    session_end timestamp with time zone
-);
-```
+# Database Migrations
+Database migrations are handled using [Supabase database migrations](https://supabase.com/docs/guides/deployment/database-migrations).
+The migration files are located in `packages/rtcstats-server/supabase/migrations`.
 
-Note: a future version will move this definition to database migrations.
+The initial table schema is defined in `20251103140656_initial-setup.sql` and looks like this:
+```sql
+  create table "public"."rtcstats-server" (
+    "created_at" timestamp with time zone not null default now(),
+    "session_start" timestamp with time zone,
+    "session_end" timestamp with time zone,
+    "blob_url" text,
+    "features_url" text,
+    "metadata" jsonb,
+    "id" uuid not null default gen_random_uuid(),
+    "rtcstats_user" text,
+    "rtcstats_conference" text,
+    "rtcstats_session" text
+  );
+```
+Database migrations can be deployed using `supabase db push`.
+
+Note: while using supabase, the migrations are plain SQL and can be applied without relying on supabase.
