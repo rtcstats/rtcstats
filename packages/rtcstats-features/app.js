@@ -85,14 +85,16 @@ async function extract(id, dump) {
              connection_identifier, start_time, duration,
              number_of_events, number_of_events_not_getstats,
              closed,
-             ice_connected, using_ice_lite
+             ice_connected, using_ice_lite,
+             ice_connection_time, ice_restart
             )
             values
             (${dumpId},
              ${peerConnectionId}, ${connectionFeatures.startTime}, ${connectionFeatures.duration},
              ${connectionFeatures.numberOfEvents}, ${connectionFeatures.numberOfEventsNotGetStats},
              ${connectionFeatures.closed},
-             ${connectionFeatures.iceConnected}, ${connectionFeatures.usingIceLite}
+             ${connectionFeatures.iceConnected}, ${connectionFeatures.usingIceLite},
+             ${connectionFeatures.iceConnectionTime}, ${connectionFeatures.iceRestart}
             ) returning id`;
         const connectionId = result[0].id;
 

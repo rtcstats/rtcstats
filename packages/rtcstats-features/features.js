@@ -84,6 +84,31 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             // Whether the ice connection was established.
             return traceEvent.type === 'oniceconnectionstatechange' && traceEvent.value === 'connected';
         }) !== undefined,
+        iceConnectionTime: (() => {
+            // The time it took (in milliseconds) to connect the ICE connection.
+            let first;
+            let second;
+            for (first = 0; first < peerConnectionTrace.length; first++) {
+                if (peerConnectionTrace[first].type === 'oniceconnectionstatechange' &&
+                    peerConnectionTrace[first].value === 'checking') {
+                    break;
+                }
+            }
+            for (second = first + 1; second < peerConnectionTrace.length; second++) {
+                if (peerConnectionTrace[second].type === 'oniceconnectionstatechange' &&
+                    peerConnectionTrace[second].value === 'connected') {
+                    break;
+                }
+            }
+            if (first < peerConnectionTrace.length && second < peerConnectionTrace.length) {
+                return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
+            }
+            return 0;
+        })(),
+        iceRestart: peerConnectionTrace.find(traceEvent => {
+            // Whether a local ICE restart was performed.
+            return traceEvent.type === 'createOffer' && traceEvent.value?.iceRestart === true;
+        }) !== undefined,
         usingIceLite: peerConnectionTrace.find(traceEvent => {
             // Whether ice-lite was used by the peer (i.e. it is a server).
             if (traceEvent.type !== 'setRemoteDescription') return false;

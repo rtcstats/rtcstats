@@ -100,8 +100,10 @@ describe('features.js', () => {
             const features = extractConnectionFeatures([], pcTrace);
             expect(features).to.deep.equal({
                 closed: false,
-                iceConnected: false,
                 duration: 2,
+                iceConnected: false,
+                iceConnectionTime: 0,
+                iceRestart: false,
                 numberOfEvents: 3,
                 numberOfEventsNotGetStats: 2,
                 startTime: 1000,
@@ -135,6 +137,32 @@ describe('features.js', () => {
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.usingIceLite).to.be.true;
+        });
+
+        it('should calculate the ice connection time', () => {
+            const pcTrace = [
+                { type: 'oniceconnectionstatechange', value: 'checking', timestamp: 1000 },
+                { type: 'oniceconnectionstatechange', value: 'connected', timestamp: 1010 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.iceConnectionTime).to.equal(10);
+        });
+
+        it('should return 0 for ice connection time if no connected state is found', () => {
+            const pcTrace = [
+                { type: 'oniceconnectionstatechange', value: 'checking', timestamp: 1000 },
+                { type: 'oniceconnectionstatechange', value: 'disconnected', timestamp: 1010 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.iceConnectionTime).to.equal(0);
+        });
+
+        it('should identify an ice restart', () => {
+            const pcTrace = [
+                { type: 'createOffer', value: { iceRestart: true }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.iceRestart).to.be.true;
         });
     });
 
