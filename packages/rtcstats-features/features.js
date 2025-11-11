@@ -158,14 +158,13 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         dtlsRole: (() => {
             // The DTLS role as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole
             for (const traceEvent of peerConnectionTrace) {
-                if (traceEvent.type !== 'getStats') continue;
-                const stats = traceEvent.value;
-                if (!stats) continue; // Handle undefined/null stats
-                const transportId = Object.keys(stats).find(id => {
-                    return stats[id].type === 'transport' && ['client', 'server'].includes(stats[id].dtlsRole);
+                if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+                const report = traceEvent.value;
+                const transportId = Object.keys(report).find(id => {
+                    return report[id].type === 'transport' && ['client', 'server'].includes(report[id].dtlsRole);
                 });
                 if (transportId) {
-                    return stats[transportId].dtlsRole;
+                    return report[transportId].dtlsRole;
                 }
             }
             return '';
@@ -173,19 +172,86 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         dtlsVersion: (() => {
             // The DTLS version as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
             for (const traceEvent of peerConnectionTrace) {
-                if (traceEvent.type !== 'getStats') continue;
-                const stats = traceEvent.value;
-                if (!stats) continue; // Handle undefined/null stats
-                const transportId = Object.keys(stats).find(id => {
-                    return stats[id].type === 'transport' && stats[id].dtlsVersion;
+                if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+                const report = traceEvent.value;
+                const transportId = Object.keys(report).find(id => {
+                    return report[id].type === 'transport' && report[id].dtlsVersion;
                 });
                 if (transportId) {
-                    return stats[transportId].dtlsVersion;
+                    return report[transportId].dtlsVersion;
                 }
             }
             return '';
         })(),
     };
+    const firstCandidatePair = (() => {
+        // Information about the first candidate pair after the connection is connected.
+        // Search for first getStats after connectionstate->connected.
+        let i;
+        for (i = 0; i < peerConnectionTrace.length; i++) {
+            if (peerConnectionTrace[i].type === 'onconnectionstatechange' &&
+                peerConnectionTrace[i].value === 'connected') {
+                break;
+            }
+        }
+        for (; i < peerConnectionTrace.length; i++) {
+            if (peerConnectionTrace[i].type !== 'getStats') continue;
+            const report = peerConnectionTrace[i].value;
+            let pair = null;
+            Object.keys(report).forEach(id => {
+                const stats = report[id];
+                // Spec.
+                if (stats.type === 'transport' && stats.selectedCandidatePairId) {
+                    const candidatePair = report[stats.selectedCandidatePairId];
+                    const localCandidate = report[candidatePair.localCandidateId];
+                    const remoteCandidate = report[candidatePair.remoteCandidateId];
+                    pair = {
+                        firstCandidatePairLocalAddress: localCandidate.address || '',
+                        firstCandidatePairLocalNetworkType: localCandidate.networkType,
+                        firstCandidatePairLocalProtocol: localCandidate.protocol,
+                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol || '',
+                        firstCandidatePairLocalRelayUrl: localCandidate.url || '',
+                        firstCandidatePairLocalType: localCandidate.candidateType,
+                        firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
+                        firstCandidatePairRemoteAddress: remoteCandidate.address || '',
+                        firstCandidatePairRemoteType: remoteCandidate.candidateType,
+                    };
+                }
+                /*
+                // Firefox... still!
+                if (report.type === 'candidate-pair' && report.selected === true) {
+                    const localCandidate = statsReport[report.localCandidateId];
+                    const remoteCandidate = statsReport[report.remoteCandidateId];
+                    pair = {
+                        firstCandidatePairLocalAddress: localCandidate.address || '',
+                        firstCandidatePairLocalNetworkType: '',
+                        firstCandidatePairLocalProtocol: localCandidate.protocol,
+                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol || '',
+                        firstCandidatePairLocalRelayUrl: localCandidate.url || '',
+                        firstCandidatePairLocalType: localCandidate.candidateType,
+                        firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
+                        firstCandidatePairRemoteAddress: remoteCandidate.address || '',
+                        firstCandidatePairRemoteType: remoteCandidate.candidateType,
+                    };
+                }
+                */
+            });
+            if (pair) {
+                return pair;
+            }
+        }
+        return {
+            firstCandidatePairLocalAddress: '',
+            firstCandidatePairLocalNetworkType: '',
+            firstCandidatePairLocalProtocol: '',
+            firstCandidatePairLocalRelayProtocol: '',
+            firstCandidatePairLocalRelayUrl: '',
+            firstCandidatePairLocalType: '',
+            firstCandidatePairLocalTypePreference: 0,
+            firstCandidatePairRemoteAddress: '',
+            firstCandidatePairRemoteType: '',
+        };
+    })();
     return {
         ... apiFailures,
         ... connection,
@@ -194,6 +260,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         // The lifetime of the peer connection in milliseconds.
         duration: peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp,
         ...ice,
+        ...firstCandidatePair,
         // The total number of events in the peer connection trace.
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
@@ -208,12 +275,12 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
     // getStats events which are associated with trackInformation.statsId.
     const codec = (() => {
         for (const traceEvent of peerConnectionTrace) {
-            if (traceEvent.type !== 'getStats') continue;
-            const stats = traceEvent.value;
-            if (!stats[trackInformation.statsId]) continue;
-            const codecId = stats[trackInformation.statsId].codecId;
-            if (!(codecId && stats[codecId])) continue;
-            const codec = stats[codecId];
+            if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+            const report = traceEvent.value;
+            if (!report[trackInformation.statsId]) continue;
+            const codecId = report[trackInformation.statsId].codecId;
+            if (!(codecId && report[codecId])) continue;
+            const codec = report[codecId];
             return {
                 codecMimeType: codec.mimeType,
                 codecSdpFmtpLine: codec.sdpFmtpLine || '',
