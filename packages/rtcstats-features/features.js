@@ -219,7 +219,10 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
                 codecSdpFmtpLine: codec.sdpFmtpLine || '',
             };
         }
-        return {};
+        return {
+            codecMimeType: '',
+            codecSdpFmtpLine: '',
+        };
     })();
 
     const features = {
