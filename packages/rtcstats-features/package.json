@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "lint": "eslint *.js",
+    "lint": "eslint *.js test/",
     "coverage": "c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage",
     "start": "npm i && NODE_CONFIG_DIR=../rtcstats-server/config/ node app.js"
