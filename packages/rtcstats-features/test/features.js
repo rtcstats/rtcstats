@@ -108,6 +108,9 @@ describe('features.js', () => {
                 numberOfEventsNotGetStats: 2,
                 startTime: 1000,
                 usingIceLite: false,
+                addIceCandidateFailure: '',
+                setLocalDescriptionFailure: '',
+                setRemoteDescriptionFailure: '',
             });
         });
 
@@ -163,6 +166,54 @@ describe('features.js', () => {
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.iceRestart).to.be.true;
+        });
+
+        it('should extract addIceCandidateFailure', () => {
+            const pcTrace = [
+                { type: 'addIceCandidateOnFailure', value: 'error message', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addIceCandidateFailure).to.equal('error message');
+        });
+
+        it('should not extract addIceCandidateFailure if event is not present', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addIceCandidateFailure).to.equal('');
+        });
+
+        it('should extract setLocalDescriptionFailure', () => {
+            const pcTrace = [
+                { type: 'setLocalDescriptionOnFailure', value: 'error message', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.setLocalDescriptionFailure).to.equal('error message');
+        });
+
+        it('should not extract setLocalDescriptionFailure if event is not present', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.setLocalDescriptionFailure).to.equal('');
+        });
+
+        it('should extract setRemoteDescriptionFailure', () => {
+            const pcTrace = [
+                { type: 'setRemoteDescriptionOnFailure', value: 'error message', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.setRemoteDescriptionFailure).to.equal('error message');
+        });
+
+        it('should not extract setRemoteDescriptionFailure if event is not present', () => {
+            const pcTrace = [
+                { type: 'createOffer', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.setRemoteDescriptionFailure).to.equal('');
         });
     });
 

@@ -115,7 +115,22 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             return SDPUtils.splitLines(traceEvent.value.sdp).includes('a=ice-lite');
         }) !== undefined,
     };
+    const apiFailures = {
+        // The error message if addIceCandidate fails.
+        addIceCandidateFailure: peerConnectionTrace.find(traceEvent => {
+            return traceEvent.type === 'addIceCandidateOnFailure';
+        })?.value || '',
+        // The error message if setLocalDescription fails.
+        setLocalDescriptionFailure: peerConnectionTrace.find(traceEvent => {
+            return traceEvent.type === 'setLocalDescriptionOnFailure';
+        })?.value || '',
+        // The error message if setRemoteDescription fails.
+        setRemoteDescriptionFailure: peerConnectionTrace.find(traceEvent => {
+            return traceEvent.type === 'setRemoteDescriptionOnFailure';
+        })?.value || '',
+    };
     return {
+        ... apiFailures,
         // Whether the peer connection was closed using `pc.close()`.
         closed: peerConnectionTrace[peerConnectionTrace.length - 1].type === 'close',
         // The lifetime of the peer connection in milliseconds.
