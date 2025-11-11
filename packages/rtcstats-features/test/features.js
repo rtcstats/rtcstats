@@ -113,6 +113,7 @@ describe('features.js', () => {
                 setRemoteDescriptionFailure: '',
                 connectionTime: 0,
                 dtlsVersion: '',
+                dtlsRole: '',
                 connected: false,
             });
         });
@@ -276,6 +277,19 @@ describe('features.js', () => {
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.setRemoteDescriptionFailure).to.equal('');
+        });
+
+        it('should extract dtlsRole', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'transport_1': {
+                        type: 'transport',
+                        dtlsRole: 'client'
+                    }
+                }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.dtlsRole).to.equal('client');
         });
     });
 

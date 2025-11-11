@@ -88,7 +88,8 @@ async function extract(id, dump) {
              ice_connected, using_ice_lite,
              ice_connection_time, ice_restart,
              add_ice_candidate_failure, set_local_description_failure, set_remote_description_failure,
-             connected, connection_time, dtls_version
+             connected, connection_time,
+             dtls_version, dtls_role
             )
             values
             (${dumpId},
@@ -98,7 +99,8 @@ async function extract(id, dump) {
              ${connectionFeatures.iceConnected}, ${connectionFeatures.usingIceLite},
              ${connectionFeatures.iceConnectionTime}, ${connectionFeatures.iceRestart},
              ${connectionFeatures.addIceCandidateFailure}, ${connectionFeatures.setLocalDescriptionFailure}, ${connectionFeatures.setRemoteDescriptionFailure},
-             ${connectionFeatures.connected}, ${connectionFeatures.connectionTime}, ${connectionFeatures.dtlsVersion}
+             ${connectionFeatures.connected}, ${connectionFeatures.connectionTime},
+             ${connectionFeatures.dtlsVersion}, ${connectionFeatures.dtlsRole}
             ) returning id`;
         const connectionId = result[0].id;
 
