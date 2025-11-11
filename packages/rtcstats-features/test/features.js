@@ -111,6 +111,8 @@ describe('features.js', () => {
                 addIceCandidateFailure: '',
                 setLocalDescriptionFailure: '',
                 setRemoteDescriptionFailure: '',
+                connectionTime: 0,
+                dtlsVersion: '',
             });
         });
 
@@ -166,6 +168,49 @@ describe('features.js', () => {
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.iceRestart).to.be.true;
+        });
+
+        it('should calculate the DTLS connection time', () => {
+            const pcTrace = [
+                { type: 'onconnectionstatechange', value: 'connecting', timestamp: 1000 },
+                { type: 'onconnectionstatechange', value: 'connected', timestamp: 1010 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.connectionTime).to.equal(10);
+        });
+
+        it('should return 0 for DTLS connection time if no connected state is found', () => {
+            const pcTrace = [
+                { type: 'onconnectionstatechange', value: 'connecting', timestamp: 1000 },
+                { type: 'onconnectionstatechange', value: 'disconnected', timestamp: 1010 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.connectionTime).to.equal(0);
+        });
+
+        it('should extract DTLS version', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'transport_1': {
+                        type: 'transport',
+                        dtlsVersion: 'FEFD'
+                    }
+                }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.dtlsVersion).to.equal('FEFD');
+        });
+
+        it('should not extract DTLS version if not present', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'transport_1': {
+                        type: 'transport',
+                    }
+                }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.dtlsVersion).to.equal('');
         });
 
         it('should extract addIceCandidateFailure', () => {
