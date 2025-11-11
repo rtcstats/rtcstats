@@ -111,12 +111,14 @@ async function extract(id, dump) {
             await sql`insert into ${sql('features_track')}
                 (connection_id,
                  track_identifier, start_time, duration,
-                 kind, direction
+                 kind, direction,
+                 codec_mime_type, codec_sdp_fmtp_line
                 )
                 values
                 (${connectionId},
                  ${trackFeatures.trackId}, ${trackFeatures.startTime}, ${trackFeatures.duration},
-                 ${trackFeatures.kind}, ${trackFeatures.direction}
+                 ${trackFeatures.kind}, ${trackFeatures.direction},
+                 ${trackFeatures.codecMimeType}, ${trackFeatures.codecSdpFmtpLine}
                 )`;
         }
         // TODO: do we want datachannel features?
