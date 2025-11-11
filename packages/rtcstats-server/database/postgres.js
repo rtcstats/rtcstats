@@ -25,13 +25,13 @@ export function createPostgres(config) {
                 sessionId = metadata.authData.rtcStats.session;
             }
             return sql`insert into ${sql(config.tableName)}
-                    (session_start, session_end, blob_url, metadata,
+                    (session_start, session_end, blob_url,
                      rtcstats_user, rtcstats_conference, rtcstats_session)
                     values
                     (${startDate.toISOString()}, ${stopDate.toISOString()},
-                     ${blobUrl}, ${metadata},
+                     ${blobUrl},
                      ${userId || null}, ${conferenceId || null}, ${sessionId || null}
-                    ) returning id`;
+                    )`;
         },
         close: () => {
             return sql.close();
