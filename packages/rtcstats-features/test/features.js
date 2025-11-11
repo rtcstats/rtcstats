@@ -113,6 +113,7 @@ describe('features.js', () => {
                 setRemoteDescriptionFailure: '',
                 connectionTime: 0,
                 dtlsVersion: '',
+                connected: false,
             });
         });
 
@@ -168,6 +169,22 @@ describe('features.js', () => {
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.iceRestart).to.be.true;
+        });
+
+        it('should identify a connected connection', () => {
+            const pcTrace = [
+                { type: 'onconnectionstatechange', value: 'connected', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.connected).to.be.true;
+        });
+
+        it('should not identify a connected connection if state is not "connected"', () => {
+            const pcTrace = [
+                { type: 'onconnectionstatechange', value: 'connecting', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.connected).to.be.false;
         });
 
         it('should calculate the DTLS connection time', () => {

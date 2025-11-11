@@ -130,6 +130,10 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         })?.value || '',
     };
     const connection = {
+        connected: peerConnectionTrace.find(traceEvent => {
+            // Whether the connection was established.
+            return traceEvent.type === 'onconnectionstatechange' && traceEvent.value === 'connected';
+        }) !== undefined,
         connectionTime: (() => {
             // The time it took (in milliseconds) to connect the DTLS connection.
             let first;
