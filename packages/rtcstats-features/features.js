@@ -129,8 +129,46 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             return traceEvent.type === 'setRemoteDescriptionOnFailure';
         })?.value || '',
     };
+    const connection = {
+        connectionTime: (() => {
+            // The time it took (in milliseconds) to connect the DTLS connection.
+            let first;
+            let second;
+            for (first = 0; first < peerConnectionTrace.length; first++) {
+                if (peerConnectionTrace[first].type === 'onconnectionstatechange' &&
+                    peerConnectionTrace[first].value === 'connecting') {
+                    break;
+                }
+            }
+            for (second = first + 1; second < peerConnectionTrace.length; second++) {
+                if (peerConnectionTrace[second].type === 'onconnectionstatechange' &&
+                    peerConnectionTrace[second].value === 'connected') {
+                    break;
+                }
+            }
+            if (first < peerConnectionTrace.length && second < peerConnectionTrace.length) {
+                return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
+            }
+            return 0;
+        })(),
+        dtlsVersion: (() => {
+            for (const traceEvent of peerConnectionTrace) {
+                if (traceEvent.type !== 'getStats') continue;
+                const stats = traceEvent.value;
+                if (!stats) continue; // Handle undefined/null stats
+                const transportId = Object.keys(stats).find(id => {
+                    return stats[id].type === 'transport' && stats[id].dtlsVersion;
+                });
+                if (transportId) {
+                    return stats[transportId].dtlsVersion;
+                }
+            }
+            return '';
+        })(),
+    };
     return {
         ... apiFailures,
+        ... connection,
         // Whether the peer connection was closed using `pc.close()`.
         closed: peerConnectionTrace[peerConnectionTrace.length - 1].type === 'close',
         // The lifetime of the peer connection in milliseconds.
