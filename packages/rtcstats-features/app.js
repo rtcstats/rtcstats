@@ -89,7 +89,12 @@ async function extract(id, dump) {
              ice_connection_time, ice_restart,
              add_ice_candidate_failure, set_local_description_failure, set_remote_description_failure,
              connected, connection_time,
-             dtls_version, dtls_role
+             dtls_version, dtls_role,
+             first_candidate_pair_local_address, first_candidate_pair_local_network_type,
+             first_candidate_pair_local_protocol,
+             first_candidate_pair_local_relay_protocol, first_candidate_pair_local_relay_url,
+             first_candidate_pair_local_type, first_candidate_pair_local_type_preference,
+             first_candidate_pair_remote_address, first_candidate_pair_remote_type
             )
             values
             (${dumpId},
@@ -100,7 +105,12 @@ async function extract(id, dump) {
              ${connectionFeatures.iceConnectionTime}, ${connectionFeatures.iceRestart},
              ${connectionFeatures.addIceCandidateFailure}, ${connectionFeatures.setLocalDescriptionFailure}, ${connectionFeatures.setRemoteDescriptionFailure},
              ${connectionFeatures.connected}, ${connectionFeatures.connectionTime},
-             ${connectionFeatures.dtlsVersion}, ${connectionFeatures.dtlsRole}
+             ${connectionFeatures.dtlsVersion}, ${connectionFeatures.dtlsRole},
+             ${connectionFeatures.firstCandidatePairLocalAddress}, ${connectionFeatures.firstCandidatePairLocalNetworkType},
+             ${connectionFeatures.firstCandidatePairLocalProtocol},
+             ${connectionFeatures.firstCandidatePairLocalRelayProtocol}, ${connectionFeatures.firstCandidatePairLocalRelayUrl},
+             ${connectionFeatures.firstCandidatePairLocalType}, ${connectionFeatures.firstCandidatePairLocalTypePreference},
+             ${connectionFeatures.firstCandidatePairRemoteAddress}, ${connectionFeatures.firstCandidatePairRemoteType}
             ) returning id`;
         const connectionId = result[0].id;
 
