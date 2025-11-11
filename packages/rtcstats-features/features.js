@@ -155,7 +155,23 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             }
             return 0;
         })(),
+        dtlsRole: (() => {
+            // The DTLS role as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole
+            for (const traceEvent of peerConnectionTrace) {
+                if (traceEvent.type !== 'getStats') continue;
+                const stats = traceEvent.value;
+                if (!stats) continue; // Handle undefined/null stats
+                const transportId = Object.keys(stats).find(id => {
+                    return stats[id].type === 'transport' && ['client', 'server'].includes(stats[id].dtlsRole);
+                });
+                if (transportId) {
+                    return stats[transportId].dtlsRole;
+                }
+            }
+            return '';
+        })(),
         dtlsVersion: (() => {
+            // The DTLS version as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
             for (const traceEvent of peerConnectionTrace) {
                 if (traceEvent.type !== 'getStats') continue;
                 const stats = traceEvent.value;
@@ -188,8 +204,8 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
 }
 
 export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
-    // Track stats can be extracted by itering over peerConnectionTrace and looking at getStats
-    // events which are associated with trackInformation.statsId.
+    // Track stats can be extracted by iterating over peerConnectionTrace and looking at
+    // getStats events which are associated with trackInformation.statsId.
     const features = {
         direction: trackInformation.direction,
         duration: 0,
