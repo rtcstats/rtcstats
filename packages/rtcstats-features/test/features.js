@@ -299,12 +299,13 @@ describe('features.js', () => {
             kind: 'audio',
             direction: 'sendonly',
             startTime: 1000,
+            statsId: 'track1_stats',
         };
 
         it('should extract features for a track', () => {
             const pcTrace = [
-                { type: 'getStats', timestamp: 1001 },
-                { type: 'getStats', timestamp: 1002 },
+                { type: 'getStats', timestamp: 1001, value: {} },
+                { type: 'getStats', timestamp: 1002, value: {} },
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features).to.deep.equal({
@@ -322,6 +323,53 @@ describe('features.js', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features.duration).to.equal(0);
+        });
+
+        it('should extract codec information', () => {
+            const pcTrace = [
+                {
+                    type: 'getStats',
+                    timestamp: 1001,
+                    value: {
+                        'track1_stats': {
+                            type: 'outbound-rtp',
+                            codecId: 'codec1',
+                            statsId: 'track1_stats'
+                        },
+                        'codec1': {
+                            type: 'codec',
+                            mimeType: 'audio/opus',
+                            sdpFmtpLine: 'minptime=10;useinbandfec=1',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.codecMimeType).to.equal('audio/opus');
+            expect(features.codecSdpFmtpLine).to.equal('minptime=10;useinbandfec=1');
+        });
+
+        it('should handle missing sdpFmtpLine', () => {
+            const pcTrace = [
+                {
+                    type: 'getStats',
+                    timestamp: 1001,
+                    value: {
+                        'track1_stats': {
+                            type: 'outbound-rtp',
+                            codecId: 'codec1',
+                            statsId: 'track1_stats'
+                        },
+                        'codec1': {
+                            type: 'codec',
+                            mimeType: 'video/VP8',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.codecMimeType).to.equal('video/VP8');
+            expect(features.codecSdpFmtpLine).to.equal('');
         });
     });
 });

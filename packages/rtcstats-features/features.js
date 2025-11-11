@@ -206,7 +206,24 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
 export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     // Track stats can be extracted by iterating over peerConnectionTrace and looking at
     // getStats events which are associated with trackInformation.statsId.
+    const codec = (() => {
+        for (const traceEvent of peerConnectionTrace) {
+            if (traceEvent.type !== 'getStats') continue;
+            const stats = traceEvent.value;
+            if (!stats[trackInformation.statsId]) continue;
+            const codecId = stats[trackInformation.statsId].codecId;
+            if (!(codecId && stats[codecId])) continue;
+            const codec = stats[codecId];
+            return {
+                codecMimeType: codec.mimeType,
+                codecSdpFmtpLine: codec.sdpFmtpLine || '',
+            };
+        }
+        return {};
+    })();
+
     const features = {
+        ...codec,
         direction: trackInformation.direction,
         duration: 0,
         kind: trackInformation.kind,
