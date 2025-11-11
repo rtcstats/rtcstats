@@ -86,7 +86,8 @@ async function extract(id, dump) {
              number_of_events, number_of_events_not_getstats,
              closed,
              ice_connected, using_ice_lite,
-             ice_connection_time, ice_restart
+             ice_connection_time, ice_restart,
+             add_ice_candidate_failure, set_local_description_failure, set_remote_description_failure
             )
             values
             (${dumpId},
@@ -94,7 +95,8 @@ async function extract(id, dump) {
              ${connectionFeatures.numberOfEvents}, ${connectionFeatures.numberOfEventsNotGetStats},
              ${connectionFeatures.closed},
              ${connectionFeatures.iceConnected}, ${connectionFeatures.usingIceLite},
-             ${connectionFeatures.iceConnectionTime}, ${connectionFeatures.iceRestart}
+             ${connectionFeatures.iceConnectionTime}, ${connectionFeatures.iceRestart},
+             ${connectionFeatures.addIceCandidateFailure}, ${connectionFeatures.setLocalDescriptionFailure}, ${connectionFeatures.setRemoteDescriptionFailure}
             ) returning id`;
         const connectionId = result[0].id;
 
