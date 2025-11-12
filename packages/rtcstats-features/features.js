@@ -27,7 +27,7 @@ export function extractClientFeatures(clientTrace) {
         getUserMediaError: clientTrace.find(traceEvent => {
             // The first getUserMedia error event, if any.
             return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnFailure';
-        })?.value || '',
+        })?.value,
         getUserMediaErrorCount: clientTrace.filter(traceEvent => {
             // The number of failed getUserMedia calls.
             return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnFailure';
@@ -119,15 +119,15 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         // The error message if addIceCandidate fails.
         addIceCandidateFailure: peerConnectionTrace.find(traceEvent => {
             return traceEvent.type === 'addIceCandidateOnFailure';
-        })?.value || '',
+        })?.value,
         // The error message if setLocalDescription fails.
         setLocalDescriptionFailure: peerConnectionTrace.find(traceEvent => {
             return traceEvent.type === 'setLocalDescriptionOnFailure';
-        })?.value || '',
+        })?.value,
         // The error message if setRemoteDescription fails.
         setRemoteDescriptionFailure: peerConnectionTrace.find(traceEvent => {
             return traceEvent.type === 'setRemoteDescriptionOnFailure';
-        })?.value || '',
+        })?.value,
     };
     const connection = {
         connected: peerConnectionTrace.find(traceEvent => {
@@ -206,14 +206,14 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
                     const localCandidate = report[candidatePair.localCandidateId];
                     const remoteCandidate = report[candidatePair.remoteCandidateId];
                     pair = {
-                        firstCandidatePairLocalAddress: localCandidate.address || '',
+                        firstCandidatePairLocalAddress: localCandidate.address,
                         firstCandidatePairLocalNetworkType: localCandidate.networkType,
                         firstCandidatePairLocalProtocol: localCandidate.protocol,
-                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol || '',
-                        firstCandidatePairLocalRelayUrl: localCandidate.url || '',
+                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
+                        firstCandidatePairLocalRelayUrl: localCandidate.url,
                         firstCandidatePairLocalType: localCandidate.candidateType,
                         firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
-                        firstCandidatePairRemoteAddress: remoteCandidate.address || '',
+                        firstCandidatePairRemoteAddress: remoteCandidate.address,
                         firstCandidatePairRemoteType: remoteCandidate.candidateType,
                     };
                 }
@@ -223,14 +223,14 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
                     const localCandidate = statsReport[report.localCandidateId];
                     const remoteCandidate = statsReport[report.remoteCandidateId];
                     pair = {
-                        firstCandidatePairLocalAddress: localCandidate.address || '',
+                        firstCandidatePairLocalAddress: localCandidate.address,
                         firstCandidatePairLocalNetworkType: '',
                         firstCandidatePairLocalProtocol: localCandidate.protocol,
-                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol || '',
-                        firstCandidatePairLocalRelayUrl: localCandidate.url || '',
+                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
+                        firstCandidatePairLocalRelayUrl: localCandidate.url,
                         firstCandidatePairLocalType: localCandidate.candidateType,
                         firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
-                        firstCandidatePairRemoteAddress: remoteCandidate.address || '',
+                        firstCandidatePairRemoteAddress: remoteCandidate.address,
                         firstCandidatePairRemoteType: remoteCandidate.candidateType,
                     };
                 }
@@ -283,7 +283,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
             const codec = report[codecId];
             return {
                 codecMimeType: codec.mimeType,
-                codecSdpFmtpLine: codec.sdpFmtpLine || '',
+                codecSdpFmtpLine: codec.sdpFmtpLine,
             };
         }
         return {

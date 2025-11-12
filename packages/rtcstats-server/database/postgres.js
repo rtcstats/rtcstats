@@ -8,6 +8,9 @@ export function createPostgres(config) {
             ca: fs.readFileSync(config.ssl.capath).toString(),
             sslmode: config.ssl.mode
         },
+        transform: {
+            undefined: null,
+        },
     });
     return {
         sql, // raw SQL access.
