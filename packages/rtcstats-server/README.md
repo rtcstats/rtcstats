@@ -13,16 +13,33 @@ a formal specification of the dump file format.
 
 Compared to previous iterations of rtcstats-server, feature extraction is currently not supported.
 
-## Building
+# Starting the server
+```
+npm start
+```
+will start the server, using the default configuration in `config/default.yaml`.
+The server will listen for websockets on the default port 8080.
 
+This configuration typically needs to be adjusted to specify the
+* the authorization jwtSecret which typically needs to be shared with the application or
+  signaling server generating the JWT as described below.
+* the S3 confiugration for storing the files. If not configured the files will only be
+  stored locally and removed on the next restart.
+* the Postgres database configuration for storing metadata such as the S3 storage configuration.
+
+## Usage with Docker
+See the Dockerfile in the toplevel directory.
+
+For configuring rtcstats-server within Docker it is recommended to use
+the `NODE_CONFIG` environment variable as described in the
+[config package documentation](https://github.com/node-config/node-config/wiki/Environment-Variables#node_config).
+
+## Testing
 Running
 ```
 npm test
 ```
 will run linting and unit/e2e tests for rtcstats-server.
-
-## Usage with Docker
-See the Dockerfile in the toplevel directory.
 
 # JWT-based authentication
 By default, rtcstats-server will accept any websocket connection.
