@@ -180,6 +180,62 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             }
         })(),
     };
+    const candidates = {
+        addedHost: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'host';
+            }
+        }) !== undefined,
+        addedMdns: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'host' && candidate.address.endsWith('.local');
+            }
+        }) !== undefined,
+        addedSrflx: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'srflx';
+            }
+        }) !== undefined,
+        addedTurn: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'relay';
+            }
+        }) !== undefined,
+        gatheredHost: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'host';
+            }
+        }) !== undefined,
+        gatheredMdns: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'host' && candidate.address.endsWith('.local');
+            }
+        }) !== undefined,
+        gatheredSrflx: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'srflx';
+            }
+        }) !== undefined,
+        gatheredTurn: peerConnectionTrace.find(traceEvent => {
+            // TODO: Determining the TURN relayProtocol is tricky. We could restore the old
+            // priority->type table but that is incorrect in Firefox since they use
+            // 0 for both TURN/TCP and TURN/TLS. We could send `relayProtocol` from
+            // JS, possibly along with the URL. But that is also not available in
+            // Firefox... still. For now it is probably best to only determine that a relay
+            // candidate was found and then look at the first candidate stats relayProtocol.
+            if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.type === 'relay';
+            }
+        }) !== undefined,
+    };
     const firstCandidatePair = (() => {
         // Information about the first candidate pair after the connection is connected.
         // Search for first getStats after connectionstate->connected.
@@ -245,6 +301,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         // The lifetime of the peer connection in milliseconds.
         duration: peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp,
         ...ice,
+        ...candidates,
         ...firstCandidatePair,
         // The total number of events in the peer connection trace.
         numberOfEvents: peerConnectionTrace.length,

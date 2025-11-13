@@ -94,7 +94,9 @@ async function extract(id, dump) {
              first_candidate_pair_local_protocol,
              first_candidate_pair_local_relay_protocol, first_candidate_pair_local_relay_url,
              first_candidate_pair_local_type, first_candidate_pair_local_type_preference,
-             first_candidate_pair_remote_address, first_candidate_pair_remote_type
+             first_candidate_pair_remote_address, first_candidate_pair_remote_type,
+             gathered_host, gathered_mdns, gathered_srflx, gathered_turn,
+             added_host, added_mdns, added_srflx, added_turn
             )
             values
             (${dumpId},
@@ -110,7 +112,9 @@ async function extract(id, dump) {
              ${connectionFeatures.firstCandidatePairLocalProtocol},
              ${connectionFeatures.firstCandidatePairLocalRelayProtocol}, ${connectionFeatures.firstCandidatePairLocalRelayUrl},
              ${connectionFeatures.firstCandidatePairLocalType}, ${connectionFeatures.firstCandidatePairLocalTypePreference},
-             ${connectionFeatures.firstCandidatePairRemoteAddress}, ${connectionFeatures.firstCandidatePairRemoteType}
+             ${connectionFeatures.firstCandidatePairRemoteAddress}, ${connectionFeatures.firstCandidatePairRemoteType},
+             ${connectionFeatures.gatheredHost}, ${connectionFeatures.gatheredMdns}, ${connectionFeatures.gatheredSrflx}, ${connectionFeatures.gatheredTurn},
+             ${connectionFeatures.addedHost}, ${connectionFeatures.addedMdns}, ${connectionFeatures.addedSrflx}, ${connectionFeatures.addedTurn}
             ) returning id`;
         const connectionId = result[0].id;
 
