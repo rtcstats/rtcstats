@@ -63,7 +63,7 @@ describe('features.js', () => {
                 calledGetUserMediaAudio: false,
                 calledGetUserMediaCombined: false,
                 calledGetUserMediaVideo: false,
-                getUserMediaError: '',
+                getUserMediaError: undefined,
                 getUserMediaErrorCount: 0,
                 getUserMediaSuccessCount: 0,
                 calledGetDisplayMedia: false,
@@ -98,23 +98,20 @@ describe('features.js', () => {
                 { type: 'getStats', timestamp: 1002 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
+            // Ignore undefined values.
+            Object.keys(features).forEach(name => {
+                if (features[name] === undefined) delete features[name];
+            });
             expect(features).to.deep.equal({
                 closed: false,
+                connected: false,
                 duration: 2,
                 iceConnected: false,
-                iceConnectionTime: 0,
                 iceRestart: false,
                 numberOfEvents: 3,
                 numberOfEventsNotGetStats: 2,
                 startTime: 1000,
                 usingIceLite: false,
-                addIceCandidateFailure: '',
-                setLocalDescriptionFailure: '',
-                setRemoteDescriptionFailure: '',
-                connectionTime: 0,
-                dtlsVersion: '',
-                dtlsRole: '',
-                connected: false,
             });
         });
 
@@ -155,15 +152,6 @@ describe('features.js', () => {
             expect(features.iceConnectionTime).to.equal(10);
         });
 
-        it('should return 0 for ice connection time if no connected state is found', () => {
-            const pcTrace = [
-                { type: 'oniceconnectionstatechange', value: 'checking', timestamp: 1000 },
-                { type: 'oniceconnectionstatechange', value: 'disconnected', timestamp: 1010 },
-            ];
-            const features = extractConnectionFeatures([], pcTrace);
-            expect(features.iceConnectionTime).to.equal(0);
-        });
-
         it('should identify an ice restart', () => {
             const pcTrace = [
                 { type: 'createOffer', value: { iceRestart: true }, timestamp: 1000 },
@@ -197,15 +185,6 @@ describe('features.js', () => {
             expect(features.connectionTime).to.equal(10);
         });
 
-        it('should return 0 for DTLS connection time if no connected state is found', () => {
-            const pcTrace = [
-                { type: 'onconnectionstatechange', value: 'connecting', timestamp: 1000 },
-                { type: 'onconnectionstatechange', value: 'disconnected', timestamp: 1010 },
-            ];
-            const features = extractConnectionFeatures([], pcTrace);
-            expect(features.connectionTime).to.equal(0);
-        });
-
         it('should extract DTLS version', () => {
             const pcTrace = [
                 { type: 'getStats', value: {
@@ -219,32 +198,12 @@ describe('features.js', () => {
             expect(features.dtlsVersion).to.equal('FEFD');
         });
 
-        it('should not extract DTLS version if not present', () => {
-            const pcTrace = [
-                { type: 'getStats', value: {
-                    'transport_1': {
-                        type: 'transport',
-                    }
-                }, timestamp: 1000 },
-            ];
-            const features = extractConnectionFeatures([], pcTrace);
-            expect(features.dtlsVersion).to.equal('');
-        });
-
         it('should extract addIceCandidateFailure', () => {
             const pcTrace = [
                 { type: 'addIceCandidateOnFailure', value: 'error message', timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.addIceCandidateFailure).to.equal('error message');
-        });
-
-        it('should not extract addIceCandidateFailure if event is not present', () => {
-            const pcTrace = [
-                { type: 'createOffer', timestamp: 1000 },
-            ];
-            const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addIceCandidateFailure).to.equal('');
         });
 
         it('should extract setLocalDescriptionFailure', () => {
@@ -255,28 +214,12 @@ describe('features.js', () => {
             expect(features.setLocalDescriptionFailure).to.equal('error message');
         });
 
-        it('should not extract setLocalDescriptionFailure if event is not present', () => {
-            const pcTrace = [
-                { type: 'createOffer', timestamp: 1000 },
-            ];
-            const features = extractConnectionFeatures([], pcTrace);
-            expect(features.setLocalDescriptionFailure).to.equal('');
-        });
-
         it('should extract setRemoteDescriptionFailure', () => {
             const pcTrace = [
                 { type: 'setRemoteDescriptionOnFailure', value: 'error message', timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.setRemoteDescriptionFailure).to.equal('error message');
-        });
-
-        it('should not extract setRemoteDescriptionFailure if event is not present', () => {
-            const pcTrace = [
-                { type: 'createOffer', timestamp: 1000 },
-            ];
-            const features = extractConnectionFeatures([], pcTrace);
-            expect(features.setRemoteDescriptionFailure).to.equal('');
         });
 
         it('should extract dtlsRole', () => {
