@@ -103,7 +103,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             if (first < peerConnectionTrace.length && second < peerConnectionTrace.length) {
                 return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
             }
-            return 0;
         })(),
         iceRestart: peerConnectionTrace.find(traceEvent => {
             // Whether a local ICE restart was performed.
@@ -153,7 +152,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             if (first < peerConnectionTrace.length && second < peerConnectionTrace.length) {
                 return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
             }
-            return 0;
         })(),
         dtlsRole: (() => {
             // The DTLS role as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole
@@ -167,7 +165,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
                     return report[transportId].dtlsRole;
                 }
             }
-            return '';
         })(),
         dtlsVersion: (() => {
             // The DTLS version as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
@@ -181,7 +178,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
                     return report[transportId].dtlsVersion;
                 }
             }
-            return '';
         })(),
     };
     const firstCandidatePair = (() => {
@@ -240,17 +236,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
                 return pair;
             }
         }
-        return {
-            firstCandidatePairLocalAddress: '',
-            firstCandidatePairLocalNetworkType: '',
-            firstCandidatePairLocalProtocol: '',
-            firstCandidatePairLocalRelayProtocol: '',
-            firstCandidatePairLocalRelayUrl: '',
-            firstCandidatePairLocalType: '',
-            firstCandidatePairLocalTypePreference: 0,
-            firstCandidatePairRemoteAddress: '',
-            firstCandidatePairRemoteType: '',
-        };
     })();
     return {
         ... apiFailures,
@@ -283,13 +268,9 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
             const codec = report[codecId];
             return {
                 codecMimeType: codec.mimeType,
-                codecSdpFmtpLine: codec.sdpFmtpLine,
+                codecSdpFmtpLine: codec.sdpFmtpLine || '',
             };
         }
-        return {
-            codecMimeType: '',
-            codecSdpFmtpLine: '',
-        };
     })();
 
     const features = {
