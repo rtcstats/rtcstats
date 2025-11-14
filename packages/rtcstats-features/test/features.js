@@ -380,6 +380,46 @@ describe('features.js', () => {
                 expect(features.gatheredTurn).to.be.false;
             });
         });
+
+        describe('configured ICE servers', () => {
+            it('should extract configured ICE server features', () => {
+                const pcTrace = [
+                    {
+                        type: 'create',
+                        value: {
+                            iceServers: [
+                                { urls: 'stun:stun.l.google.com:19302' },
+                                { urls: ['turns:global.turn.twilio.com:443?transport=tcp', 'turn:global.turn.twilio.com:3478?transport=udp'] },
+                                { urls: 'turn:global.turn.twilio.com:3478?transport=tcp' },
+                            ],
+                            iceTransportPolicy: 'relay',
+                        },
+                        timestamp: 1000
+                    },
+                ];
+                const features = extractConnectionFeatures([], pcTrace);
+                expect(features.configuredIceServers).to.equal(3);
+                expect(features.configuredIceTransportPolicy).to.be.true;
+                expect(features.configuredIceServersStun).to.be.true;
+                expect(features.configuredIceServersTurns).to.be.true;
+                expect(features.configuredIceServersTurnUdp).to.be.true;
+                expect(features.configuredIceServersTurnTcp).to.be.true;
+            });
+
+            it('should handle no iceServers in configuration', () => {
+                const pcTrace = [
+                    {
+                        type: 'create',
+                        value: {
+                            iceTransportPolicy: 'all',
+                        },
+                        timestamp: 1000
+                    },
+                ];
+                const features = extractConnectionFeatures([], pcTrace);
+                expect(features.configuredIceServers).to.equal(undefined);
+            });
+        });
     });
 
     describe('extractTrackFeatures', () => {

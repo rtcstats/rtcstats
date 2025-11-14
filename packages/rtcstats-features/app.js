@@ -96,7 +96,10 @@ async function extract(id, dump) {
              first_candidate_pair_local_type, first_candidate_pair_local_type_preference,
              first_candidate_pair_remote_address, first_candidate_pair_remote_type,
              gathered_host, gathered_mdns, gathered_srflx, gathered_turn,
-             added_host, added_mdns, added_srflx, added_turn
+             added_host, added_mdns, added_srflx, added_turn,
+             configured_ice_servers, configured_ice_transport_policy,
+             configured_ice_servers_stun, configured_ice_servers_turns,
+             configured_ice_servers_turn_udp, configured_ice_servers_turn_tcp
             )
             values
             (${dumpId},
@@ -114,7 +117,10 @@ async function extract(id, dump) {
              ${connectionFeatures.firstCandidatePairLocalType}, ${connectionFeatures.firstCandidatePairLocalTypePreference},
              ${connectionFeatures.firstCandidatePairRemoteAddress}, ${connectionFeatures.firstCandidatePairRemoteType},
              ${connectionFeatures.gatheredHost}, ${connectionFeatures.gatheredMdns}, ${connectionFeatures.gatheredSrflx}, ${connectionFeatures.gatheredTurn},
-             ${connectionFeatures.addedHost}, ${connectionFeatures.addedMdns}, ${connectionFeatures.addedSrflx}, ${connectionFeatures.addedTurn}
+             ${connectionFeatures.addedHost}, ${connectionFeatures.addedMdns}, ${connectionFeatures.addedSrflx}, ${connectionFeatures.addedTurn},
+             ${connectionFeatures.configuredIceServers}, ${connectionFeatures.configuredIceTransportPolicy},
+             ${connectionFeatures.configuredIceServersStun}, ${connectionFeatures.configuredIceServersTurns},
+             ${connectionFeatures.configuredIceServersTurnUdp}, ${connectionFeatures.configuredIceServersTurnTcp}
             ) returning id`;
         const connectionId = result[0].id;
 
