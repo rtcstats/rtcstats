@@ -180,6 +180,32 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             }
         })(),
     };
+    const turnServers = (() => {
+        const configuration = peerConnectionTrace.find(traceEvent => traceEvent.type === 'create')?.value;
+        if (!configuration?.iceServers) return {};
+        const configured = {
+            configuredIceServers: configuration.iceServers.length,
+            configuredIceTransportPolicy: configuration.iceTransportPolicy === 'relay',
+        };
+        for (const iceServer of configuration.iceServers) {
+            if (!iceServer.urls) continue;
+            const urls = typeof iceServer.urls === 'string' ? [iceServer.urls] : iceServer.urls;
+            for (const url of urls) {
+                if (url.startsWith('stun:')) {
+                    configured['configuredIceServersStun'] = true;
+                } else if (url.startsWith('turns:')) {
+                    configured['configuredIceServersTurns'] = true;
+                } else if (url.startsWith('turn:')) {
+                    if (url.endsWith('?transport=udp')) {
+                        configured['configuredIceServersTurnUdp'] = true;
+                    } else if (url.endsWith('?transport=tcp')) {
+                        configured['configuredIceServersTurnTcp'] = true;
+                    }
+                }
+            }
+        }
+        return configured;
+    })();
     const candidates = {
         addedHost: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
@@ -309,6 +335,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
+        ... turnServers,
     };
 }
 
