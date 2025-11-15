@@ -29,7 +29,7 @@ class RTCStatsAndHttpServer extends RTCStatsServer{
         return {
             put: async (key, filename) => {
                 console.log('RTCStats dump generated in ' +
-                            path.join(process.cwd(), this.config.server.workDirectory, filename));
+                            path.join(process.cwd(), filename));
             },
         };
     }
