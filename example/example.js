@@ -45,6 +45,7 @@ class RTCStatsAndHttpServer extends RTCStatsServer{
 setupDirectory(config, config.server.workDirectory);
 setupDirectory(config, config.server.uploadDirectory);
 
+// Since we do not upload, do not delete the files after not uploading them.
 config.server.deleteAfterUpload = false;
 config.authorization.jwtSecret = 'secret';
 const server = new RTCStatsAndHttpServer(config);

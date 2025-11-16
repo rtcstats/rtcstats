@@ -1,14 +1,14 @@
 <script type="importmap">
 {
     "imports": {
-        "rtcstats-js": "../packages/rtcstats-js/rtcstats.js",
+        "@rtcstats/rtcstats-js": "../packages/rtcstats-js/rtcstats.js",
         "@rtcstats/rtcstats-shared": "../packages/rtcstats-shared/index.js"
     }
 }
 </script>
 <script type="module">
-import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices} from 'rtcstats-js';
-import {WebSocketTrace} from 'rtcstats-js';
+import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices} from '@rtcstats/rtcstats-js';
+import {WebSocketTrace} from '@rtcstats/rtcstats-js';
 
 // Could alternatively use wrapRTCStatsWithDefaultOptions.
 const trace = new WebSocketTrace();
