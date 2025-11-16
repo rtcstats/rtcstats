@@ -23,7 +23,9 @@ export function WebSocketTrace() {
                 } else {
                     buffer.push(args);
                 }
-            } else if (connection.readyState >= WebSocket.CLOSING) {
+            } else if (connection.readyState === WebSocket.CONNECTING) {
+                buffer.push(args);
+            } else if ([WebSocket.CLOSING, WebSocket.CLOSED].includes(connection.readyState)) {
                 // no-op. Possibly log?
             }
         } else {
