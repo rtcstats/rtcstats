@@ -1,4 +1,6 @@
 // Obfuscate ip addresses which should not be stored long-term.
+import {compressStatsProperty} from './compression.js';
+
 import SDPUtils from 'sdp';
 
 // Obfuscate an IP address, keeping address family intact.
@@ -50,6 +52,10 @@ function obfuscateSDP(sdp) {
     }).join('\r\n').trim() + '\r\n';
 }
 
+const compressedAddressProperty = compressStatsProperty('address');
+const compressedRelatedAddressProperty = compressStatsProperty('relatedAddress');
+const compressedCandidateTypeProperty = compressStatsProperty('candidateType');
+const compressedIpProperty = compressStatsProperty('ip');
 function obfuscateStats(stats) {
     Object.keys(stats).forEach((id) => {
         const report = stats[id];
@@ -60,8 +66,16 @@ function obfuscateStats(stats) {
             report.address = obfuscateIpOrAddress(report.address);
             delete report.ip;
         }
+        if (report[compressedAddressProperty] && report[compressedCandidateTypeProperty] !== 'relay') {
+            report[compressedAddressProperty] = obfuscateIpOrAddress(report[compressedAddressProperty]);
+            delete report.ip;
+            delete report[compressedIpProperty];
+        }
         if (report.relatedAddress) {
             report.relatedAddress = obfuscateIpOrAddress(report.relatedAddress);
+        }
+        if (report[compressedRelatedAddressProperty]) {
+            report[compressedRelatedAddressProperty] = obfuscateIpOrAddress(report[compressedRelatedAddressProperty]);
         }
     });
 }
