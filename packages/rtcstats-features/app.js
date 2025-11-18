@@ -17,7 +17,7 @@ async function extract(id, dump) {
 
     // Metadata is gathered on the server-side.
     const metadata = Object.keys(dump).reduce((result, key) => {
-        if (!['peerConnections', 'eventSizes'].includes(key)) {
+        if (!['peerConnections', 'eventSizes', 'locations'].includes(key)) {
             result[key] = dump[key];
         }
         return result;
@@ -27,19 +27,25 @@ async function extract(id, dump) {
         console.log('Dump without origin, metadata is', metadata);
         return;
     }
+    const {locations} = dump;
+    if (locations && locations[0]) {
+        metadata.locationCountry = locations[0].country.iso_code;
+    }
     result = await sql`insert into ${sql('features_metadata')}
         (dump_id,
          start_time,
          number_peerconnections,
          url, origin, useragent,
-         client_protocol, file_format
+         client_protocol, file_format,
+         location_country
         )
         values
         (${id},
          ${metadata.startTime},
          ${Object.keys(dump.peerConnections).length - 1},
          ${metadata.url}, ${metadata.origin}, ${metadata.userAgent},
-         ${metadata.clientProtocol}, ${metadata.fileFormat}
+         ${metadata.clientProtocol}, ${metadata.fileFormat},
+         ${metadata.locationCountry}
         ) returning id`;
     const dumpId = result[0].id;
 
