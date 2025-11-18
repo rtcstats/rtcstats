@@ -26,6 +26,8 @@ maxmind:
 storage:
     # Amazon S3 based storage (or compatible APIs like supabase).
     s3:
+        # compat option, required e.g. on supabase.
+        forcePathStyle: false
         credentials:
             accessKeyId:
             secretAccessKey:
