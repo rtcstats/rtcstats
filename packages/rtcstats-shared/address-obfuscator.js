@@ -6,7 +6,7 @@ import SDPUtils from 'sdp';
 // Obfuscate an IP address, keeping address family intact.
 // Based on libWebRTCs IPAddress::ToSensitiveString
 // https://source.chromium.org/chromium/chromium/src/+/main:third_party/webrtc/rtc_base/ip_address.cc;l=149;drc=0dc30698370bcde67dda4f48b7ca19bf4c1dbc17
-function obfuscateIpOrAddress(ipOrAddress) {
+export function obfuscateIpOrAddress(ipOrAddress) {
     if (['::1', '127.0.0.1'].includes(ipOrAddress)) {
         return ipOrAddress;
     }

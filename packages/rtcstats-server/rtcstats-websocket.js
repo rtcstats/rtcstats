@@ -1,6 +1,8 @@
 import config from 'config';
 import maxmind from 'maxmind';
 
+import {obfuscateIpOrAddress} from '@rtcstats/rtcstats-shared/address-obfuscator.js';
+
 let maxmindLookup;
 async function lookupAddress(ipAddress) {
     if (config.maxmind.path && !maxmindLookup) {
@@ -29,6 +31,10 @@ async function extractMetadata(upgradeRequest) {
     let locations;
     if (config.maxmind.path) {
         locations = await Promise.all(remoteAddresses.map(lookupAddress));
+    }
+    // Obfuscate only after feeding to geolocation.
+    if (config.server.obfuscateIpAddresses) {
+        remoteAddresses = remoteAddresses.map(obfuscateIpOrAddress);
     }
 
     const clientProtocol = upgradeRequest.headers['sec-websocket-protocol'];
