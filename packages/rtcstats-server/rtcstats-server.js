@@ -70,10 +70,12 @@ export class RTCStatsServer {
         if (authData === false) {
             socket.resume();
             socket.close(1008); // Policy-violation error.
+            console.warn('Client authorization failed');
             return;
         }
         const startTime = Date.now();
         const clientid = uuidv4();
+        console.log('Accepted new connection with uuid', clientid);
         const workPath = path.join(this.config.server.workDirectory, clientid);
         const writeStream = fs.createWriteStream(workPath);
         const {numberOfMessages, metadata} = await handleWebSocket(socket, clientid, upgradeRequest, writeStream);
@@ -85,6 +87,7 @@ export class RTCStatsServer {
         metadata.authData = authData;
         const endTime = Date.now();
         process.nextTick(async() => {
+            console.log('Connection with uuid', clientid, 'disconnected, starting to process data');
             this.process(clientid, startTime, endTime, metadata);
         });
     }
@@ -94,6 +97,7 @@ export class RTCStatsServer {
         const blobUrl = await this.uploadDump(clientid, destPath);
         /*const result = */await this.storeDatabase(clientid, startTime, endTime, blobUrl, metadata);
         // result[0].id is the insertion id.
+        console.log('Processed data from connection with uuid', clientid);
     }
 
     async postProcess(clientid) {
