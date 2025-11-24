@@ -42,3 +42,16 @@ const pc = new RTCPeerConnection();
 See also the [end-to-end example](/example/) in `example/` directory and
 the (internal) API docs [here](docs/index.md).
 
+### Bundling
+To bundle rtcstats-js including its dependencies, use
+```
+npx webpack --entry ./packages/rtcstats-js/rtcstats.js --output-path ./packages/rtcstats-js/dist --output-filename rtcstats.bundle.js --mode production --output-library rtcstats
+```
+then include the resulting bundle which is exported as the global `rtcstats` object:
+```
+<script type="text/javascript" src="rtcstats.bundle.js"></script>
+<script type="text/javascript">
+const trace = rtcstats.wrapRTCStatsWithDefaultOptions();
+// Do something.
+</script>
+```
