@@ -39,8 +39,9 @@ trace.connect('ws://localhost:8080' + window.location.pathname);
 const pc = new RTCPeerConnection();
 ```
 
-See also the [end-to-end example](/example/) in `example/` directory and
-the (internal) API docs [here](docs/index.md).
+### Authenticating to rtcstats-server
+See [the server README](https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md) for how to
+generate JWT token with information about the user, session and conference.
 
 ### Bundling
 To bundle rtcstats-js including its dependencies, use
@@ -55,3 +56,22 @@ const trace = rtcstats.wrapRTCStatsWithDefaultOptions();
 // Do something.
 </script>
 ```
+
+### Ending a session
+RTCStats sessions create a single dump file for every websocket connection. For long-running pages it may be required
+to close the websocket when a "session" is done and reconnect (possibly with a new JWT):
+```
+trace.connect('ws://localhost:8080/?rtcstats-token=token-1');
+// Do something
+trace.close()
+
+// Reconnect.
+trace.connect('ws://localhost:8080/?rtcstats-token=token-2');
+```
+Note that RTCStats is not keeping track of whether all RTCPeerConnections have been closed and track  from getUserMedia/getDisplayMedia
+have been stopped.
+
+### See also
+See also the [end-to-end example](/example/) in `example/` directory and
+the (internal) API docs [here](docs/index.md).
+
