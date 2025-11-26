@@ -8,7 +8,7 @@ import {WebSocketTrace} from './trace-websocket.js';
  * @returns {function} RTCStats trace function.
  */
 export function wrapRTCStatsWithDefaultOptions(config = {getStatsInterval: 1000}) {
-    const trace = new WebSocketTrace();
+    const trace = new WebSocketTrace(config);
 
     // Wrap RTCPeerConnection-related APIs and events
     wrapRTCPeerConnection(trace, window, config);

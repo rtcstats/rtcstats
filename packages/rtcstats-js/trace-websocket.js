@@ -2,7 +2,7 @@ import {compressMethod} from '@rtcstats/rtcstats-shared';
 
 const PROTOCOL_VERSION = '5.0';
 
-export function WebSocketTrace() {
+export function WebSocketTrace(config = {}) {
     let buffer = [];
     let connection;
     let lastTime = 0;
@@ -59,7 +59,11 @@ export function WebSocketTrace() {
             // console.error('WS ERROR', e);
         });
 
-        connection.addEventListener('close', () => {
+        connection.addEventListener('close', (e) => {
+            if (e.code === 1008 && config.log) {
+                config.log('rtcstats websocket connection closed with error=1008. ' +
+                               'Typically this means authorization is required and failed.');
+            }
             // reconnect?
         });
 

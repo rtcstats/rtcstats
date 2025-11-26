@@ -1,7 +1,7 @@
 // npx webpack-cli ./rtcstats-extension.js
 import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices, WebSocketTrace } from '../packages/rtcstats-js';
 
-const trace = new WebSocketTrace();
+const trace = new WebSocketTrace({log: console.log});
 
 wrapRTCPeerConnection(trace, window, {getStatsInterval: 1000});
 wrapGetUserMedia(trace, window);
