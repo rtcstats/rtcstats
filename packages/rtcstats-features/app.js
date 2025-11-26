@@ -161,14 +161,6 @@ async function extract(id, dump) {
     }
 }
 
-async function fetch() {
-    return {
-        id: result[0].id,
-        url: result[0].blob_url,
-        responseStream: storage.get(filename)
-    };
-}
-
 async function process() {
     while (true) {
         const result = await sql`update ${sql(config.database.postgres.tableName)}
