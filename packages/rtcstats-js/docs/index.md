@@ -1,6 +1,46 @@
 ## Functions
 
 <dl>
+<dt><a href="#wrapTrackProperty">wrapTrackProperty(track, property, trace)</a></dt>
+<dd><p>Wrap the setter for MediaStreamTrack.{property}.
+Does not work on the prototype but needs a track instance.
+Only done for local tracks where this is most useful.</p>
+</dd>
+<dt><a href="#wrapGetUserMedia">wrapGetUserMedia(trace, window)</a></dt>
+<dd><p>Wraps getUserMedia and getDisplayMedia for RTCStats.
+Legacy getUserMedia is not wrapped.
+Also wraps these methods on MediaStreamTrack</p>
+<ul>
+<li>stop</li>
+<li>applyConstraints
+The <code>ended</code> event is wrapped as are the setters for <code>enabled</code>
+and <code>contentHint</code>.</li>
+</ul>
+</dd>
+<dt><a href="#wrapEnumerateDevices">wrapEnumerateDevices(trace, window)</a></dt>
+<dd><p>Wraps enumerateDevices and the devicechange event for RTCStats.</p>
+</dd>
+<dt><a href="#wrapRTCRtpTransceiver">wrapRTCRtpTransceiver(trace, window)</a></dt>
+<dd><p>Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:</p>
+<ul>
+<li>setCodecPreferences</li>
+<li>setHeaderExtensionsToNegotiate</li>
+</ul>
+</dd>
+<dt><a href="#wrapRTCRtpSender">wrapRTCRtpSender(trace, window)</a></dt>
+<dd><p>Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:</p>
+<ul>
+<li>setParameters</li>
+<li>replaceTrack</li>
+</ul>
+</dd>
+<dt><a href="#wrapRTCPeerConnection">wrapRTCPeerConnection(trace, window, configuration)</a></dt>
+<dd><p>Wraps RTCPeerConnection for RTCStats.
+Legacy methods and events are not wrapped.</p>
+</dd>
+<dt><a href="#wrapRTCStatsWithDefaultOptions">wrapRTCStatsWithDefaultOptions()</a> ⇒ <code>function</code></dt>
+<dd><p>Wrap RTCStats WebSocket trace with default options.</p>
+</dd>
 <dt><a href="#statsCompression">statsCompression(baseStatsInput, newStatsInput, statsIdMap)</a> ⇒ <code>object</code></dt>
 <dd><p>Apply compression to the stats report. Reduces size a lot.</p>
 </dd>
@@ -9,9 +49,6 @@
 </dd>
 <dt><a href="#removeCertificateStats">removeCertificateStats(stats)</a></dt>
 <dd><p>Removes certificate stats and references to them.</p>
-</dd>
-<dt><a href="#removeCodecStats">removeCodecStats(stats)</a></dt>
-<dd><p>Removes codec stats and references to them.</p>
 </dd>
 <dt><a href="#removeObsoleteProperties">removeObsoleteProperties(stats)</a></dt>
 <dd><p>Removes obsolete properties.</p>
@@ -54,42 +91,13 @@ Unknown property names are returned as-is.</p>
 <dd><p>Resolve a numeric stats property key to the original name.
 Unknown keys are returned as-is.</p>
 </dd>
-<dt><a href="#wrapTrackProperty">wrapTrackProperty(track, property, trace)</a></dt>
-<dd><p>Wrap the setter for MediaStreamTrack.{property}.
-Does not work on the prototype but needs a track instance.
-Only done for local tracks where this is most useful.</p>
+<dt><a href="#createInternalsTimeSeries">createInternalsTimeSeries()</a></dt>
+<dd><p>Creates a timeseries from webrtc-internals.
+Returns an object with stats by id and an object of property=&gt; [[ts, value], ...].</p>
 </dd>
-<dt><a href="#wrapGetUserMedia">wrapGetUserMedia(trace, window)</a></dt>
-<dd><p>Wraps getUserMedia and getDisplayMedia for RTCStats.
-Legacy getUserMedia is not wrapped.
-Also wraps these methods on MediaStreamTrack</p>
-<ul>
-<li>stop</li>
-<li>applyConstraints
-The <code>ended</code> event is wrapped as are the setters fro <code>enabled</code>
-and <code>contentHint</code>.</li>
-</ul>
-</dd>
-<dt><a href="#wrapEnumerateDevices">wrapEnumerateDevices(trace, window)</a></dt>
-<dd><p>Wraps enumerateDevices and the devicechange event for RTCStats.</p>
-</dd>
-<dt><a href="#wrapRTCRtpTransceiver">wrapRTCRtpTransceiver(trace, window)</a></dt>
-<dd><p>Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:</p>
-<ul>
-<li>setCodecPreferences</li>
-<li>setHeaderExtensionsToNegotiate</li>
-</ul>
-</dd>
-<dt><a href="#wrapRTCRtpSender">wrapRTCRtpSender(trace, window)</a></dt>
-<dd><p>Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:</p>
-<ul>
-<li>setParameters</li>
-<li>replaceTrack</li>
-</ul>
-</dd>
-<dt><a href="#wrapRTCPeerConnection">wrapRTCPeerConnection(trace, window, configuration)</a></dt>
-<dd><p>Wraps RTCPeerConnection for RTCStats.
-Legacy methods and events are not wrapped.</p>
+<dt><a href="#createRtcStatsTimeSeries">createRtcStatsTimeSeries()</a></dt>
+<dd><p>Creates a timeseries from rtcstats.
+Returns an object with stats by id and an object of property =&gt; [[ts, value], ...].</p>
 </dd>
 <dt><a href="#map2obj">map2obj(m)</a> ⇒ <code>Object</code></dt>
 <dd><p>Transforms a maplike to a JS object. Mostly for getStats + JSON.parse(JSON.stringify())</p>
@@ -97,12 +105,113 @@ Legacy methods and events are not wrapped.</p>
 <dt><a href="#dumpTrackWithStreams">dumpTrackWithStreams(track, ...streams)</a> ⇒ <code>Array.&lt;String&gt;</code></dt>
 <dd><p>Creates a representation of a track and its associated streams for serialization.</p>
 </dd>
+<dt><a href="#parseTrackWithStreams">parseTrackWithStreams()</a> ⇒ <code>Object</code></dt>
+<dd><p>Parses the serialized track and returns an object (which is not a track).</p>
+</dd>
 <dt><a href="#copyAndSanitizeConfig">copyAndSanitizeConfig(config)</a> ⇒ <code>Object</code></dt>
 <dd><p>Sanitizes a RTCConfiguration by hiding the TURN server credentials and
 making the certificates serializable.</p>
 </dd>
 </dl>
 
+<a name="wrapTrackProperty"></a>
+
+## wrapTrackProperty(track, property, trace)
+Wrap the setter for MediaStreamTrack.{property}.
+Does not work on the prototype but needs a track instance.
+Only done for local tracks where this is most useful.
+
+**Kind**: global function  
+**Access**: protected  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| track | <code>MediaStrackTrack</code> | the track whose property (e.g. `enabled`) should be wrapped. |
+| property | <code>string</code> | the track whose property (e.g. `enabled`) should be wrapped. |
+| trace | <code>function</code> | RTCStats trace callback. |
+
+<a name="wrapGetUserMedia"></a>
+
+## wrapGetUserMedia(trace, window)
+Wraps getUserMedia and getDisplayMedia for RTCStats.
+Legacy getUserMedia is not wrapped.
+Also wraps these methods on MediaStreamTrack
+* stop
+* applyConstraints
+The `ended` event is wrapped as are the setters for `enabled`
+and `contentHint`.
+
+**Kind**: global function  
+**Access**: protected  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback. |
+| window | <code>object</code> | window object with navigator and MediaStreamTrack. |
+
+<a name="wrapEnumerateDevices"></a>
+
+## wrapEnumerateDevices(trace, window)
+Wraps enumerateDevices and the devicechange event for RTCStats.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback. |
+| window | <code>object</code> | window object with navigator. |
+
+<a name="wrapRTCRtpTransceiver"></a>
+
+## wrapRTCRtpTransceiver(trace, window)
+Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:
+* setCodecPreferences
+* setHeaderExtensionsToNegotiate
+
+**Kind**: global function  
+**Access**: protected  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback |
+| window | <code>object</code> | window object from which to take the RTCRtpTransceiver protoype. |
+
+<a name="wrapRTCRtpSender"></a>
+
+## wrapRTCRtpSender(trace, window)
+Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:
+* setParameters
+* replaceTrack
+
+**Kind**: global function  
+**Access**: protected  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback |
+| window | <code>object</code> | window object from which to take the RTCRtpSender protoype. |
+
+<a name="wrapRTCPeerConnection"></a>
+
+## wrapRTCPeerConnection(trace, window, configuration)
+Wraps RTCPeerConnection for RTCStats.
+Legacy methods and events are not wrapped.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback |
+| window | <code>object</code> | window object from which to take the RTCPeerConnection protoype. |
+| configuration | <code>object</code> | various configurable properties. Currently: * getStatsInterval {number} - interval at which getStats will be polled. |
+
+<a name="wrapRTCStatsWithDefaultOptions"></a>
+
+## wrapRTCStatsWithDefaultOptions() ⇒ <code>function</code>
+Wrap RTCStats WebSocket trace with default options.
+
+**Kind**: global function  
+**Returns**: <code>function</code> - RTCStats trace function.  
 <a name="statsCompression"></a>
 
 ## statsCompression(baseStatsInput, newStatsInput, statsIdMap) ⇒ <code>object</code>
@@ -134,18 +243,6 @@ Reverse compression of a stats report.
 
 ## removeCertificateStats(stats)
 Removes certificate stats and references to them.
-
-**Kind**: global function  
-**Access**: protected  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| stats | <code>stats</code> | JSON stats object. |
-
-<a name="removeCodecStats"></a>
-
-## removeCodecStats(stats)
-Removes codec stats and references to them.
 
 **Kind**: global function  
 **Access**: protected  
@@ -294,97 +391,20 @@ Unknown keys are returned as-is.
 | --- | --- | --- |
 | property | <code>number</code> \| <code>string</code> | stats property name to be decompressed. |
 
-<a name="wrapTrackProperty"></a>
+<a name="createInternalsTimeSeries"></a>
 
-## wrapTrackProperty(track, property, trace)
-Wrap the setter for MediaStreamTrack.{property}.
-Does not work on the prototype but needs a track instance.
-Only done for local tracks where this is most useful.
-
-**Kind**: global function  
-**Access**: protected  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| track | <code>MediaStrackTrack</code> | the track whose property (e.g. `enabled`) should be wrapped. |
-| property | <code>string</code> | the track whose property (e.g. `enabled`) should be wrapped. |
-| trace | <code>function</code> | RTCStats trace callback. |
-
-<a name="wrapGetUserMedia"></a>
-
-## wrapGetUserMedia(trace, window)
-Wraps getUserMedia and getDisplayMedia for RTCStats.
-Legacy getUserMedia is not wrapped.
-Also wraps these methods on MediaStreamTrack
-* stop
-* applyConstraints
-The `ended` event is wrapped as are the setters fro `enabled`
-and `contentHint`.
+## createInternalsTimeSeries()
+Creates a timeseries from webrtc-internals.
+Returns an object with stats by id and an object of property=> [[ts, value], ...].
 
 **Kind**: global function  
-**Access**: protected  
+<a name="createRtcStatsTimeSeries"></a>
 
-| Param | Type | Description |
-| --- | --- | --- |
-| trace | <code>function</code> | RTCStats trace callback. |
-| window | <code>object</code> | window object with navigator and MediaStreamTrack. |
-
-<a name="wrapEnumerateDevices"></a>
-
-## wrapEnumerateDevices(trace, window)
-Wraps enumerateDevices and the devicechange event for RTCStats.
+## createRtcStatsTimeSeries()
+Creates a timeseries from rtcstats.
+Returns an object with stats by id and an object of property => [[ts, value], ...].
 
 **Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| trace | <code>function</code> | RTCStats trace callback. |
-| window | <code>object</code> | window object with navigator. |
-
-<a name="wrapRTCRtpTransceiver"></a>
-
-## wrapRTCRtpTransceiver(trace, window)
-Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:
-* setCodecPreferences
-* setHeaderExtensionsToNegotiate
-
-**Kind**: global function  
-**Access**: protected  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| trace | <code>function</code> | RTCStats trace callback |
-| window | <code>object</code> | window object from which to take the RTCRtpTransceiver protoype. |
-
-<a name="wrapRTCRtpSender"></a>
-
-## wrapRTCRtpSender(trace, window)
-Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:
-* setParameters
-* replaceTrack
-
-**Kind**: global function  
-**Access**: protected  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| trace | <code>function</code> | RTCStats trace callback |
-| window | <code>object</code> | window object from which to take the RTCRtpSender protoype. |
-
-<a name="wrapRTCPeerConnection"></a>
-
-## wrapRTCPeerConnection(trace, window, configuration)
-Wraps RTCPeerConnection for RTCStats.
-Legacy methods and events are not wrapped.
-
-**Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| trace | <code>function</code> | RTCStats trace callback |
-| window | <code>object</code> | window object from which to take the RTCPeerConnection protoype. |
-| configuration | <code>object</code> | various configurable properties. Currently: * getStatsInterval {number} - interval at which getStats will be polled. |
-
 <a name="map2obj"></a>
 
 ## map2obj(m) ⇒ <code>Object</code>
@@ -412,6 +432,13 @@ Creates a representation of a track and its associated streams for serialization
 | track | <code>MediaStreamTrack</code> | the MediaStreamTrack. |
 | ...streams | <code>MediaStream</code> | the MediaStreams the track belongs to. |
 
+<a name="parseTrackWithStreams"></a>
+
+## parseTrackWithStreams() ⇒ <code>Object</code>
+Parses the serialized track and returns an object (which is not a track).
+
+**Kind**: global function  
+**Returns**: <code>Object</code> - - representation of the track with streams.  
 <a name="copyAndSanitizeConfig"></a>
 
 ## copyAndSanitizeConfig(config) ⇒ <code>Object</code>

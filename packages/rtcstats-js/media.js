@@ -34,7 +34,7 @@ function wrapTrackProperty(track, property, trace) {
  * Also wraps these methods on MediaStreamTrack
  * * stop
  * * applyConstraints
- * The `ended` event is wrapped as are the setters fro `enabled`
+ * The `ended` event is wrapped as are the setters for `enabled`
  * and `contentHint`.
  *
  * @protected
