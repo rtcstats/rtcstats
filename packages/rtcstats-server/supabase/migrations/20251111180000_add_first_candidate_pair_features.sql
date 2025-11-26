@@ -1,10 +1,9 @@
-ALTER TABLE features_connection
-ADD COLUMN first_candidate_pair_local_address TEXT,
-ADD COLUMN first_candidate_pair_local_network_type TEXT,
-ADD COLUMN first_candidate_pair_local_relay_protocol TEXT,
-ADD COLUMN first_candidate_pair_local_protocol TEXT,
-ADD COLUMN first_candidate_pair_local_relay_url TEXT,
-ADD COLUMN first_candidate_pair_local_type TEXT,
-ADD COLUMN first_candidate_pair_local_type_preference INTEGER,
-ADD COLUMN first_candidate_pair_remote_address TEXT,
-ADD COLUMN first_candidate_pair_remote_type TEXT,
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_address TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_network_type TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_relay_protocol TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_protocol TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_relay_url TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_type TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_local_type_preference INTEGER;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_remote_address TEXT;
+ALTER TABLE "public"."features_connection" ADD COLUMN first_candidate_pair_remote_type TEXT;
