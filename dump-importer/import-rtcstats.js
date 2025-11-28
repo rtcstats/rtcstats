@@ -53,7 +53,7 @@ export class RTCStatsDumpImporter extends EventTarget {
         setTimeout(this.processConnections.bind(this), 0, connectionIds);
 
         const peerConnectionTrace = this.data.peerConnections[connectionId];
-        const container = createContainers(connectionId, this.data.url, this.containers);
+        const container = createContainers(connectionId, this.data.origin + '/' + this.data.url, this.containers);
         this.container.appendChild(container);
 
         this._showCandidateGrid(connectionId);
