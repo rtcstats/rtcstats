@@ -1,4 +1,4 @@
-import {readRTCStatsDump, createRtcStatsTimeSeries} from 'rtcstats-shared';
+import {readRTCStatsDump, createRtcStatsTimeSeries} from '@rtcstats/rtcstats-shared';
 
 import {StatsRatesCalculatorAdapter} from './chromium/stats_rates_calculator_adapter.js';
 
