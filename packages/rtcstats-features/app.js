@@ -31,53 +31,28 @@ async function extract(id, dump) {
     if (locations && locations[0]) {
         metadata.locationCountry = locations[0].country.iso_code;
     }
-    result = await sql`insert into ${sql('features_metadata')}
-        (dump_id,
-         start_time,
-         number_peerconnections,
-         url, origin, useragent,
-         client_protocol, file_format,
-         location_country
-        )
-        values
-        (${id},
-         ${metadata.startTime},
-         ${Object.keys(dump.peerConnections).length - 1},
-         ${metadata.url}, ${metadata.origin}, ${metadata.userAgent},
-         ${metadata.clientProtocol}, ${metadata.fileFormat},
-         ${metadata.locationCountry}
-        ) returning id`;
+    const metadataToInsert = {
+        dumpId: id,
+        numberPeerconnections: Object.keys(dump.peerConnections).length - 1,
+        startTime: metadata.startTime,
+        url: metadata.url,
+        origin: metadata.origin,
+        useragent: metadata.userAgent,
+        clientProtocol: metadata.clientProtocol,
+        fileFormat: metadata.fileFormat,
+        locationCountry: metadata.locationCountry
+    };
+    result = await sql`insert into ${sql('features_metadata')} ${sql(metadataToInsert)} returning id`;
     const dumpId = result[0].id;
 
     // Client information is gathered on the client.
     const clientTrace = dump.peerConnections['null'];
     const clientFeatures = extractClientFeatures(clientTrace);
-    await sql`insert into ${sql('features_client')}
-        (dump_id,
-         start_time, duration,
-         user_agent_data,
-         hardware_concurrency, device_memory,
-         screen, ${sql('window')},
-         called_getusermedia, called_getusermedia_audio, called_getusermedia_combined, called_getusermedia_video,
-         called_getdisplaymedia, called_getdisplaymedia_audio, called_getdisplaymedia_video,
-         getusermedia_success_count, getusermedia_error_count,
-         getdisplaymedia_success_count, getdisplaymedia_error_count,
-         getusermedia_error,
-         enumerate_devices_count
-        )
-        values
-        (${dumpId},
-         ${clientFeatures.startTime}, ${clientFeatures.duration},
-         ${clientFeatures.userAgentData},
-         ${clientFeatures.hardwareConcurrency}, ${clientFeatures.deviceMemory},
-         ${clientFeatures.screen}, ${clientFeatures.window},
-         ${clientFeatures.calledGetUserMedia}, ${clientFeatures.calledGetUserMediaAudio}, ${clientFeatures.calledGetUserMediaCombined}, ${clientFeatures.calledGetUserMediaVideo},
-         ${clientFeatures.calledGetDisplayMedia}, ${clientFeatures.calledGetDisplayMediaAudio}, ${clientFeatures.calledGetDisplayMediaVideo},
-         ${clientFeatures.getUserMediaSuccessCount}, ${clientFeatures.getUserMediaErrorCount},
-         ${clientFeatures.getDisplayMediaSuccessCount}, ${clientFeatures.getDisplayMediaErrorCount},
-         ${clientFeatures.getUserMediaError},
-         ${clientFeatures.enumerateDevicesCount}
-        )`;
+    const clientData = {
+        dumpId,
+        ...clientFeatures
+    };
+    await sql`insert into ${sql('features_client')} ${sql(clientData)}`;
 
     // Extract connection features, ignoring the `null` connection which provides client information.
     for (const peerConnectionId of Object.keys(dump.peerConnections)) {
@@ -86,66 +61,23 @@ async function extract(id, dump) {
         }
         const peerConnectionTrace = dump.peerConnections[peerConnectionId];
         const connectionFeatures = extractConnectionFeatures(clientTrace, peerConnectionTrace);
-        result = await sql`insert into ${sql('features_connection')}
-            (dump_id,
-             connection_identifier, start_time, duration,
-             number_of_events, number_of_events_not_getstats,
-             closed,
-             ice_connected, using_ice_lite,
-             ice_connection_time, ice_restart,
-             add_ice_candidate_failure, set_local_description_failure, set_remote_description_failure,
-             connected, connection_time,
-             dtls_version, dtls_role,
-             first_candidate_pair_local_address, first_candidate_pair_local_network_type,
-             first_candidate_pair_local_protocol,
-             first_candidate_pair_local_relay_protocol, first_candidate_pair_local_relay_url,
-             first_candidate_pair_local_type, first_candidate_pair_local_type_preference,
-             first_candidate_pair_remote_address, first_candidate_pair_remote_type,
-             gathered_host, gathered_mdns, gathered_srflx, gathered_turn,
-             added_host, added_mdns, added_srflx, added_turn,
-             configured_ice_servers, configured_ice_transport_policy,
-             configured_ice_servers_stun, configured_ice_servers_turns,
-             configured_ice_servers_turn_udp, configured_ice_servers_turn_tcp
-            )
-            values
-            (${dumpId},
-             ${peerConnectionId}, ${connectionFeatures.startTime}, ${connectionFeatures.duration},
-             ${connectionFeatures.numberOfEvents}, ${connectionFeatures.numberOfEventsNotGetStats},
-             ${connectionFeatures.closed},
-             ${connectionFeatures.iceConnected}, ${connectionFeatures.usingIceLite},
-             ${connectionFeatures.iceConnectionTime}, ${connectionFeatures.iceRestart},
-             ${connectionFeatures.addIceCandidateFailure}, ${connectionFeatures.setLocalDescriptionFailure}, ${connectionFeatures.setRemoteDescriptionFailure},
-             ${connectionFeatures.connected}, ${connectionFeatures.connectionTime},
-             ${connectionFeatures.dtlsVersion}, ${connectionFeatures.dtlsRole},
-             ${connectionFeatures.firstCandidatePairLocalAddress}, ${connectionFeatures.firstCandidatePairLocalNetworkType},
-             ${connectionFeatures.firstCandidatePairLocalProtocol},
-             ${connectionFeatures.firstCandidatePairLocalRelayProtocol}, ${connectionFeatures.firstCandidatePairLocalRelayUrl},
-             ${connectionFeatures.firstCandidatePairLocalType}, ${connectionFeatures.firstCandidatePairLocalTypePreference},
-             ${connectionFeatures.firstCandidatePairRemoteAddress}, ${connectionFeatures.firstCandidatePairRemoteType},
-             ${connectionFeatures.gatheredHost}, ${connectionFeatures.gatheredMdns}, ${connectionFeatures.gatheredSrflx}, ${connectionFeatures.gatheredTurn},
-             ${connectionFeatures.addedHost}, ${connectionFeatures.addedMdns}, ${connectionFeatures.addedSrflx}, ${connectionFeatures.addedTurn},
-             ${connectionFeatures.configuredIceServers}, ${connectionFeatures.configuredIceTransportPolicy},
-             ${connectionFeatures.configuredIceServersStun}, ${connectionFeatures.configuredIceServersTurns},
-             ${connectionFeatures.configuredIceServersTurnUdp}, ${connectionFeatures.configuredIceServersTurnTcp}
-            ) returning id`;
+        const connectionData = {
+            dumpId,
+            connectionIdentifier: peerConnectionId,
+            ...connectionFeatures
+        };
+        result = await sql`insert into ${sql('features_connection')} ${sql(connectionData)} returning id`;
         const connectionId = result[0].id;
 
         // Extract track features. Each connection can have multiple tracks.
         const tracks = await extractTracks(peerConnectionTrace);
         for (const trackInformation of tracks) {
             const trackFeatures = extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation);
-            await sql`insert into ${sql('features_track')}
-                (connection_id,
-                 track_identifier, start_time, duration,
-                 kind, direction,
-                 codec_mime_type, codec_sdp_fmtp_line
-                )
-                values
-                (${connectionId},
-                 ${trackFeatures.trackId}, ${trackFeatures.startTime}, ${trackFeatures.duration},
-                 ${trackFeatures.kind}, ${trackFeatures.direction},
-                 ${trackFeatures.codecMimeType}, ${trackFeatures.codecSdpFmtpLine}
-                )`;
+            const trackData = {
+                connectionId,
+                ...trackFeatures
+            };
+            await sql`insert into ${sql('features_track')} ${sql(trackData)}`;
         }
         // TODO: do we want datachannel features?
     }

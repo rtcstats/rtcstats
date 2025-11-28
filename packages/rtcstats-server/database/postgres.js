@@ -10,6 +10,9 @@ export function createPostgres(config) {
         },
         transform: {
             undefined: null,
+            column: {
+                to: postgres.fromCamel
+            },
         },
     });
     return {

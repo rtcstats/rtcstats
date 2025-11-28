@@ -363,7 +363,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         duration: 0,
         kind: trackInformation.kind,
         startTime: trackInformation.startTime,
-        trackId: trackInformation.id,
+        trackIdentifier: trackInformation.id,
     };
     // Find the last stats.
     for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
