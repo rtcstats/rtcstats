@@ -39,9 +39,12 @@ trace.connect('ws://localhost:8080' + window.location.pathname);
 const pc = new RTCPeerConnection();
 ```
 
-### Authenticating to rtcstats-server
+### Using a JWT to connect to rtcstats-server
 See [the server README](https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md) for how to
 generate JWT token with information about the user, session and conference.
+
+If the server is configured to require an authorization token, the websocket will
+be closed with a 1008 policy-violation error and a console warning is emitted.
 
 ### Bundling
 To bundle rtcstats-js including its dependencies, use

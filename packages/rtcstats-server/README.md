@@ -41,7 +41,7 @@ npm test
 ```
 will run linting and unit/e2e tests for rtcstats-server.
 
-# JWT-based authentication
+# JWT-based authorization
 By default, rtcstats-server will accept any websocket connection.
 
 It is preferable to authorize such connections using [JSON Web Token](https://en.wikipedia.org/wiki/JSON_Web_Token).
