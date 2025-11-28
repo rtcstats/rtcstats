@@ -1,6 +1,6 @@
 const SDPUtils = window.adapter.sdp;
 
-import {insertNullForGapsIntoTimeSeries} from 'rtcstats-shared';
+import {insertNullForGapsIntoTimeSeries} from '@rtcstats/rtcstats-shared';
 import {
     isBoring,
 } from './timeseries.js';

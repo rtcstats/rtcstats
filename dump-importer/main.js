@@ -1,6 +1,6 @@
 import {RTCStatsDumpImporter} from './import-rtcstats.js';
 import {WebRTCInternalsDumpImporter} from './import-internals.js';
-import {detectRTCStatsDump, detectWebRTCInternalsDump} from 'rtcstats-shared';
+import {detectRTCStatsDump, detectWebRTCInternalsDump} from '@rtcstats/rtcstats-shared';
 
 const container = document.getElementById('tables');
 document.getElementById('import').onchange = async (evt) => {

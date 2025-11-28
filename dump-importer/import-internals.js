@@ -8,7 +8,7 @@ import {
 import {
     createInternalsTimeSeries,
     readWebRTCInternalsDump,
-} from 'rtcstats-shared';
+} from '@rtcstats/rtcstats-shared';
 
 const SDPUtils = window.adapter.sdp;
 
