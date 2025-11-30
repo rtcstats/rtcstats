@@ -44,7 +44,10 @@ See [the server README](https://github.com/rtcstats/rtcstats/blob/main/packages/
 generate JWT token with information about the user, session and conference.
 
 If the server is configured to require an authorization token, the websocket will
-be closed with a 1008 policy-violation error and a console warning is emitted.
+be closed with a 1008 policy-violation error which can be seen when configuring the logging callback:
+```
+const trace = new WebSocketTrace({log: console.warn.bind(console)});
+```
 
 ### Bundling
 To bundle rtcstats-js including its dependencies, use
