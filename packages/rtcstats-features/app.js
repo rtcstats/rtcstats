@@ -119,11 +119,10 @@ async function process() {
     }
 }
 
-process()
-    .then(() => {
-        return sql.close();
-    })
-    .catch(err => {
-        console.error('An error occurred during processing:', err);
-        return sql.close();
-    });
+while (true) {
+    await process()
+        .then(async () => new Promise(r => setTimeout(r, 5000)))
+        .catch(err => {
+            console.error('An error occurred during processing:', err);
+        });
+}
