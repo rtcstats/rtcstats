@@ -420,6 +420,29 @@ describe('features.js', () => {
                 expect(features.configuredIceServers).to.equal(undefined);
             });
         });
+
+        it('should extract first candidate pair stats', () => {
+            const pcTrace = [
+                {
+                    type: 'onconnectionstatechange',
+                    value: 'connected',
+                    timestamp: 1000,
+                },
+                {
+                    type: 'getStats',
+                    value: {
+                        1: {type: 'transport', selectedCandidatePairId: '2'},
+                        2: {type: 'candidate-pair', localCandidateId: '3', remoteCandidateId: 4},
+                        3: {type: 'candidate-pair', candidateType: 'relay'},
+                        4: {type: 'candidate-pair', candidateType: 'host'},
+                    },
+                    timestamp: 1001,
+                },
+            ];
+            let features = extractConnectionFeatures([], pcTrace);
+            expect(features.firstCandidatePairLocalType).to.equal('relay');
+            expect(features.firstCandidatePairRemoteType).to.equal('host');
+        });
     });
 
     describe('extractTrackFeatures', () => {
