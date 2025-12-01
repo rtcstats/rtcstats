@@ -65,6 +65,12 @@ export function extractClientFeatures(clientTrace) {
         }).length,
     };
 
+    const webSocket = {
+        webSocketConnectionTime: clientTrace.find(traceEvent => {
+            return traceEvent.type === 'websocket';
+        })?.value?.connectionTime,
+    };
+
     return {
         ...create,
         // The lifetime of the client in milliseconds.
@@ -74,6 +80,7 @@ export function extractClientFeatures(clientTrace) {
         ...getUserMedia,
         // The timestamp at which RTCStatsDump was started.
         startTime: clientTrace[0].timestamp,
+        ...webSocket,
     };
 }
 
