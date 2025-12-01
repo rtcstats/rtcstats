@@ -7,9 +7,13 @@ import * as chrome from 'selenium-webdriver/chrome.js';
 
 async function buildDriver() {
     const chromeOptions = new chrome.Options()
-        .addArguments('--headless=new')
-        .addArguments('use-fake-ui-for-media-stream')
-        .addArguments('use-fake-device-for-media-stream');
+        .addArguments(
+            'headless=new',
+            'no-sandbox',
+            'disable-dev-shm-usage',
+            'use-fake-ui-for-media-stream',
+            'use-fake-device-for-media-stream'
+        );
 
     return new webdriver.Builder()
         .setChromeOptions(chromeOptions)
