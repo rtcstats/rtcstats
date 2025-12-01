@@ -1,0 +1,13 @@
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getusermedia TO called_get_user_media;
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getusermedia_audio TO called_get_user_media_audio;
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getusermedia_combined TO called_get_user_media_combined;
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getusermedia_video TO called_get_user_media_video;
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getdisplaymedia TO called_get_display_media;
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getdisplaymedia_audio TO called_get_display_media_audio;
+ALTER TABLE "public"."features_client" RENAME COLUMN called_getdisplaymedia_video TO called_get_display_media_video;
+ALTER TABLE "public"."features_client" RENAME COLUMN getusermedia_success_count TO get_user_media_success_count;
+ALTER TABLE "public"."features_client" RENAME COLUMN getusermedia_error_count TO get_user_media_error_count;
+ALTER TABLE "public"."features_client" RENAME COLUMN getusermedia_error TO get_user_media_error;
+ALTER TABLE "public"."features_client" RENAME COLUMN getdisplaymedia_success_count TO get_display_media_success_count;
+ALTER TABLE "public"."features_client" RENAME COLUMN getdisplaymedia_error_count TO get_display_media_error_count;
+ALTER TABLE "public"."features_connection" RENAME COLUMN number_of_events_not_getstats TO number_of_events_not_get_stats;

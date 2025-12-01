@@ -442,7 +442,7 @@ describe('features.js', () => {
                 duration: 2,
                 kind: 'audio',
                 startTime: 1000,
-                trackId: 'track1',
+                trackIdentifier: 'track1',
             });
         });
 
