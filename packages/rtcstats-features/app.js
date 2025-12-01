@@ -82,6 +82,7 @@ async function extract(id, dump) {
         // TODO: do we want datachannel features?
     }
     // Note: the query below will be empty if the dump had no peerconnections.
+    /*
     result = await sql`select * from "rtcstats-server" as server
         join features_metadata on features_metadata.dump_id = server.id
         join features_client on features_client.dump_id = features_metadata.id
@@ -91,6 +92,7 @@ async function extract(id, dump) {
     for (const row of result) {
         // console.log('ROW', row);
     }
+    */
 }
 
 async function process() {
