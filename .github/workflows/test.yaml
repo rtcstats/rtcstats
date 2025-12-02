@@ -36,6 +36,19 @@ jobs:
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+  coverage-rtcstats-features:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm install
+    - run: npm run coverage --workspace=packages/rtcstats-features
+    - run: sed -i 's|packages/rtcstats-features||g' packages/rtcstats-features/coverage/tmp/*
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
   coverage-dump-importer:
     runs-on: ubuntu-latest
     needs: lint
