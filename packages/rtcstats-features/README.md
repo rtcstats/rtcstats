@@ -6,6 +6,14 @@ for peerconnection API traces and getStats data. There are four types of feature
 * Features related to a particular RTCPeerConnection and the API calls happening to it.
 * Features related to a inbound or outbound MediaStreamTrack, mostly based on `getStats` API.
 
+Running
+```
+npm start
+```
+will query the database for a unprocessed dumps, download it, extract the features and
+insert the features into the database. If no unprocessed dumps are found,
+the process waits five seconds before trying again.
+
 ## Database structure
 The feature extraction polls for new records from the `rtcstats-server` table for features that
 have not yet been processed. The associated dump is fetched for local processing and features are extracted.
