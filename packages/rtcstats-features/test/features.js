@@ -455,16 +455,22 @@ describe('features.js', () => {
             startTime: 1000,
             statsId: 'track1_stats',
         };
+        const stats = {
+            [trackInfo.statsId]: {
+                framesEncoded: 97,
+            }
+        };
 
         it('should extract features for a track', () => {
             const pcTrace = [
-                { type: 'getStats', timestamp: 1001, value: {} },
-                { type: 'getStats', timestamp: 1002, value: {} },
+                { type: 'getStats', timestamp: 1001, value: stats },
+                { type: 'getStats', timestamp: 1002, value: stats },
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features).to.deep.equal({
                 direction: 'sendonly',
                 duration: 2,
+                frameCount: 97,
                 kind: 'audio',
                 startTime: 1000,
                 trackIdentifier: 'track1',

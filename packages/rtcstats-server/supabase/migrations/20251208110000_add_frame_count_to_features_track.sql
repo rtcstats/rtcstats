@@ -1,0 +1,1 @@
+ALTER TABLE "public"."features_track" ADD COLUMN frame_count INTEGER;
