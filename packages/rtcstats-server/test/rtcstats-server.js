@@ -12,10 +12,31 @@ describe('RTCStatsServer', () => {
     });
 
     let server;
+    afterEach(async () => {
+        if (server) {
+            await server.close();
+        }
+    });
+
     it('starts and stops', async () => {
         server = new RTCStatsServer(config);
         await server.listen();
         await server.close();
+    });
+
+    it('responds to a healtcheck', async () => {
+        server = new RTCStatsServer(config);
+        await server.listen();
+        const res = await fetch('http://localhost:' + config.server.httpPort + '/healthcheck');
+        expect(res.ok).to.equal(true);
+    });
+
+    it('responds to a unknown url', async () => {
+        server = new RTCStatsServer(config);
+        await server.listen();
+        const res = await fetch('http://localhost:' + config.server.httpPort + '/unknown');
+        expect(res.ok).to.equal(false);
+        expect(res.status).to.equal(404);
     });
 
     it('connects and disconnects a websocket', async () => {
@@ -63,6 +84,22 @@ describe('RTCStatsServer', () => {
             await server.listen();
 
             const ws = new WebSocket('ws://localhost:' + config.server.httpPort);
+            const closePromise = new Promise(resolve => {
+                ws.on('close', (code) => {
+                    resolve(code);
+                });
+            });
+            expect(await closePromise).to.equal(1008);
+            await server.close();
+        });
+        it('rejects a websocket with an invalid token', async () => {
+            const confWithAuth = structuredClone(config);
+            confWithAuth.authorization = {jwtSecret};
+            server = new RTCStatsServer(confWithAuth);
+            await server.listen();
+
+            const token = await generateAuthToken({user: 'testUser'}, jwtSecret + 'invalid');
+            const ws = new WebSocket('ws://localhost:' + config.server.httpPort + '?rtcstats-token=' + token);
             const closePromise = new Promise(resolve => {
                 ws.on('close', (code) => {
                     resolve(code);
