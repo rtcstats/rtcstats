@@ -349,6 +349,25 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
 export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     // Track stats can be extracted by iterating over peerConnectionTrace and looking at
     // getStats events which are associated with trackInformation.statsId.
+    const pluckStat = (statsReport, properties) => {
+        const statsObject = statsReport[trackInformation.statsId];
+        if (!statsObject) return;
+        for (const property of properties) {
+            if (statsObject.hasOwnProperty(property)) {
+                return statsObject[property];
+            }
+        }
+    };
+
+    // Find the last stats.
+    let lastStatsEvent;
+    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
+        const traceEvent = peerConnectionTrace[i];
+        if (traceEvent.type !== 'getStats') continue;
+        lastStatsEvent = traceEvent;
+        break;
+    }
+
     const codec = (() => {
         for (const traceEvent of peerConnectionTrace) {
             if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
@@ -372,12 +391,9 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         startTime: trackInformation.startTime,
         trackIdentifier: trackInformation.id,
     };
-    // Find the last stats.
-    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
-        const traceEvent = peerConnectionTrace[i];
-        if (traceEvent.type !== 'getStats') continue;
-        features['duration'] = Math.floor(traceEvent.timestamp - trackInformation.startTime);
-        break;
+    if (lastStatsEvent) {
+        features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
+        features['frameCount'] = pluckStat(lastStatsEvent.value, ['framesEncoded', 'framesDecoded']);
     }
     return {
         ...features,
