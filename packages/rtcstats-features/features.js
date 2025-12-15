@@ -346,27 +346,24 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
     };
 }
 
+function pluckStat(statsObject, properties) {
+    if (!statsObject) return;
+    for (const property of properties) {
+        if (statsObject.hasOwnProperty(property)) {
+            return statsObject[property];
+        }
+    }
+}
+
 export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     // Track stats can be extracted by iterating over peerConnectionTrace and looking at
     // getStats events which are associated with trackInformation.statsId.
-    const pluckStat = (statsReport, properties) => {
-        const statsObject = statsReport[trackInformation.statsId];
-        if (!statsObject) return;
-        for (const property of properties) {
-            if (statsObject.hasOwnProperty(property)) {
-                return statsObject[property];
-            }
-        }
+    const features = {
+        direction: trackInformation.direction,
+        kind: trackInformation.kind,
+        startTime: trackInformation.startTime,
+        trackIdentifier: trackInformation.id,
     };
-
-    // Find the last stats.
-    let lastStatsEvent;
-    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
-        const traceEvent = peerConnectionTrace[i];
-        if (traceEvent.type !== 'getStats') continue;
-        lastStatsEvent = traceEvent;
-        break;
-    }
 
     const codec = (() => {
         for (const traceEvent of peerConnectionTrace) {
@@ -383,19 +380,28 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         }
     })();
 
-    const features = {
-        ...codec,
-        direction: trackInformation.direction,
+    // Find the last stats and extract stats events (typically averages over the whole duration).
+    const lastStatsFeatures = {
         duration: 0,
-        kind: trackInformation.kind,
-        startTime: trackInformation.startTime,
-        trackIdentifier: trackInformation.id,
     };
-    if (lastStatsEvent) {
-        features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
-        features['frameCount'] = pluckStat(lastStatsEvent.value, ['framesEncoded', 'framesDecoded']);
+    let lastStatsEvent;
+    let lastTrackStats;
+    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
+        const traceEvent = peerConnectionTrace[i];
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        lastStatsEvent = traceEvent;
+        lastTrackStats = lastStatsEvent.value[trackInformation.statsId];
+        break;
     }
+    if (lastStatsEvent) {
+        const duration = lastStatsEvent.timestamp - trackInformation.startTime;
+        lastStatsFeatures['duration'] = Math.floor(duration);
+        lastStatsFeatures['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
+    }
+
     return {
+        ...codec,
         ...features,
+        ...lastStatsFeatures,
     };
 }
