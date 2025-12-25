@@ -46,7 +46,8 @@ will run linting and unit/e2e tests for rtcstats-server.
 By default, rtcstats-server will accept any websocket connection.
 
 It is preferable to authorize such connections using [JSON Web Token](https://en.wikipedia.org/wiki/JSON_Web_Token).
-This also allows secure identification of users, conferences, and sessions.
+Most importantly this also allows secure identification of users, conferences, and sessions and associating those
+with a particular RTCStats dump.
 
 rtcstats-js supports adding JWT tokens to the WebSocket URL as part of the query string, i.e.
 ```
@@ -57,9 +58,9 @@ If the token is not valid, the WebSocket connection will be closed with a `polic
 (code 1008) error.
 If the token is valid, RTCStats-server will extract the `rtcstats` object and export the
 following fields to the database:
-* user: a long-lived service-defined identifer for the user
-* session: a short-lived service-defined identifier for the user session.
-* conference: a service-defined identifier for a conference or call. This can be used to search and groups dumps with multiple users.
+* **user**: a long-lived service-defined identifer for the user
+* **session**: a short-lived service-defined identifier for the user session.
+* **conference**: a service-defined identifier for a conference or call. This can be used to search and groups dumps with multiple users.
 
 See the [example](/example/) for how such a integration looks like.
 
