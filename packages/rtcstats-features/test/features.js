@@ -450,7 +450,7 @@ describe('features.js', () => {
     describe('extractTrackFeatures', () => {
         const trackInfo = {
             id: 'track1',
-            kind: 'audio',
+            kind: 'video',
             direction: 'sendonly',
             startTime: 1000,
             statsId: 'track1_stats',
@@ -458,6 +458,8 @@ describe('features.js', () => {
         const stats = {
             [trackInfo.statsId]: {
                 framesEncoded: 97,
+                frameWidth: 320,
+                frameHeight: 240,
             }
         };
 
@@ -468,10 +470,16 @@ describe('features.js', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features).to.deep.equal({
+                commonHeight: 240,
+                commonWidth: 320,
                 direction: 'sendonly',
                 duration: 2,
                 frameCount: 97,
-                kind: 'audio',
+                kind: 'video',
+                maxHeight: 240,
+                maxWidth: 320,
+                minHeight: 240,
+                minWidth: 320,
                 startTime: 1000,
                 trackIdentifier: 'track1',
             });
