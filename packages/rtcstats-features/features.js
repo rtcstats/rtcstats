@@ -379,6 +379,38 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
             };
         }
     })();
+    const resolution = (() => {
+        if (trackInformation.kind === 'audio') return {};
+        const widths = {};
+        const heights = {};
+        for (const traceEvent of peerConnectionTrace) {
+            if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+            const report = traceEvent.value;
+            if (!report[trackInformation.statsId]) continue;
+            const {frameWidth, frameHeight} = report[trackInformation.statsId];
+            if (!(frameWidth && frameHeight)) continue;
+            if (!widths[frameWidth]) widths[frameWidth] = 0;
+            widths[frameWidth]++;
+            if (!heights[frameHeight]) heights[frameHeight] = 0;
+            heights[frameHeight]++;
+        }
+        if (Object.keys(widths).length === 0 || Object.keys(heights).length === 0) {
+            return {};
+        }
+        const mostCommon = (data) => {
+            const values = Object.values(data);
+            const maxValue = Math.max.apply(null, values);
+            return parseInt(Object.keys(data)[values.indexOf(maxValue)], 10);
+        };
+        return {
+            commonHeight: mostCommon(heights),
+            commonWidth: mostCommon(widths),
+            maxHeight: Math.max.apply(null, Object.keys(heights).map(h => parseInt(h, 10))),
+            maxWidth: Math.max.apply(null, Object.keys(widths).map(w => parseInt(w, 10))),
+            minHeight: Math.min.apply(null, Object.keys(heights).map(h => parseInt(h, 10))),
+            minWidth: Math.min.apply(null, Object.keys(widths).map(w => parseInt(w, 10))),
+        };
+    })();
 
     // Find the last stats and extract stats events (typically averages over the whole duration).
     const lastStatsFeatures = {
@@ -402,6 +434,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
     return {
         ...codec,
         ...features,
+        ...resolution,
         ...lastStatsFeatures,
     };
 }
