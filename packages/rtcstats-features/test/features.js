@@ -433,17 +433,36 @@ describe('features.js', () => {
                 {
                     type: 'getStats',
                     value: {
-                        1: {type: 'transport', selectedCandidatePairId: '2'},
-                        2: {type: 'candidate-pair', localCandidateId: '3', remoteCandidateId: 4},
-                        3: {type: 'candidate-pair', candidateType: 'relay'},
-                        4: {type: 'candidate-pair', candidateType: 'host'},
+                        1: { type: 'transport', selectedCandidatePairId: '2' },
+                        2: { type: 'candidate-pair', localCandidateId: '3', remoteCandidateId: '4' },
+                        3: { type: 'local-candidate', candidateType: 'relay', address: '1.1.1.1', protocol: 'udp', networkType: 'vpn', priority: 1234 },
+                        4: { type: 'remote-candidate', candidateType: 'host', address: '2.2.2.2' },
                     },
                     timestamp: 1001,
                 },
             ];
-            let features = extractConnectionFeatures([], pcTrace);
+            const features = extractConnectionFeatures([], pcTrace);
             expect(features.firstCandidatePairLocalType).to.equal('relay');
             expect(features.firstCandidatePairRemoteType).to.equal('host');
+            expect(features.firstCandidatePairLocalAddress).to.equal('1.1.1.1');
+            expect(features.firstCandidatePairLocalProtocol).to.equal('udp');
+            expect(features.firstCandidatePairLocalNetworkType).to.equal('vpn');
+            expect(features.firstCandidatePairRemoteAddress).to.equal('2.2.2.2');
+        });
+
+        it('should extract last candidate pair stats', () => {
+            const pcTrace = [
+                {
+                    type: 'getStats',
+                    value: {
+                        1: { type: 'transport', selectedCandidatePairId: '2' },
+                        2: { type: 'candidate-pair', totalRoundtripTime: 100, responsesReceived: 2 },
+                    },
+                    timestamp: 1001,
+                },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.averateStunRoundtripTime).to.equal(50);
         });
     });
 

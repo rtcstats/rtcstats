@@ -3,6 +3,31 @@ import SDPUtils from 'sdp';
 
 import {parseTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
+function pluckStat(statsObject, properties) {
+    if (!statsObject) return;
+    for (const property of properties) {
+        if (statsObject.hasOwnProperty(property)) {
+            return statsObject[property];
+        }
+    }
+}
+
+function getSelectedCandidatePairStats(report) {
+    const selectedCandidatePairId = Object.keys(report).find(id => {
+        const stats = report[id];
+        // Spec.
+        return stats.type === 'transport' && stats.selectedCandidatePairId;
+        /*
+        // Firefox... still!
+        return report.type === 'candidate-pair' && report.selected === true;
+        */
+    });
+    if (selectedCandidatePairId) {
+        return report[selectedCandidatePairId];
+    }
+    return undefined;
+}
+
 export function extractClientFeatures(clientTrace) {
     // A trace will always have at least one event.
     const create = clientTrace.find(traceEvent => traceEvent.type === 'create').value;
@@ -282,50 +307,47 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         for (; i < peerConnectionTrace.length; i++) {
             if (peerConnectionTrace[i].type !== 'getStats') continue;
             const report = peerConnectionTrace[i].value;
-            let pair = null;
-            Object.keys(report).forEach(id => {
-                const stats = report[id];
-                // Spec.
-                if (stats.type === 'transport' && stats.selectedCandidatePairId) {
-                    const candidatePair = report[stats.selectedCandidatePairId];
-                    const localCandidate = report[candidatePair.localCandidateId];
-                    const remoteCandidate = report[candidatePair.remoteCandidateId];
-                    pair = {
-                        firstCandidatePairLocalAddress: localCandidate.address,
-                        firstCandidatePairLocalNetworkType: localCandidate.networkType,
-                        firstCandidatePairLocalProtocol: localCandidate.protocol,
-                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
-                        firstCandidatePairLocalRelayUrl: localCandidate.url,
-                        firstCandidatePairLocalType: localCandidate.candidateType,
-                        firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
-                        firstCandidatePairRemoteAddress: remoteCandidate.address,
-                        firstCandidatePairRemoteType: remoteCandidate.candidateType,
-                    };
-                }
-                /*
-                // Firefox... still!
-                if (report.type === 'candidate-pair' && report.selected === true) {
-                    const localCandidate = statsReport[report.localCandidateId];
-                    const remoteCandidate = statsReport[report.remoteCandidateId];
-                    pair = {
-                        firstCandidatePairLocalAddress: localCandidate.address,
-                        firstCandidatePairLocalNetworkType: '',
-                        firstCandidatePairLocalProtocol: localCandidate.protocol,
-                        firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
-                        firstCandidatePairLocalRelayUrl: localCandidate.url,
-                        firstCandidatePairLocalType: localCandidate.candidateType,
-                        firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
-                        firstCandidatePairRemoteAddress: remoteCandidate.address,
-                        firstCandidatePairRemoteType: remoteCandidate.candidateType,
-                    };
-                }
-                */
-            });
-            if (pair) {
-                return pair;
+            const stats = getSelectedCandidatePairStats(report);
+            if (stats) {
+                const candidatePair = report[stats.selectedCandidatePairId];
+                const localCandidate = report[candidatePair.localCandidateId];
+                const remoteCandidate = report[candidatePair.remoteCandidateId];
+                return {
+                    firstCandidatePairLocalAddress: localCandidate.address,
+                    firstCandidatePairLocalNetworkType: localCandidate.networkType,
+                    firstCandidatePairLocalProtocol: localCandidate.protocol,
+                    firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
+                    firstCandidatePairLocalRelayUrl: localCandidate.url,
+                    firstCandidatePairLocalType: localCandidate.candidateType,
+                    firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
+                    firstCandidatePairRemoteAddress: remoteCandidate.address,
+                    firstCandidatePairRemoteType: remoteCandidate.candidateType,
+                };
             }
         }
+        return {};
     })();
+    // Find the last stats and extract stats events (typically averages over the whole duration).
+    const lastStatsFeatures = (() => {
+        const features = {};
+        let lastStatsEvent;
+        let lastCandidatePairStats;
+        for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
+            const traceEvent = peerConnectionTrace[i];
+            if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+            const stats = getSelectedCandidatePairStats(traceEvent.value);
+            if (!stats) continue;
+            lastStatsEvent = traceEvent;
+            lastCandidatePairStats = traceEvent.value[stats.selectedCandidatePairId];
+            break;
+        }
+        if (!(lastStatsEvent && lastCandidatePairStats)) {
+            return features;
+        }
+        features['averateStunRoundtripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundtripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
+        return features;
+    })();
+
     return {
         ... apiFailures,
         ... connection,
@@ -336,6 +358,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         ...ice,
         ...candidates,
         ...firstCandidatePair,
+        ...lastStatsFeatures,
         // The total number of events in the peer connection trace.
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
@@ -344,15 +367,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         startTime: peerConnectionTrace[0].timestamp,
         ... turnServers,
     };
-}
-
-function pluckStat(statsObject, properties) {
-    if (!statsObject) return;
-    for (const property of properties) {
-        if (statsObject.hasOwnProperty(property)) {
-            return statsObject[property];
-        }
-    }
 }
 
 export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
@@ -413,23 +427,26 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
     })();
 
     // Find the last stats and extract stats events (typically averages over the whole duration).
-    const lastStatsFeatures = {
-        duration: 0,
-    };
-    let lastStatsEvent;
-    let lastTrackStats;
-    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
-        const traceEvent = peerConnectionTrace[i];
-        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-        lastStatsEvent = traceEvent;
-        lastTrackStats = lastStatsEvent.value[trackInformation.statsId];
-        break;
-    }
-    if (lastStatsEvent) {
-        const duration = lastStatsEvent.timestamp - trackInformation.startTime;
-        lastStatsFeatures['duration'] = Math.floor(duration);
-        lastStatsFeatures['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
-    }
+    const lastStatsFeatures = (() => {
+        const features = {
+            duration: 0,
+        };
+        let lastStatsEvent;
+        let lastTrackStats;
+        for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
+            const traceEvent = peerConnectionTrace[i];
+            if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+            lastStatsEvent = traceEvent;
+            lastTrackStats = lastStatsEvent.value[trackInformation.statsId];
+            break;
+        }
+        if (!lastStatsEvent) {
+            return features;
+        }
+        features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
+        features['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
+        return features;
+    })();
 
     return {
         ...codec,
