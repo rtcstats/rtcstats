@@ -63,7 +63,9 @@ export async function readRTCStatsDump(blob) {
         if (method === 'getStats') { // delta-compressed stats
             value = statsDecompression(baseStats[connection_id], value);
             baseStats[connection_id] = JSON.parse(JSON.stringify(value));
-        } else if (method === 'setLocalDescription' && value) {
+        } else if (method === 'setLocalDescription' && value &&
+            // Workaround for Chrome <145 bug: https://source.chromium.org/chromium/chromium/src/+/4a2a384e43ea163127219548087e949fb00fa562
+            connection_id !== 'undefined-undefined') {
             // Implicit SLD has no value to decompress.
             let createCall;
             for (let previousIndex = data.peerConnections[connection_id].length - 1; previousIndex >= 0; previousIndex--) {
