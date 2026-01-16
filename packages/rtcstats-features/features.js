@@ -436,8 +436,9 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
             const traceEvent = peerConnectionTrace[i];
             if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+            if (!traceEvent.value[trackInformation.statsId]) continue;
             lastStatsEvent = traceEvent;
-            lastTrackStats = lastStatsEvent.value[trackInformation.statsId];
+            lastTrackStats = traceEvent.value[trackInformation.statsId];
             break;
         }
         if (!lastStatsEvent) {

@@ -486,6 +486,7 @@ describe('features.js', () => {
             const pcTrace = [
                 { type: 'getStats', timestamp: 1001, value: stats },
                 { type: 'getStats', timestamp: 1002, value: stats },
+                { type: 'getStats', timestamp: 1003, value: {}},
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features).to.deep.equal({
