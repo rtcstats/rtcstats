@@ -456,13 +456,13 @@ describe('features.js', () => {
                     type: 'getStats',
                     value: {
                         1: { type: 'transport', selectedCandidatePairId: '2' },
-                        2: { type: 'candidate-pair', totalRoundtripTime: 100, responsesReceived: 2 },
+                        2: { type: 'candidate-pair', totalRoundTripTime: 100, responsesReceived: 2 },
                     },
                     timestamp: 1001,
                 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.averateStunRoundtripTime).to.equal(50);
+            expect(features.averageStunRoundTripTime).to.equal(50);
         });
     });
 
