@@ -479,6 +479,13 @@ describe('features.js', () => {
                 framesEncoded: 97,
                 frameWidth: 320,
                 frameHeight: 240,
+                qualityLimitationDurations: {
+                    bandwidth: 100,
+                    cpu: 200,
+                    none: 1000,
+                    other: 700,
+                },
+                qualityLimitationResolutionChanges: 1,
             }
         };
 
@@ -490,8 +497,10 @@ describe('features.js', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features).to.deep.equal({
+                bandwidthQualityLimitationPercentage: 0.05,
                 commonHeight: 240,
                 commonWidth: 320,
+                cpuQualityLimitationPercentage: 0.1,
                 direction: 'sendonly',
                 duration: 2,
                 frameCount: 97,
@@ -500,6 +509,8 @@ describe('features.js', () => {
                 maxWidth: 320,
                 minHeight: 240,
                 minWidth: 320,
+                otherQualityLimitationPercentage: 0.35,
+                qualityLimitationResolutionChanges: 1,
                 startTime: 1000,
                 trackIdentifier: 'track1',
             });
