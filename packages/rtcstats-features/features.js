@@ -344,7 +344,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         if (!(lastStatsEvent && lastCandidatePairStats)) {
             return features;
         }
-        features['averateStunRoundtripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundtripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
+        features['averageStunRoundTripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundTripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
         return features;
     })();
 
