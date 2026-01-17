@@ -444,18 +444,26 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         if (!lastStatsEvent) {
             return features;
         }
+        // Inbound and outbound.
         features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
         features['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
-        const qualityLimitationDurations = pluckStat(lastTrackStats, ['qualityLimitationDurations']);
-        if (qualityLimitationDurations) {
-            const totalDuration = Object.keys(qualityLimitationDurations)
-                .map(k => qualityLimitationDurations[k])
-                .reduce((a, b) => a + b, 0);
-            features['bandwidthQualityLimitationPercentage'] = qualityLimitationDurations['bandwidth'] / totalDuration;
-            features['cpuQualityLimitationPercentage'] = qualityLimitationDurations['cpu'] / totalDuration;
-            features['otherQualityLimitationPercentage'] = qualityLimitationDurations['other'] / totalDuration;
+
+        // Outbound.
+        if (trackInformation.direction === 'outbound') {
+            const qualityLimitationDurations = pluckStat(lastTrackStats, ['qualityLimitationDurations']);
+            if (qualityLimitationDurations) {
+                const totalDuration = Object.keys(qualityLimitationDurations)
+                    .map(k => qualityLimitationDurations[k])
+                    .reduce((a, b) => a + b, 0);
+                features['bandwidthQualityLimitationPercentage'] = qualityLimitationDurations['bandwidth'] / totalDuration;
+                features['cpuQualityLimitationPercentage'] = qualityLimitationDurations['cpu'] / totalDuration;
+                features['otherQualityLimitationPercentage'] = qualityLimitationDurations['other'] / totalDuration;
+            }
+            features['qualityLimitationResolutionChanges'] = pluckStat(lastTrackStats, ['qualityLimitationResolutionChanges']);
+            features['averageEncodeTime'] = pluckStat(lastTrackStats, ['totalEncodeTime']) / pluckStat(lastTrackStats, ['framesEncoded']);
+        } else {
+            features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
         }
-        features['qualityLimitationResolutionChanges'] = pluckStat(lastTrackStats, ['qualityLimitationResolutionChanges']);
         return features;
     })();
 

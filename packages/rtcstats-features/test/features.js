@@ -470,13 +470,14 @@ describe('features.js', () => {
         const trackInfo = {
             id: 'track1',
             kind: 'video',
-            direction: 'sendonly',
+            direction: 'outbound',
             startTime: 1000,
             statsId: 'track1_stats',
         };
         const stats = {
             [trackInfo.statsId]: {
-                framesEncoded: 97,
+                framesEncoded: 100,
+                totalEncodeTime: 10,
                 frameWidth: 320,
                 frameHeight: 240,
                 qualityLimitationDurations: {
@@ -497,13 +498,14 @@ describe('features.js', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features).to.deep.equal({
+                averageEncodeTime: 0.1,
                 bandwidthQualityLimitationPercentage: 0.05,
                 commonHeight: 240,
                 commonWidth: 320,
                 cpuQualityLimitationPercentage: 0.1,
-                direction: 'sendonly',
+                direction: 'outbound',
                 duration: 2,
-                frameCount: 97,
+                frameCount: 100,
                 kind: 'video',
                 maxHeight: 240,
                 maxWidth: 320,
@@ -522,6 +524,66 @@ describe('features.js', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features.duration).to.equal(0);
+        });
+
+        describe('for outbound tracks', () => {
+            const trackInfo = {
+                id: 'track1',
+                kind: 'video',
+                direction: 'outbound',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const stats = {
+                [trackInfo.statsId]: {
+                    type: 'outbound-rtp',
+                    framesEncoded: 100,
+                    totalEncodeTime: 10,
+                    qualityLimitationDurations: {
+                        bandwidth: 100,
+                        cpu: 200,
+                        none: 1000,
+                        other: 700,
+                    },
+                    qualityLimitationResolutionChanges: 1,
+                }
+            };
+
+            it('should extract encode-related features', () => {
+                const pcTrace = [
+                    { type: 'getStats', timestamp: 1001, value: stats },
+                ];
+                const features = extractTrackFeatures([], pcTrace, trackInfo);
+                expect(features.averageEncodeTime).to.equal(0.1);
+                expect(features.bandwidthQualityLimitationPercentage).to.equal(0.05);
+                expect(features.cpuQualityLimitationPercentage).to.equal(0.1);
+                expect(features.otherQualityLimitationPercentage).to.equal(0.35);
+                expect(features.qualityLimitationResolutionChanges).to.equal(1);
+            });
+        });
+
+        describe('for inbound tracks', () => {
+            const trackInfo = {
+                id: 'track1',
+                kind: 'video',
+                direction: 'inbound',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const stats = {
+                [trackInfo.statsId]: {
+                    type: 'inbound-rtp',
+                    framesDecoded: 100,
+                    totalDecodeTime: 20,
+                }
+            };
+            it('should extract decode-related features', () => {
+                const pcTrace = [
+                    { type: 'getStats', timestamp: 1001, value: stats },
+                ];
+                const features = extractTrackFeatures([], pcTrace, trackInfo);
+                expect(features.averageDecodeTime).to.equal(0.2);
+            });
         });
 
         it('should extract codec information', () => {
