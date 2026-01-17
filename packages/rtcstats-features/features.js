@@ -446,6 +446,16 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         }
         features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
         features['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
+        const qualityLimitationDurations = pluckStat(lastTrackStats, ['qualityLimitationDurations']);
+        if (qualityLimitationDurations) {
+            const totalDuration = Object.keys(qualityLimitationDurations)
+                .map(k => qualityLimitationDurations[k])
+                .reduce((a, b) => a + b, 0);
+            features['bandwidthQualityLimitationPercentage'] = qualityLimitationDurations['bandwidth'] / totalDuration;
+            features['cpuQualityLimitationPercentage'] = qualityLimitationDurations['cpu'] / totalDuration;
+            features['otherQualityLimitationPercentage'] = qualityLimitationDurations['other'] / totalDuration;
+        }
+        features['qualityLimitationResolutionChanges'] = pluckStat(lastTrackStats, ['qualityLimitationResolutionChanges']);
         return features;
     })();
 
