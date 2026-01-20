@@ -17,7 +17,12 @@ if (process.env.NODE_ENV === 'production') {
     console.error('Caught exception:', err, 'Exception origin:', origin);
   });
 }
-const numProc = process.env.NODE_ENV === 'production' ? os.availableParallelism() : 1;
+const cpus = os.availableParallelism();
+const configuredProcesses = config.server.numberOfProcesses || 0;
+
+const numProc = process.env.NODE_ENV === 'production'
+    ? (configuredProcesses > 0 ? Math.min(configuredProcesses, cpus) : cpus)
+    : 1;
 
 if (cluster.isPrimary) {
     console.log('Primary process running with', numProc, 'child processes');

@@ -14,6 +14,10 @@ server:
     deleteAfterUpload: true
     # Whether to obfuscate IP addresses for privacy reasons.
     obfuscateIpAddresses: true
+    # Maximum number of processes to use in parallel.
+    # Upper bound (and default) is number of CPU cores.
+    # In development only a single process is used.
+    numberOfProcesses: 0
 
 authorization:
     # JWT secret key to use for authorizing clients. If not set, no authorization is performed.
