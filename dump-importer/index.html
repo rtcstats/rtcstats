@@ -57,7 +57,17 @@ table details.srflx summary:after {
         </script>
     </head>
     <body>
-        <p>This is an import tool for dumps from chrome://webrtc-internals and rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a lengthy description of what it does and how to interpret some of the data. See <a href=https://www.rtcstats.com">rtcstats.com</a> for a much nicer version.
+        <p>This is an import tool for dumps from chrome://webrtc-internals and rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a lengthy description of what it does and how to interpret some of the data.</p>
+        <p>Try <a href=https://www.rtcstats.com">rtcstats.com</a> which adds a lot to the raw data visualization you find here:
+            <ul>
+                <li>Reduces the time you'll glare at numbers and graphs from hours to minutes.</li>
+                <li>Adds media quality evaluation algorithms (think MOS for audio and video).</li>
+                <li>Makes important observations for you, like a WebRTC expert.</li>
+                <li>Finds root causes of issues with the help of AI.</li>
+            </ul>
+            Did we mention it is free to use?
+        </p>
+        <hr>
         <form>
             <label>Select a WebRTC-internals JSON dump or RTCStats dump:</label>
             <input type="file" id="import">
