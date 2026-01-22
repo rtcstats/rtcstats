@@ -24,7 +24,12 @@ authorization:
     jwtSecret:
 
 maxmind:
-    # maxmind is used to provide geolocation together with ip address obfuscation
+    # Maxmind is used to provide geolocation together with ip address obfuscation
+    # This can be downloaded with an account id and license key using
+    # wget \
+    # --user=$MAXMIND_ACCOUNT_ID \
+    # --password=$MAXMIND_LICENSE_KEY \
+    # https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz -O GeoLite-City.mmdb.tgz && tar -xzf GeoLite-City.mmdb.tgz && mv GeoLite2-City*/GeoLite2-City.mmdb .
     path:
     
 storage:
@@ -45,5 +50,7 @@ database:
         tableName: internals
         connectionString:
         ssl: # https://node-postgres.com/features/ssl
+            # For Supabase, one needs to download the CA certificate as described
+            # on https://supabase.com/docs/guides/platform/ssl-enforcement
             capath: # path to root cert.
             mode: # e.g. 'verify-full'.
