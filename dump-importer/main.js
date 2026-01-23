@@ -12,7 +12,7 @@ document.getElementById('import').onchange = async (evt) => {
     const files = evt.target.files;
     const file = files[0];
     let stream;
-    if (file.type === 'application/gzip') {
+    if (['application/gzip', 'application/x-gzip'].includes(file.type)) {
         stream = file.stream().pipeThrough(new DecompressionStream('gzip'));
     } else {
         stream = file.stream();
