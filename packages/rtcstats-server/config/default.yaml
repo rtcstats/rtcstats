@@ -54,3 +54,8 @@ database:
             # on https://supabase.com/docs/guides/platform/ssl-enforcement
             capath: # path to root cert.
             mode: # e.g. 'verify-full'.
+
+# Integration with rtcstats.com
+rtcstats:
+    endpoint: https://rtctats.com/rtcstats/v0
+    token:
