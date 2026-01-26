@@ -39,6 +39,23 @@ trace.connect('ws://localhost:8080' + window.location.pathname);
 const pc = new RTCPeerConnection();
 ```
 
+### Tracing custom events
+Sometimes you may want to send your own events to RTCStats to have them all in one dump file.
+This can be accomplished with the `trace` function as well. The method signature for this is
+```
+trace(method name, e.g. `:userRating`,
+      peerconnection object to associate with or null if not associated,
+      javascript object with data or string)
+```
+
+* The first argument is the method name MUST start with a colon (`:`) to avoid conflicts with any method names that rtcstats-js and rtcstats-server use internally.
+* If the event is to be associated with a particular RTCPeerConnection, pass that connection as the second argument.
+  If it is not, e.g. for an end-of-call user rating, pass `null`.
+* The third argument can be a Javascript string or object which will be encoded using JSON when sent to the server. If there is no additional data, pass `null`.
+* The trace function will internally add a timestamp to the event.
+* rtcstats-server will not process such events by default.
+* A dump-importer should still display a generic rendering of the event.
+
 ### Using a JWT to connect to rtcstats-server
 See [the server README](https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md) for how to
 generate JWT token with information about the user, session and conference.
