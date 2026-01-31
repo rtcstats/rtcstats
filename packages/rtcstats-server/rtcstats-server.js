@@ -1,3 +1,4 @@
+import { pipeline } from 'node:stream/promises';
 import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import http from 'node:http';
@@ -9,7 +10,7 @@ import {v4 as uuidv4} from 'uuid';
 import jwt from 'jsonwebtoken';
 
 import {handleWebSocket} from './rtcstats-websocket.js';
-import {obfuscateStream} from './obfuscate-stream.js';
+import {ObfuscateStream} from './obfuscate-stream.js';
 import {createStorage} from './storage/index.js';
 import {createDatabase} from './database/index.js';
 
@@ -105,11 +106,9 @@ export class RTCStatsServer {
         const sourcePath = path.join(this.config.server.workDirectory, clientid);
         const destPath = path.join(this.config.server.uploadDirectory, clientid);
         if (this.config.server.obfuscateIpAddresses) {
-            const source = await fsPromises.open(sourcePath);
-            const dest = await fsPromises.open(destPath, 'w');
-            await obfuscateStream(source.createReadStream(), dest.createWriteStream());
-            source.close();
-            dest.close();
+            const source = fs.createReadStream(sourcePath);
+            const dest = fs.createWriteStream(destPath);
+            await pipeline(source, new ObfuscateStream(), dest);
         } else {
             await fsPromises.copyFile(sourcePath, destPath);
         }

@@ -1,8 +1,9 @@
 import {Readable, Writable} from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 
 import {compressStatsProperty} from '@rtcstats/rtcstats-shared';
 
-import {obfuscateStream} from '../obfuscate-stream.js';
+import {ObfuscateStream} from '../obfuscate-stream.js';
 
 async function obfuscate(input) {
     const readStream = Readable.from(input);
@@ -13,11 +14,11 @@ async function obfuscate(input) {
         callback();
       },
     });
-    await obfuscateStream(readStream, writeStream);
+    await pipeline(readStream, new ObfuscateStream(), writeStream);
     return output;
 }
 
-describe('obfuscateStream', () => {
+describe('ObfuscateStream', () => {
     it('should obfuscate uncompressed stats', async () => {
         const input = [
             'RTCStatsDump',
