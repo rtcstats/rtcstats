@@ -5,6 +5,10 @@ rtcStats:
 server:
     # HTTP port to listen on.
     httpPort: 8080
+    # HTTP upload path where complete files can be uploaded.
+    # Alternative to Websockets, disabled by default and only enabled
+    # when the path is set. Typically starts with a '/'.
+    httpUploadPath:
     # Directory where files are being stored while the websocket is still active.
     workDirectory: work
     # Directory where files are stored after preprocessed and when ready to upload.
