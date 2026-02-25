@@ -736,3 +736,10 @@ export function decompressStatsProperty(property) {
     return reverseStatsPropertyTable[property] || property;
 }
 
+// Mapping from compute pressure names to numerical values.
+export const computePressureTable = {
+    nominal: 4,
+    fair: 3,
+    serious: 2,
+    critical: 1,
+};

@@ -1,4 +1,9 @@
-import {statsCompression, descriptionCompression, compressMethod} from '@rtcstats/rtcstats-shared';
+import {
+    statsCompression,
+    descriptionCompression,
+    compressMethod,
+    computePressureTable,
+} from '@rtcstats/rtcstats-shared';
 import {map2obj, dumpTrackWithStreams, copyAndSanitizeConfig} from '@rtcstats/rtcstats-shared';
 
 /**
@@ -83,6 +88,14 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     if (window.RTCPeerConnection.prototype.hasOwnProperty('__rtcStats')) {
         // Prevent double-wrapping.
         return;
+    }
+    let lastComputePressureRecord;
+    if (window.PressureObserver) {
+        const observer = new PressureObserver((records) => {
+            const lastRecord = records[records.length - 1]; // Usually only one record.
+            lastComputePressureRecord = [Date.now(), lastRecord];
+        });
+        observer.observe('cpu', {sampleInterval: getStatsInterval});
     }
     wrapRTCRtpTransceiver(trace, window);
     wrapRTCRtpSender(trace, window);
@@ -175,6 +188,14 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
             const stats = map2obj(await pc.getStats());
             if (pc.signalingState === 'closed') {
                 return;
+            }
+            if (lastComputePressureRecord) {
+                const [timestamp, record] = lastComputePressureRecord;
+                stats['rtcStatsComputePressure'] = {
+                    type: 'compute-pressure',
+                    timestamp,
+                    cpuState: computePressureTable[record.state] || record.state,
+                };
             }
             const baseStats = JSON.parse(JSON.stringify(stats)); // our new prevStats.
             const compressedStats = statsCompression(prevStats, stats, statsIdMap);
