@@ -39,6 +39,22 @@ trace.connect('ws://localhost:8080' + window.location.pathname);
 const pc = new RTCPeerConnection();
 ```
 
+### Nondefault options
+
+### Counting reloads
+
+rtcstats-js can count the number of times a user has reloaded the page by looking at the sessionStorage.
+If enabled with
+```
+const trace = new WebSocketTrace({countReloads: true});
+```
+this will read the key `rtcstatsReloadCount` from session storage, increment it and write it back.
+
+Reloading the page in the middle of a call is a last resort often used by users when something goes
+really wrong. This feature does not count actual page reloads which would require more DOM event
+listeners but the number of times the trace function has been instantiated which should be once
+per page load.
+
 ### Tracing custom events
 Sometimes you may want to send your own events to RTCStats to have them all in one dump file.
 This can be accomplished with the `trace` function as well. The method signature for this is
