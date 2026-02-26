@@ -1,12 +1,26 @@
 import {compressMethod} from '@rtcstats/rtcstats-shared';
 
 const PROTOCOL_VERSION = '5.0';
+const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
 
 export function WebSocketTrace(config = {}) {
     let buffer = [];
     let connection;
     let lastTime = 0;
     let connectionStartTime = 0;
+
+    // This counts the number of times the trace itself has been initialized.
+    // Typically this is done once per session and counting (re)loads based
+    // on that does not require listening for onload etc.
+    let reloadCount = undefined;
+    if (window.sessionStorage && config.countReloads) {
+        reloadCount =  window.sessionStorage.getItem(RELOAD_COUNT_KEY);
+        if (reloadCount === null || isNaN(reloadCount)) {
+            reloadCount = -1;
+        }
+        reloadCount = parseInt(reloadCount, 10) + 1;
+        window.sessionStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
+    }
     const trace = function(...args) {
         const now = Date.now();
         args.push(now - lastTime);
@@ -46,9 +60,14 @@ export function WebSocketTrace(config = {}) {
             width: window.innerWidth,
             height: window.innerHeight,
         },
+        reloadCount,
     });
 
     trace.close = () => {
+        if (window.sessionStorage && config.countReloads) {
+            // A clean disconnect clears the reload count.
+            window.sessionStorage.setItem(RELOAD_COUNT_KEY, 0);
+        }
         connection.close();
     };
     trace.connect = (wsURL) => {
@@ -64,7 +83,7 @@ export function WebSocketTrace(config = {}) {
         connection.addEventListener('close', (e) => {
             if (e.code === 1008 && config.log) {
                 config.log('rtcstats websocket connection closed with error=1008. ' +
-                               'Typically this means authorization is required and failed.');
+                           'Typically this means authorization is required and failed.');
             }
             // reconnect?
         });
