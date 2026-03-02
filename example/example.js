@@ -36,7 +36,10 @@ class RTCStatsAndHttpServer extends RTCStatsServer{
     // Override database behavior.
     createDatabase(databaseConfig) {
         return {
-            dump: () => {}
+            insert: (startTime, authData) => {
+                return 'example-id';
+            },
+            update: () => {}
         };
     }
 }

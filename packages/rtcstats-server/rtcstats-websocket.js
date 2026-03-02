@@ -11,7 +11,7 @@ async function lookupAddress(ipAddress) {
     return maxmindLookup.get(ipAddress);
 }
 
-async function extractMetadata(upgradeRequest) {
+export async function extractMetadata(upgradeRequest) {
     // The url the client is coming from
     const url = upgradeRequest.url;
     // TODO: check origin against known/valid urls?
@@ -51,9 +51,7 @@ async function extractMetadata(upgradeRequest) {
     };
 }
 
-export async function handleWebSocket(socket, clientid, upgradeRequest, writeStream) {
-    const metadata = await extractMetadata(upgradeRequest);
-
+export async function handleWebSocket(socket, clientId, metadata, writeStream) {
     // First line is 'RTCStatsDump'. File format version is on second line in JSON.
     writeStream.write('RTCStatsDump\n');
     // Second line of the file is a JS(ON) object.
@@ -81,8 +79,9 @@ export async function handleWebSocket(socket, clientid, upgradeRequest, writeStr
     // Resume the socket.
     socket.resume();
 
-    // Return number of messages handled and metadata.
-    return new Promise(resolve => {
+    // Return metadata immediately and a promise for when finished.
+    const onFinished = new Promise(resolve => {
         writeStream.on('finish', () => resolve({numberOfMessages: messages, metadata}));
     });
+    return onFinished;
 };
