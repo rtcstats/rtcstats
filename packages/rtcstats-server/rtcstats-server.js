@@ -13,12 +13,14 @@ import {handleWebSocket} from './rtcstats-websocket.js';
 import {handleFileupload} from './rtcstats-upload.js';
 import {ObfuscateStream} from './obfuscate-stream.js';
 import {createStorage} from './storage/index.js';
+import {createRtcStatsUploader} from './storage/rtcstats-com.js';
 import {createDatabase} from './database/index.js';
 
 export class RTCStatsServer {
     constructor(config) {
         this.storage = this.createStorage(config.storage);
         this.database = this.createDatabase(config.database);
+        this.rtcstatsUploader = this.createRtcStatsUploader(config.rtcstats);
         this.server = http.Server({}, () => { })
             .on('request', this.handleHttpRequest.bind(this));
         this.wss = new WebSocketServer({server: this.server});
@@ -31,6 +33,9 @@ export class RTCStatsServer {
     }
     createDatabase(databaseConfig) {
         return createDatabase(databaseConfig);
+    }
+    createRtcStatsUploader(rtcStatsConfig) {
+        return createRtcStatsUploader(rtcStatsConfig);
     }
 
     async handleHttpRequest(request, response) {
@@ -161,6 +166,19 @@ export class RTCStatsServer {
     async uploadDump(clientid, destPath) {
         // Upload to storage and unlink the destination path.
         const blobLocation = await this.storage.put(clientid, destPath);
+
+        if (this.rtcstatsUploader) {
+            // Read data and upload to rtcstats.com if configured.
+            const data = fs.readFileSync(destPath);
+            data.name = clientid;
+            data.size = data.length;
+            try {
+                await this.rtcstatsUploader(data);
+            } catch (e) {
+                // Should an error prevent deletion?
+                console.error('Uploading to rtcstats.com failed', e);
+            }
+        }
         if (this.config.server.deleteAfterUpload) {
             await fsPromises.unlink(destPath);
         }
