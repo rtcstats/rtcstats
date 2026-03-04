@@ -1069,6 +1069,45 @@ describe('RTCPeerConnection', () => {
             expect(events[0][3]).to.equal(pc2.getReceivers()[0].track.id);
         });
     });
+    it('has the correct number of arguments for wrapped methods', () => {
+        // createOffer(optional RTCOfferOptions options = {})
+        expect(RTCPeerConnection.prototype.createOffer.length).to.equal(0);
+
+        // createAnswer(optional RTCAnswerOptions options = {})
+        expect(RTCPeerConnection.prototype.createAnswer.length).to.equal(0);
+
+        // setLocalDescription(optional RTCSessionDescriptionInit description = {})
+        expect(RTCPeerConnection.prototype.setLocalDescription.length).to.equal(0);
+
+        // setRemoteDescription(RTCSessionDescriptionInit description)
+        expect(RTCPeerConnection.prototype.setRemoteDescription.length).to.equal(1);
+
+        // addIceCandidate(optional RTCIceCandidateInit candidate = {})
+        expect(RTCPeerConnection.prototype.addIceCandidate.length).to.equal(0);
+
+        // getStats(optional MediaStreamTrack? selector = null)
+        expect(RTCPeerConnection.prototype.getStats.length).to.equal(0);
+
+        // addTransceiver((MediaStreamTrack or DOMString) trackOrKind,
+        //   optional RTCRtpTransceiverInit init = {})
+        expect(RTCPeerConnection.prototype.addTransceiver.length).to.equal(1);
+
+        // addTrack(MediaStreamTrack track, MediaStream... streams)
+        expect(RTCPeerConnection.prototype.addTrack.length).to.equal(1);
+
+        // removeTrack(RTCRtpSender sender)
+        expect(RTCPeerConnection.prototype.removeTrack.length).to.equal(1);
+
+        // createDataChannel(USVString label,
+        //   optional RTCDataChannelInit dataChannelDict = {})
+        expect(RTCPeerConnection.prototype.createDataChannel.length).to.equal(1);
+
+        // RTCRtpSender.prototype.setParameters(RTCRtpSendParameters parameters)
+        expect(RTCRtpSender.prototype.setParameters.length).to.equal(1);
+
+        // RTCRtpSender.prototype.replaceTrack(MediaStreamTrack? withTrack)
+        expect(RTCRtpSender.prototype.replaceTrack.length).to.equal(1);
+    });
 });
 
 describe('getStats compression', () => {

@@ -47,27 +47,27 @@ function wrapRTCRtpSender(trace, window) {
         const nativeMethod = window.RTCRtpSender.prototype[method];
         if (!nativeMethod) return;
 
-        window.RTCRtpSender.prototype[method] = function(...args) {
-            const serializedArgs = JSON.parse(JSON.stringify(args));
+        window.RTCRtpSender.prototype[method] = function(parameters, ...args) {
+            const serializedArgs = JSON.parse(JSON.stringify([parameters, ...args]));
             delete serializedArgs[0].transactionId;
             trace(method, this.__rtcStatsId,
                 serializedArgs,
                 this.__rtcStatsSenderId);
-            return nativeMethod.apply(this, args);
+            return nativeMethod.apply(this, [parameters, ...args]);
         };
     });
     ['replaceTrack'].forEach(method => {
         const nativeMethod = window.RTCRtpSender.prototype[method];
         if (!nativeMethod) return;
-        window.RTCRtpSender.prototype[method] = function(...args) {
+        window.RTCRtpSender.prototype[method] = function(track, ...args) {
             const serializedArgs = [
                 this.track === null ? null : dumpTrackWithStreams(this.track),
-                args[0] === null ? null : dumpTrackWithStreams(args[0]),
+                track === null ? null : dumpTrackWithStreams(track),
             ];
             trace(method, this.__rtcStatsId,
                 serializedArgs,
                 this.__rtcStatsSenderId);
-            return nativeMethod.apply(this, args);
+            return nativeMethod.apply(this, [track, ...args]);
         };
     });
 }
@@ -222,9 +222,9 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     ['createDataChannel'].forEach(method => {
         const nativeMethod = OrigPeerConnection.prototype[method];
         if (!nativeMethod) return;
-        OrigPeerConnection.prototype[method] = function(...args) {
-            trace(method, this.__rtcStatsId, args);
-            return nativeMethod.apply(this, args);
+        OrigPeerConnection.prototype[method] = function(label, ...args) {
+            trace(method, this.__rtcStatsId, [label, ...args]);
+            return nativeMethod.apply(this, [label, ...args]);
         };
     });
 
@@ -240,11 +240,10 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     ['addTrack'].forEach(method => {
         const nativeMethod = OrigPeerConnection.prototype[method];
         if (!nativeMethod) return;
-        OrigPeerConnection.prototype[method] = function(...args) {
-            const track = args[0];
-            const streams = args.slice(1);
+        OrigPeerConnection.prototype[method] = function(track, ...args) {
+            const streams = args;
             trace(method, this.__rtcStatsId, dumpTrackWithStreams(track, ...streams));
-            const sender = nativeMethod.apply(this, args);
+            const sender = nativeMethod.apply(this, [track, ...args]);
             sender.__rtcStatsId = this.__rtcStatsId;
             const transceiver = this.getTransceivers().find(t => t.sender === sender);
             if (transceiver) {
@@ -259,18 +258,18 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     ['addTransceiver'].forEach(method => {
         const nativeMethod = OrigPeerConnection.prototype[method];
         if (!nativeMethod) return;
-        OrigPeerConnection.prototype[method] = function(...args) {
+        OrigPeerConnection.prototype[method] = function(trackOrKind, ...args) {
             const serializedArgs = [
-                typeof(args[0]) === 'string' ? args[0] : dumpTrackWithStreams(args[0]), // trackOrKind,
+                typeof(trackOrKind) === 'string' ? trackOrKind : dumpTrackWithStreams(trackOrKind),
             ];
-            if (args[1]) {
-                serializedArgs.push(JSON.parse(JSON.stringify(args[1])));
-                if (args[1].streams) {
-                    serializedArgs[serializedArgs.length - 1].streams = args[1].streams.map(s => s.id);
+            if (args[0]) {
+                serializedArgs.push(JSON.parse(JSON.stringify(args[0])));
+                if (args[0].streams) {
+                    serializedArgs[serializedArgs.length - 1].streams = args[0].streams.map(s => s.id);
                 }
             }
             trace(method, this.__rtcStatsId, serializedArgs);
-            const transceiver = nativeMethod.apply(this, args);
+            const transceiver = nativeMethod.apply(this, [trackOrKind, ...args]);
             transceiver.__rtcStatsId =  this.__rtcStatsId;
             transceiver.sender.__rtcStatsId = this.__rtcStatsId;
             transceiver.sender.__rtcStatsSenderId = transceiver.receiver.track.id;
@@ -282,9 +281,9 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     ['removeTrack'].forEach(method => {
         const nativeMethod = OrigPeerConnection.prototype[method];
         if (!nativeMethod) return;
-        OrigPeerConnection.prototype[method] = function(...args) {
-            trace(method, this.__rtcStatsId, args[0].__rtcStatsSenderId);
-            return nativeMethod.apply(this, args);
+        OrigPeerConnection.prototype[method] = function(sender, ...args) {
+            trace(method, this.__rtcStatsId, sender.__rtcStatsSenderId);
+            return nativeMethod.apply(this, [sender, ...args]);
         };
     });
 
@@ -315,39 +314,33 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         };
     });
 
-    ['setLocalDescription', 'setRemoteDescription'].forEach(method => {
+    ['setLocalDescription'].forEach(method => {
         const nativeMethod = OrigPeerConnection.prototype[method];
         if (!nativeMethod) return;
         OrigPeerConnection.prototype[method] = function(...args) {
             const trackingId = compressMethod(method) + '-' + (counters[method]++);
             let implicitBaseDescription;
-            if (method === 'setLocalDescription') {
-                if (args[0]) {
-                    let explicitBaseDescription;
-                    if (args[0].type === 'offer') { 
-                        explicitBaseDescription = this.__rtcStatsLastCreatedOffer;
-                    } else if (args[0].type === 'answer') {
-                        explicitBaseDescription = this.__rtcStatsLastCreatedAnswer;
-                    }
-                    delete this.__rtcStatsLastCreatedOffer;
-                    delete this.__rtcStatsLastCreatedAnswer;
-                    trace(method, this.__rtcStatsId,
-                        descriptionCompression(this.localDescription || explicitBaseDescription, args[0]),
-                        trackingId);
-                } else {
-                    // Save previous localDescription for delta.
-                    implicitBaseDescription = JSON.parse(JSON.stringify(this.localDescription));
-                    trace(method, this.__rtcStatsId, null, trackingId);
+            if (args[0]) {
+                let explicitBaseDescription;
+                if (args[0].type === 'offer') {
+                    explicitBaseDescription = this.__rtcStatsLastCreatedOffer;
+                } else if (args[0].type === 'answer') {
+                    explicitBaseDescription = this.__rtcStatsLastCreatedAnswer;
                 }
-            } else if (method === 'setRemoteDescription') {
+                delete this.__rtcStatsLastCreatedOffer;
+                delete this.__rtcStatsLastCreatedAnswer;
                 trace(method, this.__rtcStatsId,
-                    descriptionCompression(this.remoteDescription, args[0]),
+                    descriptionCompression(this.localDescription || explicitBaseDescription, args[0]),
                     trackingId);
+            } else {
+                // Save previous localDescription for delta.
+                implicitBaseDescription = JSON.parse(JSON.stringify(this.localDescription));
+                trace(method, this.__rtcStatsId, null, trackingId);
             }
 
             return nativeMethod.apply(this, args)
                 .then(() => {
-                    if (method === 'setLocalDescription' && args.length === 0) {
+                    if (args.length === 0) {
                         trace(method + 'OnSuccess', this.__rtcStatsId,
                             descriptionCompression(implicitBaseDescription, this.localDescription),
                             trackingId);
@@ -355,6 +348,27 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
                         trace(method + 'OnSuccess', this.__rtcStatsId, undefined,
                             trackingId);
                     }
+                }, (err) => {
+                    trace(method + 'OnFailure', this.__rtcStatsId, err.toString(),
+                        trackingId);
+                    throw err;
+                });
+        };
+    });
+
+    ['setRemoteDescription'].forEach(method => {
+        const nativeMethod = OrigPeerConnection.prototype[method];
+        if (!nativeMethod) return;
+        OrigPeerConnection.prototype[method] = function(description, ...args) {
+            const trackingId = compressMethod(method) + '-' + (counters[method]++);
+            trace(method, this.__rtcStatsId,
+                descriptionCompression(this.remoteDescription, description),
+                trackingId);
+
+            return nativeMethod.apply(this, [description, ...args])
+                .then(() => {
+                    trace(method + 'OnSuccess', this.__rtcStatsId, undefined,
+                        trackingId);
                 }, (err) => {
                     trace(method + 'OnFailure', this.__rtcStatsId, err.toString(),
                         trackingId);
