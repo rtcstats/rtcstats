@@ -576,6 +576,8 @@ describe('features.js', () => {
                     type: 'inbound-rtp',
                     framesDecoded: 100,
                     totalDecodeTime: 20,
+                    freezeCount: 1,
+                    totalFreezesDuration: 30,
                 }
             };
             it('should extract decode-related features', () => {
@@ -584,6 +586,14 @@ describe('features.js', () => {
                 ];
                 const features = extractTrackFeatures([], pcTrace, trackInfo);
                 expect(features.averageDecodeTime).to.equal(0.2);
+            });
+            it('should extract freeze-related features', () => {
+                const pcTrace = [
+                    { type: 'getStats', timestamp: 1001, value: stats },
+                ];
+                const features = extractTrackFeatures([], pcTrace, trackInfo);
+                expect(features.freezeCount).to.equal(1);
+                expect(features.totalFreezesDuration).to.equal(30);
             });
         });
 
