@@ -463,6 +463,8 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
             features['averageEncodeTime'] = pluckStat(lastTrackStats, ['totalEncodeTime']) / pluckStat(lastTrackStats, ['framesEncoded']);
         } else {
             features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
+            features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
+            features['totalFreezesDuration'] = pluckStat(lastTrackStats, ['totalFreezesDuration']);
         }
         return features;
     })();
