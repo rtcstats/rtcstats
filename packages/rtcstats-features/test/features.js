@@ -498,6 +498,9 @@ describe('features.js', () => {
                 { type: 'getStats', timestamp: 1003, value: {}},
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
+            Object.keys(features).forEach(name => {
+                if (features[name] === undefined) delete features[name];
+            });
             expect(features).to.deep.equal({
                 averageEncodeTime: 0.1,
                 bandwidthQualityLimitationPercentage: 0.05,
@@ -547,6 +550,8 @@ describe('features.js', () => {
                         other: 700,
                     },
                     qualityLimitationResolutionChanges: 1,
+                    rid: 'f',
+                    encodingIndex: 0,
                 }
             };
 
@@ -560,6 +565,8 @@ describe('features.js', () => {
                 expect(features.cpuQualityLimitationPercentage).to.equal(0.1);
                 expect(features.otherQualityLimitationPercentage).to.equal(0.35);
                 expect(features.qualityLimitationResolutionChanges).to.equal(1);
+                expect(features.rid).to.equal('f');
+                expect(features.encodingIndex).to.equal(0);
             });
         });
 

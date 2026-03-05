@@ -461,6 +461,8 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
             }
             features['qualityLimitationResolutionChanges'] = pluckStat(lastTrackStats, ['qualityLimitationResolutionChanges']);
             features['averageEncodeTime'] = pluckStat(lastTrackStats, ['totalEncodeTime']) / pluckStat(lastTrackStats, ['framesEncoded']);
+            features['rid'] = pluckStat(lastTrackStats, ['rid']); // rid is important to group by simulcast layer.
+            features['encodingIndex'] = pluckStat(lastTrackStats, ['encodingIndex']); // encodingIndex is important to group by simulcast layer.
         } else {
             features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
             features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
