@@ -9,7 +9,7 @@ import {WebSocketServer} from 'ws';
 import {v4 as uuidv4} from 'uuid';
 import jwt from 'jsonwebtoken';
 
-import {handleWebSocket} from './rtcstats-websocket.js';
+import {handleWebSocket, extractMetadata} from './rtcstats-websocket.js';
 import {handleFileupload} from './rtcstats-upload.js';
 import {ObfuscateStream} from './obfuscate-stream.js';
 import {createStorage} from './storage/index.js';
@@ -44,16 +44,13 @@ export class RTCStatsServer {
                 }
 
                 // TODO: somewhat duplicated from below.
-                const clientid = uuidv4();
-                console.log('Accepted new HTTP upload with uuid', clientid);
-                const workPath = path.join(this.config.server.workDirectory, clientid);
+                const clientId = uuidv4();
+                console.log('Accepted new HTTP upload with uuid', clientId);
+                const workPath = path.join(this.config.server.workDirectory, clientId);
                 const writeStream = fs.createWriteStream(workPath);
-                let numberOfMessages;
-                let metadata;
+                let result;
                 try {
-                    const result = await handleFileupload(clientid, request, response, writeStream);
-                    numberOfMessages = result.numberOfMessages;
-                    metadata = result.metadata;
+                    result = await handleFileupload(clientId, request, response, writeStream);
                 } catch (e) {
                     console.error('Uploading failed', workPath, e);
                     response.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -61,16 +58,18 @@ export class RTCStatsServer {
                     await fsPromises.unlink(workPath);
                     return;
                 }
-                if (numberOfMessages === 0) {
+                if (!result || result.numberOfMessages === 0) {
                     // Drop empty files.
                     await fsPromises.unlink(workPath);
                     return;
                 }
-                metadata.authData = authData;
+                const {metadata} = result;
                 const endTime = Date.now();
+                const startTime = metadata.startTime || Date.now();
+                const dbId = await this.database.insert(startTime, authData);
                 process.nextTick(async() => {
-                    console.log('Connection with uuid', clientid, 'uploaded via HTTP, starting to process data');
-                    this.process(clientid, metadata.startTime || Date.now(), endTime, metadata);
+                    console.log('Connection with uuid', clientId, 'uploaded via HTTP, starting to process data');
+                    this.process(clientId, startTime, endTime, dbId);
                 });
                 return;
             }
@@ -117,36 +116,37 @@ export class RTCStatsServer {
             return;
         }
         const startTime = Date.now();
-        const clientid = uuidv4();
-        console.log('Accepted new connection with uuid', clientid);
-        const workPath = path.join(this.config.server.workDirectory, clientid);
+        const clientId = uuidv4();
+        console.log('Accepted new connection with uuid', clientId);
+        const metadata = await extractMetadata(upgradeRequest);
+        const dbId = await this.database.insert(startTime, authData);
+
+        const workPath = path.join(this.config.server.workDirectory, clientId);
         const writeStream = fs.createWriteStream(workPath);
-        const {numberOfMessages, metadata} = await handleWebSocket(socket, clientid, upgradeRequest, writeStream);
+        const {numberOfMessages} = await handleWebSocket(socket, clientId, metadata, writeStream);
         if (numberOfMessages === 0) {
             // Drop empty files.
             await fsPromises.unlink(workPath);
             return;
         }
-        metadata.authData = authData;
         const endTime = Date.now();
         process.nextTick(async() => {
-            console.log('Connection with uuid', clientid, 'disconnected, starting to process data');
-            this.process(clientid, startTime, endTime, metadata);
+            console.log('Connection with uuid', clientId, 'disconnected, starting to process data');
+            this.process(clientId, startTime, endTime, dbId);
         });
     }
 
-    async process(clientid, startTime, endTime, metadata) {
-        const destPath = await this.postProcess(clientid);
-        const blobUrl = await this.uploadDump(clientid, destPath);
-        /*const result = */await this.storeDatabase(clientid, startTime, endTime, blobUrl, metadata);
-        // result[0].id is the insertion id.
-        console.log('Processed data from connection with uuid', clientid);
+    async process(clientId, startTime, endTime, dbId) {
+        const destPath = await this.postProcess(clientId);
+        const blobUrl = await this.uploadDump(clientId, destPath);
+        await this.database.update(dbId, endTime, blobUrl);
+        console.log('Processed data from connection with uuid', clientId, 'dbІd', dbId);
     }
 
-    async postProcess(clientid) {
+    async postProcess(clientId) {
         // Take the file and obfuscate IP addresses.
-        const sourcePath = path.join(this.config.server.workDirectory, clientid);
-        const destPath = path.join(this.config.server.uploadDirectory, clientid);
+        const sourcePath = path.join(this.config.server.workDirectory, clientId);
+        const destPath = path.join(this.config.server.uploadDirectory, clientId);
         if (this.config.server.obfuscateIpAddresses) {
             const source = fs.createReadStream(sourcePath);
             const dest = fs.createWriteStream(destPath);
@@ -158,17 +158,13 @@ export class RTCStatsServer {
         return destPath;
     }
 
-    async uploadDump(clientid, destPath) {
+    async uploadDump(clientId, destPath) {
         // Upload to storage and unlink the destination path.
-        const blobLocation = await this.storage.put(clientid, destPath);
+        const blobLocation = await this.storage.put(clientId, destPath);
         if (this.config.server.deleteAfterUpload) {
             await fsPromises.unlink(destPath);
         }
         return blobLocation;
-    }
-
-    async storeDatabase(clientid, startTime, endTime, blobUrl, metadata) {
-        return this.database.dump(clientid, startTime, endTime, blobUrl, metadata);
     }
 
     async listen() {

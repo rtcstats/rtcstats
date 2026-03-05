@@ -17,27 +17,35 @@ export function createPostgres(config) {
     });
     return {
         sql, // raw SQL access.
-        dump: (name, startTime, stopTime, blobUrl, metadata) => {
+        insert: async (startTime, authData) => {
             const startDate = new Date(startTime);
-            const stopDate = new Date(stopTime);
 
             // Extract authentication data.
             let userId;
             let conferenceId;
             let sessionId;
-            if (metadata && metadata.authData && metadata.authData.rtcStats) {
-                userId = metadata.authData.rtcStats.user;
-                conferenceId = metadata.authData.rtcStats.conference;
-                sessionId = metadata.authData.rtcStats.session;
+            if (authData && authData.rtcStats) {
+                userId = authData.rtcStats.user;
+                conferenceId = authData.rtcStats.conference;
+                sessionId = authData.rtcStats.session;
             }
-            return sql`insert into ${sql(config.tableName)}
-                    (session_start, session_end, blob_url,
+            const result = await sql`insert into ${sql(config.tableName)}
+                    (session_start,
                      rtcstats_user, rtcstats_conference, rtcstats_session)
                     values
-                    (${startDate.toISOString()}, ${stopDate.toISOString()},
-                     ${blobUrl},
+                    (${startDate.toISOString()},
                      ${userId || null}, ${conferenceId || null}, ${sessionId || null}
-                    )`;
+                    )
+                    returning id`;
+            return result[0].id;
+        },
+        update: (id, stopTime, blobUrl) => {
+            const stopDate = new Date(stopTime);
+
+            return sql`update ${sql(config.tableName)}
+                    set session_end = ${stopDate.toISOString()},
+                        blob_url = ${blobUrl}
+                    where id = ${id}`;
         },
         close: () => {
             return sql.close();
