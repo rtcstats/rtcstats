@@ -58,3 +58,13 @@ database:
             # on https://supabase.com/docs/guides/platform/ssl-enforcement
             capath: # path to root cert.
             mode: # e.g. 'verify-full'.
+
+# Integration with rtcstats.com
+rtcstats:
+    # rtcstats.com public endpoint.
+    endpoint: https://rtctats.com/api/rtcstats/v1.0/upload
+    # rtcstats.com token needs to be configured.
+    token:
+    # If set to a number between 0 and 1 a random percentage of dumps will be uploaded.
+    # Defaults to 1 to disable randomness.
+    randomPercentage: 1.0
