@@ -108,9 +108,15 @@ describe('extractConnectionFeatures', () => {
             { type: 'getStats', value: {
                 'transport_1': {
                     type: 'transport',
-                    dtlsVersion: 'FEFD',
+                    dtlsRole: 'unknown',
+                },
+            }, timestamp: 100 },
+            { type: 'getStats', value: {
+                'transport_1': {
+                    type: 'transport',
                     dtlsRole: 'client',
-                }
+                    tlsVersion: 'FEFD',
+                },
             }, timestamp: 1000 },
         ];
         const features = extractConnectionFeatures([], pcTrace);
