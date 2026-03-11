@@ -80,6 +80,10 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
     // Inbound and outbound.
     features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
     features['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
+    features['keyFrameCount'] = pluckStat(lastTrackStats, ['keyFramesEncoded', 'keyFramesDecoded']);
+    features['nackCount'] = pluckStat(lastTrackStats, ['nackCount']);
+    features['pliCount'] = pluckStat(lastTrackStats, ['pliCount']);
+    features['firCount'] = pluckStat(lastTrackStats, ['firCount']);
 
     // Outbound.
     if (trackInformation.direction === 'outbound') {
@@ -100,6 +104,7 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
         features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
         features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
         features['totalFreezesDuration'] = pluckStat(lastTrackStats, ['totalFreezesDuration']);
+        features['framesDropped'] = pluckStat(lastTrackStats, ['framesDropped']);
     }
     return features;
 }
