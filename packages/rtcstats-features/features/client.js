@@ -1,9 +1,13 @@
 /* eslint sort-keys: "error" */
 
-export function extractClientFeatures(clientTrace) {
-    // A trace will always have at least one event.
-    const create = clientTrace.find(traceEvent => traceEvent.type === 'create').value;
-    const getUserMedia = {
+/* Client features are features that describe the client, independent of a particular peerconnection.
+ * They are calculated based on the clientTrace, i.e. the events that are not associated with a
+ * connection such as getUserMedia or enumerateDevices.
+ */
+
+// Client features related to getUserMedia.
+function getUserMediaFeatures(clientTrace) {
+    return {
         calledGetUserMedia: clientTrace.find(traceEvent => {
             // Whether getUserMedia was called at least once.
             return traceEvent.type === 'navigator.mediaDevices.getUserMedia';
@@ -34,7 +38,11 @@ export function extractClientFeatures(clientTrace) {
             return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnSuccess';
         }).length,
     };
-    const getDisplayMedia = {
+}
+
+// Client features related to getDisplayMedia.
+function getDisplayMediaFeatures(clientTrace) {
+    return {
         calledGetDisplayMedia: clientTrace.find(traceEvent => {
             // Whether getDisplayMedia was called at least once.
             return traceEvent.type === 'navigator.mediaDevices.getDisplayMedia';
@@ -55,29 +63,42 @@ export function extractClientFeatures(clientTrace) {
             return traceEvent.type === 'navigator.mediaDevices.getDisplayMediaOnSuccess';
         }).length,
     };
-    const enumerateDevices = {
+}
+
+// Client features related to enumerateDevices.
+function enumerateDevicesFeatures(clientTrace) {
+    return {
         enumerateDevicesCount: clientTrace.filter(traceEvent => {
             // How often enumerateDevices was called.
             return traceEvent.type === 'navigator.mediaDevices.enumerateDevices';
         }).length,
     };
+}
 
-    const webSocket = {
+// Client features related to the rtcstats-js websocket connection.
+function webSocketFeatures(clientTrace) {
+    return {
         webSocketConnectionTime: clientTrace.find(traceEvent => {
             return traceEvent.type === 'websocket';
         })?.value?.connectionTime,
     };
 
+}
+
+export function extractClientFeatures(clientTrace) {
+    // A trace will always have at least one event.
+    const create = clientTrace.find(traceEvent => traceEvent.type === 'create').value;
+
     return {
         ...create,
         // The lifetime of the client in milliseconds.
         duration: clientTrace[clientTrace.length - 1].timestamp - clientTrace[0].timestamp,
-        ...enumerateDevices,
-        ...getDisplayMedia,
-        ...getUserMedia,
+        ...enumerateDevicesFeatures(clientTrace),
+        ...getDisplayMediaFeatures(clientTrace),
+        ...getUserMediaFeatures(clientTrace),
         // The timestamp at which RTCStatsDump was started.
         startTime: clientTrace[0].timestamp,
-        ...webSocket,
+        ...webSocketFeatures(clientTrace),
     };
 }
 
