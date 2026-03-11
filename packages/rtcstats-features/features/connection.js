@@ -82,6 +82,25 @@ function apiFailures(/*clientTrace*/_, peerConnectionTrace) {
 }
 
 function connectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
+    const dtls = (() => {
+        // The DTLS version and role as defined in
+        //   https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
+        //   https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole
+        // Note: the role is set after O/A, version requires the handshake to be complete.
+        for (const traceEvent of peerConnectionTrace) {
+            if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+            const report = traceEvent.value;
+            const transportId = Object.keys(report).find(id => {
+                return report[id].type === 'transport' && report[id].tlsVersion;
+            });
+            if (transportId) {
+                return {
+                    dtlsVersion: report[transportId].tlsVersion,
+                    dtlsRole: report[transportId].dtlsRole,
+                };
+            }
+        }
+    })();
     return {
         connected: peerConnectionTrace.find(traceEvent => {
             // Whether the connection was established.
@@ -107,32 +126,7 @@ function connectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
                 return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
             }
         })(),
-        dtlsRole: (() => {
-            // The DTLS role as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole
-            for (const traceEvent of peerConnectionTrace) {
-                if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-                const report = traceEvent.value;
-                const transportId = Object.keys(report).find(id => {
-                    return report[id].type === 'transport' && ['client', 'server'].includes(report[id].dtlsRole);
-                });
-                if (transportId) {
-                    return report[transportId].dtlsRole;
-                }
-            }
-        })(),
-        dtlsVersion: (() => {
-            // The DTLS version as defined in https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
-            for (const traceEvent of peerConnectionTrace) {
-                if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-                const report = traceEvent.value;
-                const transportId = Object.keys(report).find(id => {
-                    return report[id].type === 'transport' && report[id].dtlsVersion;
-                });
-                if (transportId) {
-                    return report[transportId].dtlsVersion;
-                }
-            }
-        })(),
+        ...dtls,
     };
 }
 
