@@ -26,9 +26,8 @@ function getSelectedCandidatePairStats(report) {
     return undefined;
 }
 
-export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
-    // A trace will always have at least one event.
-    const ice = {
+function iceFeatures(/*clientTrace*/_, peerConnectionTrace) {
+    return {
         iceConnected: peerConnectionTrace.find(traceEvent => {
             // Whether the ice connection was established.
             return traceEvent.type === 'oniceconnectionstatechange' && traceEvent.value === 'connected';
@@ -63,7 +62,10 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             return SDPUtils.splitLines(traceEvent.value.sdp).includes('a=ice-lite');
         }) !== undefined,
     };
-    const apiFailures = {
+}
+
+function apiFailures(/*clientTrace*/_, peerConnectionTrace) {
+    return {
         // The error message if addIceCandidate fails.
         addIceCandidateFailure: peerConnectionTrace.find(traceEvent => {
             return traceEvent.type === 'addIceCandidateOnFailure';
@@ -77,7 +79,10 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             return traceEvent.type === 'setRemoteDescriptionOnFailure';
         })?.value,
     };
-    const connection = {
+}
+
+function connectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
+    return {
         connected: peerConnectionTrace.find(traceEvent => {
             // Whether the connection was established.
             return traceEvent.type === 'onconnectionstatechange' && traceEvent.value === 'connected';
@@ -129,32 +134,36 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
             }
         })(),
     };
-    const turnServers = (() => {
-        const configuration = peerConnectionTrace.find(traceEvent => traceEvent.type === 'create')?.value;
-        if (!configuration?.iceServers) return {};
-        const configured = {
-            configuredIceServers: configuration.iceServers.length,
-            configuredIceTransportPolicy: configuration.iceTransportPolicy === 'relay',
-        };
-        for (const iceServer of configuration.iceServers) {
-            if (!iceServer.urls) continue;
-            const urls = typeof iceServer.urls === 'string' ? [iceServer.urls] : iceServer.urls;
-            for (const url of urls) {
-                if (url.startsWith('stun:')) {
-                    configured['configuredIceServersStun'] = true;
-                } else if (url.startsWith('turns:')) {
-                    configured['configuredIceServersTurns'] = true;
-                } else if (url.startsWith('turn:')) {
-                    if (url.endsWith('?transport=udp')) {
-                        configured['configuredIceServersTurnUdp'] = true;
-                    } else if (url.endsWith('?transport=tcp')) {
-                        configured['configuredIceServersTurnTcp'] = true;
-                    }
+}
+
+function iceServerFeatures(/*clientTrace*/_, peerConnectionTrace) {
+    const configuration = peerConnectionTrace.find(traceEvent => traceEvent.type === 'create')?.value;
+    if (!configuration?.iceServers) return {};
+    const configured = {
+        configuredIceServers: configuration.iceServers.length,
+        configuredIceTransportPolicy: configuration.iceTransportPolicy === 'relay',
+    };
+    for (const iceServer of configuration.iceServers) {
+        if (!iceServer.urls) continue;
+        const urls = typeof iceServer.urls === 'string' ? [iceServer.urls] : iceServer.urls;
+        for (const url of urls) {
+            if (url.startsWith('stun:')) {
+                configured['configuredIceServersStun'] = true;
+            } else if (url.startsWith('turns:')) {
+                configured['configuredIceServersTurns'] = true;
+            } else if (url.startsWith('turn:')) {
+                if (url.endsWith('?transport=udp')) {
+                    configured['configuredIceServersTurnUdp'] = true;
+                } else if (url.endsWith('?transport=tcp')) {
+                    configured['configuredIceServersTurnTcp'] = true;
                 }
             }
         }
-        return configured;
-    })();
+    }
+    return configured;
+}
+
+function candidateFeatures(/*clientTrace*/_, peerConnectionTrace) {
     const candidates = {
         addedHost: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
@@ -244,44 +253,51 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         }
         return {};
     })();
-    // Find the last stats and extract stats events (typically averages over the whole duration).
-    const lastStatsFeatures = (() => {
-        const features = {};
-        let lastStatsEvent;
-        let lastCandidatePairStats;
-        for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
-            const traceEvent = peerConnectionTrace[i];
-            if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-            const stats = getSelectedCandidatePairStats(traceEvent.value);
-            if (!stats) continue;
-            lastStatsEvent = traceEvent;
-            lastCandidatePairStats = traceEvent.value[stats.selectedCandidatePairId];
-            break;
-        }
-        if (!(lastStatsEvent && lastCandidatePairStats)) {
-            return features;
-        }
-        features['averageStunRoundTripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundTripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
-        return features;
-    })();
-
     return {
-        ... apiFailures,
-        ... connection,
+        ...candidates,
+        ...firstCandidatePair,
+    };
+}
+
+function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace) {
+    const features = {};
+    let lastStatsEvent;
+    let lastCandidatePairStats;
+    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
+        const traceEvent = peerConnectionTrace[i];
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        const stats = getSelectedCandidatePairStats(traceEvent.value);
+        if (!stats) continue;
+        lastStatsEvent = traceEvent;
+        lastCandidatePairStats = traceEvent.value[stats.selectedCandidatePairId];
+        break;
+    }
+    if (!(lastStatsEvent && lastCandidatePairStats)) {
+        return features;
+    }
+    features['averageStunRoundTripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundTripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
+    return features;
+}
+
+export function extractConnectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
+    // A trace will always have at least one event.
+    // Find the last stats and extract stats events (typically averages over the whole duration).
+    return {
+        ... apiFailures(undefined, peerConnectionTrace),
+        ... connectionFeatures(undefined, peerConnectionTrace),
         // Whether the peer connection was closed using `pc.close()`.
         closed: peerConnectionTrace[peerConnectionTrace.length - 1].type === 'close',
         // The lifetime of the peer connection in milliseconds.
         duration: peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp,
-        ...ice,
-        ...candidates,
-        ...firstCandidatePair,
-        ...lastStatsFeatures,
+        ...iceFeatures(undefined, peerConnectionTrace),
+        ... iceServerFeatures(undefined, peerConnectionTrace),
+        ...candidateFeatures(undefined, peerConnectionTrace),
+        ...lastStatsFeatures(undefined, peerConnectionTrace),
         // The total number of events in the peer connection trace.
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
-        ... turnServers,
     };
 }

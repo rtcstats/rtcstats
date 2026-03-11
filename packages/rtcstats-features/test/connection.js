@@ -116,28 +116,30 @@ describe('extractConnectionFeatures', () => {
         expect(features.dtlsVersion).to.equal('FEFD');
     });
 
-    it('should extract addIceCandidateFailure', () => {
-        const pcTrace = [
-            { type: 'addIceCandidateOnFailure', value: 'error message', timestamp: 1000 },
-        ];
-        const features = extractConnectionFeatures([], pcTrace);
-        expect(features.addIceCandidateFailure).to.equal('error message');
-    });
+    describe('API failure', () => {
+        it('should extract addIceCandidateFailure', () => {
+            const pcTrace = [
+                { type: 'addIceCandidateOnFailure', value: 'error message', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addIceCandidateFailure).to.equal('error message');
+        });
 
-    it('should extract setLocalDescriptionFailure', () => {
-        const pcTrace = [
-            { type: 'setLocalDescriptionOnFailure', value: 'error message', timestamp: 1000 },
-        ];
-        const features = extractConnectionFeatures([], pcTrace);
-        expect(features.setLocalDescriptionFailure).to.equal('error message');
-    });
+        it('should extract setLocalDescriptionFailure', () => {
+            const pcTrace = [
+                { type: 'setLocalDescriptionOnFailure', value: 'error message', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.setLocalDescriptionFailure).to.equal('error message');
+        });
 
-    it('should extract setRemoteDescriptionFailure', () => {
-        const pcTrace = [
-            { type: 'setRemoteDescriptionOnFailure', value: 'error message', timestamp: 1000 },
-        ];
-        const features = extractConnectionFeatures([], pcTrace);
-        expect(features.setRemoteDescriptionFailure).to.equal('error message');
+        it('should extract setRemoteDescriptionFailure', () => {
+            const pcTrace = [
+                { type: 'setRemoteDescriptionOnFailure', value: 'error message', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.setRemoteDescriptionFailure).to.equal('error message');
+        });
     });
 
     it('should extract dtlsRole', () => {
