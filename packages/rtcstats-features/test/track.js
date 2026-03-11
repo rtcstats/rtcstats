@@ -11,6 +11,7 @@ describe('extractTrackFeatures', () => {
     const stats = {
         [trackInfo.statsId]: {
             framesEncoded: 100,
+            keyFramesEncoded: 1,
             totalEncodeTime: 10,
             frameWidth: 320,
             frameHeight: 240,
@@ -21,6 +22,9 @@ describe('extractTrackFeatures', () => {
                 other: 700,
             },
             qualityLimitationResolutionChanges: 1,
+            firCount: 0,
+            nackCount: 3,
+            pliCount: 1,
         }
     };
 
@@ -42,13 +46,17 @@ describe('extractTrackFeatures', () => {
             cpuQualityLimitationPercentage: 0.1,
             direction: 'outbound',
             duration: 2,
+            firCount: 0,
             frameCount: 100,
+            keyFrameCount: 1,
             kind: 'video',
             maxHeight: 240,
             maxWidth: 320,
             minHeight: 240,
             minWidth: 320,
+            nackCount: 3,
             otherQualityLimitationPercentage: 0.35,
+            pliCount: 1,
             qualityLimitationResolutionChanges: 1,
             startTime: 1000,
             trackIdentifier: 'track1',
@@ -115,6 +123,7 @@ describe('extractTrackFeatures', () => {
             [trackInfo.statsId]: {
                 type: 'inbound-rtp',
                 framesDecoded: 100,
+                framesDropped: 2,
                 totalDecodeTime: 20,
                 freezeCount: 1,
                 totalFreezesDuration: 30,
@@ -126,6 +135,7 @@ describe('extractTrackFeatures', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features.averageDecodeTime).to.equal(0.2);
+            expect(features.framesDropped).to.equal(2);
         });
         it('should extract freeze-related features', () => {
             const pcTrace = [

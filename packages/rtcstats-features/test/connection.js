@@ -103,17 +103,19 @@ describe('extractConnectionFeatures', () => {
         expect(features.connectionTime).to.equal(10);
     });
 
-    it('should extract DTLS version', () => {
+    it('should extract DTLS version and role', () => {
         const pcTrace = [
             { type: 'getStats', value: {
                 'transport_1': {
                     type: 'transport',
-                    dtlsVersion: 'FEFD'
+                    dtlsVersion: 'FEFD',
+                    dtlsRole: 'client',
                 }
             }, timestamp: 1000 },
         ];
         const features = extractConnectionFeatures([], pcTrace);
         expect(features.dtlsVersion).to.equal('FEFD');
+        expect(features.dtlsRole).to.equal('client');
     });
 
     describe('API failure', () => {
@@ -140,19 +142,6 @@ describe('extractConnectionFeatures', () => {
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.setRemoteDescriptionFailure).to.equal('error message');
         });
-    });
-
-    it('should extract dtlsRole', () => {
-        const pcTrace = [
-            { type: 'getStats', value: {
-                'transport_1': {
-                    type: 'transport',
-                    dtlsRole: 'client'
-                }
-            }, timestamp: 1000 },
-        ];
-        const features = extractConnectionFeatures([], pcTrace);
-        expect(features.dtlsRole).to.equal('client');
     });
 
     describe('added candidates', () => {
