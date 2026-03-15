@@ -26,7 +26,7 @@ function getSelectedCandidatePairStats(report) {
     return undefined;
 }
 
-function iceFeatures(/*clientTrace*/_, peerConnectionTrace) {
+function iceFeatures(/* clientTrace */_, peerConnectionTrace) {
     return {
         iceConnected: peerConnectionTrace.find(traceEvent => {
             // Whether the ice connection was established.
@@ -64,7 +64,7 @@ function iceFeatures(/*clientTrace*/_, peerConnectionTrace) {
     };
 }
 
-function apiFailures(/*clientTrace*/_, peerConnectionTrace) {
+function apiFailures(/* clientTrace*/_, peerConnectionTrace) {
     return {
         // The error message if addIceCandidate fails.
         addIceCandidateFailure: peerConnectionTrace.find(traceEvent => {
@@ -81,7 +81,7 @@ function apiFailures(/*clientTrace*/_, peerConnectionTrace) {
     };
 }
 
-function connectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
+function connectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const dtls = (() => {
         // The DTLS version and role as defined in
         //   https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
@@ -95,8 +95,8 @@ function connectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
             });
             if (transportId) {
                 return {
-                    dtlsVersion: report[transportId].tlsVersion,
                     dtlsRole: report[transportId].dtlsRole,
+                    dtlsVersion: report[transportId].tlsVersion,
                 };
             }
         }
@@ -130,7 +130,7 @@ function connectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
     };
 }
 
-function iceServerFeatures(/*clientTrace*/_, peerConnectionTrace) {
+function iceServerFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const configuration = peerConnectionTrace.find(traceEvent => traceEvent.type === 'create')?.value;
     if (!configuration?.iceServers) return {};
     const configured = {
@@ -157,7 +157,7 @@ function iceServerFeatures(/*clientTrace*/_, peerConnectionTrace) {
     return configured;
 }
 
-function candidateFeatures(/*clientTrace*/_, peerConnectionTrace) {
+function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const candidates = {
         addedHost: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
@@ -253,7 +253,7 @@ function candidateFeatures(/*clientTrace*/_, peerConnectionTrace) {
     };
 }
 
-function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace) {
+function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const features = {};
     let lastStatsEvent;
     let lastCandidatePairStats;
@@ -273,7 +273,7 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace) {
     return features;
 }
 
-export function extractConnectionFeatures(/*clientTrace*/_, peerConnectionTrace) {
+export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
     // A trace will always have at least one event.
     // Find the last stats and extract stats events (typically averages over the whole duration).
     return {
