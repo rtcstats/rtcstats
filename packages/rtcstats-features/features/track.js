@@ -81,6 +81,7 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
     features['duration'] = Math.floor(lastStatsEvent.timestamp - trackInformation.startTime);
     features['frameCount'] = pluckStat(lastTrackStats, ['framesEncoded', 'framesDecoded']);
     features['keyFrameCount'] = pluckStat(lastTrackStats, ['keyFramesEncoded', 'keyFramesDecoded']);
+    features['qpSum'] = pluckStat(lastTrackStats, ['qpSum']);
     features['nackCount'] = pluckStat(lastTrackStats, ['nackCount']);
     features['pliCount'] = pluckStat(lastTrackStats, ['pliCount']);
     features['firCount'] = pluckStat(lastTrackStats, ['firCount']);
@@ -100,6 +101,13 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
         features['averageEncodeTime'] = pluckStat(lastTrackStats, ['totalEncodeTime']) / pluckStat(lastTrackStats, ['framesEncoded']);
         features['rid'] = pluckStat(lastTrackStats, ['rid']); // rid is important to group by simulcast layer.
         features['encodingIndex'] = pluckStat(lastTrackStats, ['encodingIndex']); // encodingIndex is important to group by simulcast layer.
+        if (pluckStat(lastTrackStats, ['psnrMeasurements'])) {
+            features['psnrMeasurements'] = pluckStat(lastTrackStats, ['psnrMeasurements']);
+            const psnrSum = pluckStat(lastTrackStats, ['psnrSum']);
+            features['psnrSumY'] = psnrSum['y'];
+            features['psnrSumU'] = psnrSum['u'];
+            features['psnrSumV'] = psnrSum['v'];
+        }
     } else {
         features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
         features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
