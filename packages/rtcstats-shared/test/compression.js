@@ -300,6 +300,11 @@ describe('method compression', () => {
         const decompressedMethod = decompressMethod(compressedMethod);
         expect(decompressedMethod).to.equal('unknown');
     });
+    it('only decompresses getStats but does not compress it (yet)', () => {
+        expect(compressMethod('getStats')).to.equal('g');
+        expect(decompressMethod('g')).to.equal('getStats');
+        expect(decompressMethod(1)).to.equal('getStats');
+    });
 });
 
 describe('stats type compression', () => {
