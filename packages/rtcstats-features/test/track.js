@@ -25,6 +25,7 @@ describe('extractTrackFeatures', () => {
             firCount: 0,
             nackCount: 3,
             pliCount: 1,
+            qpSum: 3251,
         }
     };
 
@@ -57,6 +58,7 @@ describe('extractTrackFeatures', () => {
             nackCount: 3,
             otherQualityLimitationPercentage: 0.35,
             pliCount: 1,
+            qpSum: 3251,
             qualityLimitationResolutionChanges: 1,
             startTime: 1000,
             trackIdentifier: 'track1',
@@ -93,6 +95,12 @@ describe('extractTrackFeatures', () => {
                 qualityLimitationResolutionChanges: 1,
                 rid: 'f',
                 encodingIndex: 0,
+                psnrMeasurements: 2,
+                psnrSum: {y: 32, u: 31, v: 26},
+                psnrMeasurements: 2,
+                psnrSumY: 32,
+                psnrSumU: 31,
+                psnrSumV: 26,
             }
         };
 
