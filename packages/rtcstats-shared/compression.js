@@ -318,6 +318,7 @@ const methodTable = {
     // These are very common so ordered specifically such that
     // they get ѕingle-digit ids.
     getStats: 'g',
+    // TODO: getStats: 1, at next major version bump.
     createOffer: 2,
     createOfferOnSuccess: 3,
     createOfferOnFailure: 12,
@@ -381,10 +382,15 @@ const methodTable = {
     // HTMLMediaElement
     'HTMLMediaElement.resize': 80,
 };
+// Properties that are decompressed but for release purpose not yet compressed.
+// These should be moved to the compression table at major version bumps.
+const methodTableDecompression = {
+    1: 'getStats',
+};
 const reverseMethodTable = Object.keys(methodTable).reduce((table, method) => {
     table[methodTable[method]] = method;
     return table;
-}, {});
+}, methodTableDecompression);
 
 /**
  * Replace a rtcstats method with a numeric identifier.
