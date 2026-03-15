@@ -707,10 +707,17 @@ const statsPropertyTable = {
     base64Certificate: 165,
     issuerCertificateId: 166,
 };
+// Properties that are decompressed but for release purpose not yet compressed.
+// These should be moved to the compression table at major version bumps.
+const statsPropertyTableDecompression = {
+    // https://w3c.github.io/webrtc-stats/#dom-rtcoutboundrtpstreamstats-psnrsum
+    167: 'psnrMeasurements',
+    168: 'psnrSum',
+};
 const reverseStatsPropertyTable = Object.keys(statsPropertyTable).reduce((table, property) => {
     table[statsPropertyTable[property]] = property;
     return table;
-}, {});
+}, statsPropertyTableDecompression);
 
 /**
  * Replace a stats property name with a numeric key for known properties.

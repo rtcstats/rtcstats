@@ -358,6 +358,12 @@ describe('stat property compression', () => {
         const decompressedProperty = decompressStatsProperty(compressedProperty);
         expect(decompressedProperty).to.equal('unknown');
     });
+    it('only decompresses new properties but does not compress them', () => {
+        expect(compressStatsProperty('psnrMeasurements')).to.equal('psnrMeasurements');
+        expect(compressStatsProperty('psnrSum')).to.equal('psnrSum');
+        expect(decompressStatsProperty(167)).to.equal('psnrMeasurements');
+        expect(decompressStatsProperty(168)).to.equal('psnrSum');
+    });
     it('works end-to-end', () => {
         const stats = {
             'OT01A3572743119': {
