@@ -66,9 +66,11 @@ export function WebSocketTrace(config = {}) {
     trace.close = () => {
         if (window.sessionStorage && config.countReloads) {
             // A clean disconnect clears the reload count.
-            window.sessionStorage.setItem(RELOAD_COUNT_KEY, 0);
+            window.sessionStorage.removeItem(RELOAD_COUNT_KEY);
         }
-        connection.close();
+        if (connection) {
+            connection.close();
+        }
     };
     trace.connect = (wsURL) => {
         if (connection) {

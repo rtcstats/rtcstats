@@ -5,6 +5,7 @@ import {WebSocketTrace} from '../../trace-websocket.js';
 const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
 describe('Session reload counting', () => {
     afterEach(() => sessionStorage.clear());
+
     it('does not count unless configured', () => {
         const trace = new WebSocketTrace({countReloads: false});
         expect(sessionStorage.getItem(RELOAD_COUNT_KEY)).to.equal(null);
@@ -19,5 +20,12 @@ describe('Session reload counting', () => {
         sessionStorage.setItem(RELOAD_COUNT_KEY, 15);
         const trace = new WebSocketTrace({countReloads: true});
         expect(sessionStorage.getItem(RELOAD_COUNT_KEY)).to.equal('16');
+    });
+
+    it('resets after explicit close', () => {
+        sessionStorage.setItem(RELOAD_COUNT_KEY, 15);
+        const trace = new WebSocketTrace({countReloads: true});
+        trace.close();
+        expect(sessionStorage.getItem(RELOAD_COUNT_KEY)).to.equal(null);
     });
 });
