@@ -2,7 +2,7 @@
 import {createGzip, createGunzip} from 'node:zlib';
 import {pipeline} from 'node:stream/promises';
 import fs from 'node:fs';
-import fsPromises from 'node:fs/promises';;
+import fsPromises from 'node:fs/promises';
 
 import AWS from '@aws-sdk/client-s3';
 import S3Storage from '@aws-sdk/lib-storage';
@@ -15,16 +15,16 @@ export function createS3Storage(config) {
             Bucket,
             Key: key,
             Body: fs.createReadStream(filename),
-        }});;
+        }});
         return upload.done()
-            .then(response => response.Location)
+            .then(response => response.Location);
     };
     const download = (filename) => {
         const command = new AWS.GetObjectCommand({
             Bucket,
             Key: filename,
         });
-        return client.send(command)
+        return client.send(command);
     };
     return {
         put: async (key, filename) => {
@@ -34,7 +34,7 @@ export function createS3Storage(config) {
             await pipeline(source, gzip, dest);
             return upload(key + '.gz', filename + '.gz')
                 .then(async (result) => {
-                    await fsPromises.unlink(filename + '.gz')
+                    await fsPromises.unlink(filename + '.gz');
                     return result;
                 });
         },

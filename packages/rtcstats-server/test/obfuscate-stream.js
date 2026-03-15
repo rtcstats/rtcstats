@@ -9,10 +9,10 @@ async function obfuscate(input) {
     const readStream = Readable.from(input);
     let output = '';
     const writeStream = new Writable({
-      write(chunk, encoding, callback) {
-        output += chunk.toString();
-        callback();
-      },
+        write(chunk, encoding, callback) {
+            output += chunk.toString();
+            callback();
+        },
     });
     await pipeline(readStream, new ObfuscateStream(), writeStream);
     return output;

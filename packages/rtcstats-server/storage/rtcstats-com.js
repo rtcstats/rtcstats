@@ -4,7 +4,6 @@ export async function uploadToRtcStatsCom(file, endpoint, token, fetchFunction) 
     // Upload individual chunks.
     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
     const fileId = `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    let uploadedChunks = 0;
     for (let i = 0; i < totalChunks; i++) {
         const start = i * CHUNK_SIZE;
         const end = Math.min(file.size, start + CHUNK_SIZE);
@@ -26,7 +25,6 @@ export async function uploadToRtcStatsCom(file, endpoint, token, fetchFunction) 
             const errorData = await response.json();
             throw new Error(errorData.error || 'Chunk upload failed');
         }
-        uploadedChunks++;
     }
     // Notify server to assemble.
     const assembleResponse = await fetchFunction(endpoint, {
@@ -44,8 +42,9 @@ export async function uploadToRtcStatsCom(file, endpoint, token, fetchFunction) 
 };
 
 export function createRtcStatsUploader(config) {
-    if (!config.token) return;
-    if (!config.endpoint) return;
+    if (!(config.token && config.endpoint)) {
+        return;
+    }
     let randomPercentage = 0.0;
     if (config.randomPercentage && config.randomPercentage >= 0 && config.randomPercentage < 1.0) {
         randomPercentage = config.randomPercentage;
@@ -57,5 +56,5 @@ export function createRtcStatsUploader(config) {
             return;
         }
         uploadToRtcStatsCom(file, config.endpoint, config.token, fetchFunction);
-    }
+    };
 }

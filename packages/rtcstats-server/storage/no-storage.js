@@ -4,7 +4,7 @@ export function createNoStorage() {
         put: async (key, filename) => {
             console.log('Storage not configured, not uploading', filename);
         },
-        get: async (blobUrl) => {
+        get: async (/*blobUrl*/) => {
             console.log('Storage not configured, not downloading');
         },
     };
