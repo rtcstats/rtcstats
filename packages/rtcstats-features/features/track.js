@@ -108,11 +108,17 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
             features['psnrSumU'] = psnrSum['u'];
             features['psnrSumV'] = psnrSum['v'];
         }
+        // HW acceleration
+        features['encoderImplementation'] = pluckStat(lastTrackStats, ['encoderImplementation']);
+        features['powerEfficientEncoder'] = pluckStat(lastTrackStats, ['powerEfficientEncoder']);
     } else {
         features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
         features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
         features['totalFreezesDuration'] = pluckStat(lastTrackStats, ['totalFreezesDuration']);
         features['framesDropped'] = pluckStat(lastTrackStats, ['framesDropped']);
+        // HW acceleration
+        features['decoderImplementation'] = pluckStat(lastTrackStats, ['decoderImplementation']);
+        features['powerEfficientDecoder'] = pluckStat(lastTrackStats, ['powerEfficientDecoder']);
     }
     return features;
 }

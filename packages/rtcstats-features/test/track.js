@@ -101,6 +101,8 @@ describe('extractTrackFeatures', () => {
                 psnrSumY: 32,
                 psnrSumU: 31,
                 psnrSumV: 26,
+                powerEfficientEncoder: false,
+                encoderImplementation: 'bogus',
             }
         };
 
@@ -116,6 +118,8 @@ describe('extractTrackFeatures', () => {
             expect(features.qualityLimitationResolutionChanges).to.equal(1);
             expect(features.rid).to.equal('f');
             expect(features.encodingIndex).to.equal(0);
+            expect(features.powerEfficientEncoder).to.equal(false);
+            expect(features.encoderImplementation).to.equal('bogus');
         });
     });
 
@@ -135,6 +139,8 @@ describe('extractTrackFeatures', () => {
                 totalDecodeTime: 20,
                 freezeCount: 1,
                 totalFreezesDuration: 30,
+                powerEfficientDecoder: true,
+                decoderImplementation: 'some hardware',
             }
         };
         it('should extract decode-related features', () => {
@@ -152,6 +158,8 @@ describe('extractTrackFeatures', () => {
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features.freezeCount).to.equal(1);
             expect(features.totalFreezesDuration).to.equal(30);
+            expect(features.powerEfficientDecoder).to.equal(true);
+            expect(features.decoderImplementation).to.equal('some hardware');
         });
     });
 
