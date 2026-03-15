@@ -20,7 +20,7 @@ function divideStat(statsObject, nominator, denominator) {
     return statsObject[nominator] / statsObject[denominator];
 }
 
-function codecFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformation) {
+function codecFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     for (const traceEvent of peerConnectionTrace) {
         if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
         const report = traceEvent.value;
@@ -35,7 +35,7 @@ function codecFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformation) 
     }
 }
 
-function resolutionFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformation) {
+function resolutionFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     if (trackInformation.kind === 'audio') return {};
     const widths = {};
     const heights = {};
@@ -68,7 +68,7 @@ function resolutionFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformat
     };
 }
 
-function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformation) {
+function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     const features = {
         duration: 0,
     };
