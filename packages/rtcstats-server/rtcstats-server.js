@@ -21,7 +21,7 @@ export class RTCStatsServer {
         this.storage = this.createStorage(config.storage);
         this.database = this.createDatabase(config.database);
         this.rtcstatsUploader = this.createRtcStatsUploader(config.rtcstats);
-        this.server = http.Server({}, () => { })
+        this.server = new http.Server({}, () => { })
             .on('request', this.handleHttpRequest.bind(this));
         this.wss = new WebSocketServer({server: this.server});
         this.wss.on('connection', this.handleWebSocket.bind(this));
@@ -80,13 +80,13 @@ export class RTCStatsServer {
             }
         }
         switch (request.url) {
-            case '/healthcheck':
-                response.writeHead(200);
-                response.end();
-                break;
-            default:
-                response.writeHead(404);
-                response.end();
+        case '/healthcheck':
+            response.writeHead(200);
+            response.end();
+            break;
+        default:
+            response.writeHead(404);
+            response.end();
         }
     }
 

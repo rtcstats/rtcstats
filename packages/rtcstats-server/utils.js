@@ -27,7 +27,7 @@ export function setupDirectory(config, directoryName) {
 }
 
 // Generate a rtcstats JWT token.
-export async function generateAuthToken(rtcStatsData, secret, expiresIn = 3600/*seconds*/) {
+export async function generateAuthToken(rtcStatsData, secret, expiresIn = 3600/* seconds*/) {
     return new Promise((resolve, reject) => {
         jwt.sign({
             rtcStats: rtcStatsData,

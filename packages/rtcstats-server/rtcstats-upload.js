@@ -72,7 +72,7 @@ class ExtractFileTransform extends Transform {
             this.state = 'body';
             break;
         case 'end':
-             // do nothing
+            // do nothing
             break;
         }
     }
