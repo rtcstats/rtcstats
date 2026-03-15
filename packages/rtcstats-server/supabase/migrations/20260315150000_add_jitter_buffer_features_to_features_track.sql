@@ -1,0 +1,10 @@
+ALTER TABLE "public"."features_track" ADD COLUMN jitter_buffer_delay FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN jitter_buffer_minimum_delay FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN jitter_buffer_target_delay FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN jitter_buffer_emitted_count INTEGER;
+ALTER TABLE "public"."features_track" ADD COLUMN total_processing_delay FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN frames_assembled_from_multiple_packets INTEGER;
+ALTER TABLE "public"."features_track" ADD COLUMN total_assembly_time FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN average_jitter_buffer_delay FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN average_processing_delay FLOAT;
+ALTER TABLE "public"."features_track" ADD COLUMN average_assembly_time FLOAT;

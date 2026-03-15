@@ -141,6 +141,13 @@ describe('extractTrackFeatures', () => {
                 totalFreezesDuration: 30,
                 powerEfficientDecoder: true,
                 decoderImplementation: 'some hardware',
+                jitterBufferDelay: 10,
+                jitterBufferMinimumDelay: 1,
+                jitterBufferTargetDelay: 2,
+                jitterBufferEmittedCount: 100,
+                totalProcessingDelay: 5,
+                framesAssembledFromMultiplePackets: 50,
+                totalAssemblyTime: 2.5,
             }
         };
         it('should extract decode-related features', () => {
@@ -160,6 +167,22 @@ describe('extractTrackFeatures', () => {
             expect(features.totalFreezesDuration).to.equal(30);
             expect(features.powerEfficientDecoder).to.equal(true);
             expect(features.decoderImplementation).to.equal('some hardware');
+        });
+        it('should extract jitter buffer and assembly features', () => {
+            const pcTrace = [
+                { type: 'getStats', timestamp: 1001, value: stats },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.jitterBufferDelay).to.equal(10);
+            expect(features.jitterBufferMinimumDelay).to.equal(1);
+            expect(features.jitterBufferTargetDelay).to.equal(2);
+            expect(features.jitterBufferEmittedCount).to.equal(100);
+            expect(features.totalProcessingDelay).to.equal(5);
+            expect(features.averageJitterBufferDelay).to.equal(0.1);
+            expect(features.averageProcessingDelay).to.equal(0.05);
+            expect(features.framesAssembledFromMultiplePackets).to.equal(50);
+            expect(features.totalAssemblyTime).to.equal(2.5);
+            expect(features.averageAssemblyTime).to.equal(0.05);
         });
     });
 

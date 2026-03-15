@@ -12,6 +12,14 @@ function pluckStat(statsObject, properties) {
     }
 }
 
+function divideStat(statsObject, nominator, denominator) {
+    if (!statsObject) return;
+    if (!(statsObject.hasOwnProperty(nominator) && statsObject.hasOwnProperty(denominator))) {
+        return undefined;
+    }
+    return statsObject[nominator] / statsObject[denominator];
+}
+
 function codecFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformation) {
     for (const traceEvent of peerConnectionTrace) {
         if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
@@ -86,8 +94,8 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
     features['pliCount'] = pluckStat(lastTrackStats, ['pliCount']);
     features['firCount'] = pluckStat(lastTrackStats, ['firCount']);
 
-    // Outbound.
     if (trackInformation.direction === 'outbound') {
+        // Outbound.
         const qualityLimitationDurations = pluckStat(lastTrackStats, ['qualityLimitationDurations']);
         if (qualityLimitationDurations) {
             const totalDuration = Object.keys(qualityLimitationDurations)
@@ -112,13 +120,29 @@ function lastStatsFeatures(/*clientTrace*/_, peerConnectionTrace, trackInformati
         features['encoderImplementation'] = pluckStat(lastTrackStats, ['encoderImplementation']);
         features['powerEfficientEncoder'] = pluckStat(lastTrackStats, ['powerEfficientEncoder']);
     } else {
-        features['averageDecodeTime'] = pluckStat(lastTrackStats, ['totalDecodeTime']) / pluckStat(lastTrackStats, ['framesDecoded']);
+        // Inbound.
         features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
         features['totalFreezesDuration'] = pluckStat(lastTrackStats, ['totalFreezesDuration']);
         features['framesDropped'] = pluckStat(lastTrackStats, ['framesDropped']);
         // HW acceleration
         features['decoderImplementation'] = pluckStat(lastTrackStats, ['decoderImplementation']);
         features['powerEfficientDecoder'] = pluckStat(lastTrackStats, ['powerEfficientDecoder']);
+
+        // Jitter buffer.
+        features['jitterBufferDelay'] = pluckStat(lastTrackStats, ['jitterBufferDelay']);
+        features['jitterBufferMinimumDelay'] = pluckStat(lastTrackStats, ['jitterBufferMinimumDelay']);
+        features['jitterBufferTargetDelay'] = pluckStat(lastTrackStats, ['jitterBufferTargetDelay']);
+        features['jitterBufferEmittedCount'] = pluckStat(lastTrackStats, ['jitterBufferEmittedCount']);
+        features['totalProcessingDelay'] = pluckStat(lastTrackStats, ['totalProcessingDelay']);
+
+        features['framesAssembledFromMultiplePackets'] = pluckStat(lastTrackStats, ['framesAssembledFromMultiplePackets']);
+        features['totalAssemblyTime'] = pluckStat(lastTrackStats, ['totalAssemblyTime']);
+
+        // Averages.
+        features['averageDecodeTime'] = divideStat(lastTrackStats, 'totalDecodeTime', 'framesDecoded');
+        features['averageJitterBufferDelay'] = divideStat(lastTrackStats, 'jitterBufferDelay', 'jitterBufferEmittedCount');
+        features['averageProcessingDelay'] = divideStat(lastTrackStats, 'totalProcessingDelay', 'jitterBufferEmittedCount');
+        features['averageAssemblyTime'] = divideStat(lastTrackStats, 'totalAssemblyTime', 'framesAssembledFromMultiplePackets');
     }
     return features;
 }
