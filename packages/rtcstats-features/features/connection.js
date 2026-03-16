@@ -86,7 +86,10 @@ function connectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
         // The DTLS version and role as defined in
         //   https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion
         //   https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole
-        // Note: the role is set after O/A, version requires the handshake to be complete.
+        // Also srtpCipher which is derived from DTLS and defined in
+        //   https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-srtpcipher
+        // Note: the role is set after O/A, version and srtpCipher requires the handshake
+        // to be complete.
         for (const traceEvent of peerConnectionTrace) {
             if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
             const report = traceEvent.value;
@@ -97,6 +100,7 @@ function connectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
                 return {
                     dtlsRole: report[transportId].dtlsRole,
                     dtlsVersion: report[transportId].tlsVersion,
+                    srtpCipher: report[transportId].srtpCipher,
                 };
             }
         }
