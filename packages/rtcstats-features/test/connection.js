@@ -116,12 +116,14 @@ describe('extractConnectionFeatures', () => {
                     type: 'transport',
                     dtlsRole: 'client',
                     tlsVersion: 'FEFD',
+                    srtpCipher: 'null cipher',
                 },
             }, timestamp: 1000 },
         ];
         const features = extractConnectionFeatures([], pcTrace);
         expect(features.dtlsVersion).to.equal('FEFD');
         expect(features.dtlsRole).to.equal('client');
+        expect(features.srtpCipher).to.equal('null cipher');
     });
 
     describe('API failure', () => {
