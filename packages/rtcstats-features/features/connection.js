@@ -56,6 +56,29 @@ function iceFeatures(/* clientTrace */_, peerConnectionTrace) {
             // Whether a local ICE restart was performed.
             return traceEvent.type === 'createOffer' && traceEvent.value?.iceRestart === true;
         }) !== undefined,
+        iceRestartFollowedBySetRemoteDescription: (() => {
+            let i;
+            // Search for createOffer with iceRestart set to true.
+            for (i = 0; i < peerConnectionTrace.length; ++i) {
+                if (peerConnectionTrace[i].type === 'createOffer' &&
+                    peerConnectionTrace[i].value?.iceRestart === true) {
+                    break;
+                }
+            }
+            // Search for setLocalDescription with type=offer.
+            for (; i < peerConnectionTrace.length; i++) {
+                if (peerConnectionTrace[i].type === 'setLocalDescription' && peerConnectionTrace[i].value?.type === 'offer') {
+                    break;
+                }
+            }
+            // Search for setRemoteDescription with type=answer.
+            for (; i < peerConnectionTrace.length; i++) {
+                if (peerConnectionTrace[i].type === 'setRemoteDescription' && peerConnectionTrace[i].value?.type === 'answer') {
+                    return true;
+                }
+            }
+            return false;
+        })(),
         usingIceLite: peerConnectionTrace.find(traceEvent => {
             // Whether ice-lite was used by the peer (i.e. it is a server).
             if (traceEvent.type !== 'setRemoteDescription') return false;
