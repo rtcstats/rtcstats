@@ -26,6 +26,7 @@ describe('extractConnectionFeatures', () => {
             gatheredSrflx: false,
             gatheredTurn: false,
             iceRestart: false,
+            iceRestartFollowedBySetRemoteDescription: false,
             numberOfEvents: 3,
             numberOfEventsNotGetStats: 2,
             startTime: 1000,
@@ -370,5 +371,16 @@ describe('extractConnectionFeatures', () => {
         ];
         const features = extractConnectionFeatures([], pcTrace);
         expect(features.averageStunRoundTripTime).to.equal(50);
+    });
+
+    it('should extract ice restart and whether it was followed by setRemoteDescription', () => {
+        const pcTrace = [
+            { type: 'createOffer', value: {iceRestart: true}, timestamp: 1000 },
+            { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, timestamp: 1001 },
+            { type: 'setRemoteDescription', value: {type: 'answer', sdp: ''}, timestamp: 1002 },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.iceRestart).to.equal(true);
+        expect(features.iceRestartFollowedBySetRemoteDescription).to.equal(true);
     });
 });
