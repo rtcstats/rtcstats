@@ -300,6 +300,31 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     return features;
 }
 
+function signalingDelay(/* clientTrace*/_, peerConnectionTrace) {
+    // Signaling delay can only measure offer->answer.
+    let first;
+    let second;
+    for (first = 0; first < peerConnectionTrace.length; first++) {
+        if (peerConnectionTrace[first].type === 'setLocalDescription' &&
+            peerConnectionTrace[first].value?.type === 'offer') {
+            break;
+        }
+    }
+    if (first >= peerConnectionTrace.length) {
+        return;
+    }
+    for (second = first + 1; second < peerConnectionTrace.length; second++) {
+        if (peerConnectionTrace[second].type === 'setRemoteDescription' &&
+            peerConnectionTrace[second].value?.type === 'answer') {
+            break;
+        }
+    }
+    if (second >= peerConnectionTrace.length) {
+        return;
+    }
+    return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
+}
+
 export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
     // A trace will always have at least one event.
     // Find the last stats and extract stats events (typically averages over the whole duration).
@@ -318,6 +343,8 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
+        // (First) signaling delay, i.e. time it takes to do O/A.
+        signalingDelay: signalingDelay(undefined, peerConnectionTrace),
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
     };

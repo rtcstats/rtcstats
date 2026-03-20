@@ -4,7 +4,7 @@ describe('extractConnectionFeatures', () => {
     it('should extract features from a simple trace', () => {
         const pcTrace = [
             { type: 'createOffer', timestamp: 1000 },
-            { type: 'setLocalDescription', timestamp: 1001 },
+            { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, timestamp: 1001 },
             { type: 'getStats', timestamp: 1002 },
         ];
         const features = extractConnectionFeatures([], pcTrace);
@@ -62,6 +62,14 @@ describe('extractConnectionFeatures', () => {
         expect(features.usingIceLite).to.be.true;
     });
 
+    it('should calculate signaling delay', () => {
+        const pcTrace = [
+            { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, timestamp: 1000 },
+            { type: 'setRemoteDescription', value: {type: 'answer', sdp: ''}, timestamp: 1404},
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.signalingDelay).to.equal(404);
+    });
     it('should calculate the ice connection time', () => {
         const pcTrace = [
             { type: 'oniceconnectionstatechange', value: 'checking', timestamp: 1000 },
