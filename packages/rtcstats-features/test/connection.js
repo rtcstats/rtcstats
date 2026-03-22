@@ -70,6 +70,17 @@ describe('extractConnectionFeatures', () => {
         const features = extractConnectionFeatures([], pcTrace);
         expect(features.signalingDelay).to.equal(404);
     });
+
+    it('should calculate setRemoteDescription delay', () => {
+        const pcTrace = [
+            { type: 'setRemoteDescription', value: {type: 'answer', sdp: ''}, extra: ['SRD-1'], timestamp: 1000 },
+            { type: 'setRemoteDescriptionOnSuccess', extra: ['SRD-1'], timestamp: 1050},
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.setRemoteDescriptionDelay).to.equal(50);
+        expect(features.setRemoteDescriptionRole).to.equal('answer');
+    });
+
     it('should calculate the ice connection time', () => {
         const pcTrace = [
             { type: 'oniceconnectionstatechange', value: 'checking', timestamp: 1000 },
