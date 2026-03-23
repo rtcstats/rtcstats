@@ -777,7 +777,7 @@ describe('RTCPeerConnection', () => {
 
             const hostCandidateEvent = new Event('icecandidate');
             hostCandidateEvent.candidate = new RTCIceCandidate({
-                sdpMid: '0',
+                sdpMLineIndex: 0,
                 candidate: candidateSdp.substring(2).trim(),
             });
             pc.dispatchEvent(hostCandidateEvent);
@@ -787,9 +787,18 @@ describe('RTCPeerConnection', () => {
                 sdpMid: '0',
                 candidate: candidateSdp.substring(2).replace('host', 'relay').trim(),
             }).toJSON();
+            turnCandidateEvent.candidate.toJSON = () => {
+                return {
+                    candidate: turnCandidateEvent.candidate.candidate,
+                    sdpMid: turnCandidateEvent.candidate.sdpMid,
+                    // sdpMLineIndex: turnCandidateEvent.candidate.sdpMLineIndex,
+                    usernameFragment: turnCandidateEvent.candidate.usernameFragment,
+                };
+            };
             turnCandidateEvent.candidate.url = 'turn:example.org';
             turnCandidateEvent.candidate.relayProtocol = 'udp';
             pc.dispatchEvent(turnCandidateEvent);
+            delete turnCandidateEvent.candidate.toJSON;
 
             const nullCandidateEvent = new Event('icecandidate');
             nullCandidateEvent.candidate = null;
@@ -797,10 +806,10 @@ describe('RTCPeerConnection', () => {
 
             const events = testSink.reset();
             expect(events[1][0]).to.equal('onicecandidate');
-            expect(events[1][2]).to.equal(hostCandidateEvent.candidate);
+            expect(events[1][2]).to.deep.equal(hostCandidateEvent.candidate);
 
             expect(events[2][0]).to.equal('onicecandidate');
-            expect(events[2][2]).to.equal(turnCandidateEvent.candidate);
+            expect(events[2][2]).to.deep.equal(turnCandidateEvent.candidate);
 
             expect(events[3][0]).to.equal('onicecandidate');
             expect(events[3][2]).to.equal(null);
