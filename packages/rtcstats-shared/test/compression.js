@@ -368,6 +368,21 @@ describe('stat property compression', () => {
         expect(compressStatsProperty('psnrSum')).to.equal('psnrSum');
         expect(decompressStatsProperty(167)).to.equal('psnrMeasurements');
         expect(decompressStatsProperty(168)).to.equal('psnrSum');
+
+        const l4sProperties = [
+            'packetsReceivedWithEct1',
+            'packetsReceivedWithCe',
+            'packetsReportedAsLost',
+            'packetsReportedAsLostButRecovered',
+            'packetsWithBleachedEct1Marking',
+            'packetsSentWithEct1',
+            'ccfbMessagesSent',
+            'ccfbMessagesReceived',
+        ];
+        l4sProperties.forEach((property, idx) => {
+            expect(compressStatsProperty(property)).to.equal(property);
+            expect(decompressStatsProperty(169 + idx)).to.equal(property);
+        });
     });
     it('works end-to-end', () => {
         const stats = {

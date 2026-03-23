@@ -719,6 +719,15 @@ const statsPropertyTableDecompression = {
     // https://w3c.github.io/webrtc-stats/#dom-rtcoutboundrtpstreamstats-psnrsum
     167: 'psnrMeasurements',
     168: 'psnrSum',
+    // L4S stats, https://github.com/w3c/webrtc-stats/pull/792/
+    169: 'packetsReceivedWithEct1',
+    170: 'packetsReceivedWithCe',
+    171: 'packetsReportedAsLost',
+    172: 'packetsReportedAsLostButRecovered',
+    173: 'packetsWithBleachedEct1Marking',
+    174: 'packetsSentWithEct1',
+    175: 'ccfbMessagesSent',
+    176: 'ccfbMessagesReceived',
 };
 const reverseStatsPropertyTable = Object.keys(statsPropertyTable).reduce((table, property) => {
     table[statsPropertyTable[property]] = property;
