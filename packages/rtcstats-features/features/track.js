@@ -116,9 +116,18 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
             features['psnrSumU'] = psnrSum['u'];
             features['psnrSumV'] = psnrSum['v'];
         }
-        // HW acceleration
+        // HW acceleration.
         features['encoderImplementation'] = pluckStat(lastTrackStats, ['encoderImplementation']);
         features['powerEfficientEncoder'] = pluckStat(lastTrackStats, ['powerEfficientEncoder']);
+
+        // L4S.
+        features['packetsSentWithEct1'] = pluckStat(lastTrackStats, ['packetsSentWithEct1']);
+        const lastRemoteInbound = lastStatsEvent.value[lastTrackStats.remoteId];
+        if (lastRemoteInbound) {
+            features['packetsReceivedWithEct1'] = pluckStat(lastRemoteInbound, ['packetsReceivedWithEct1']);
+            features['packetsReceivedWithCe'] = pluckStat(lastRemoteInbound, ['packetsReceivedWithCe']);
+            features['packetsWithBleachedEct1Marking'] = pluckStat(lastRemoteInbound, ['packetsWithBleachedEct1Marking']);
+        }
     } else {
         // Inbound.
         features['freezeCount'] = pluckStat(lastTrackStats, ['freezeCount']);
