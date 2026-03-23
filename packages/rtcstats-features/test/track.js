@@ -232,4 +232,33 @@ describe('extractTrackFeatures', () => {
         expect(features.codecMimeType).to.equal('video/VP8');
         expect(features.codecSdpFmtpLine).to.equal('');
     });
+
+    describe('L4S related features', () => {
+        it('should extract L4S features for outbound tracks', () => {
+            const pcTrace = [
+                {
+                    type: 'getStats',
+                    timestamp: 1001,
+                    value: {
+                        'track1_stats': {
+                            type: 'outbound-rtp',
+                            packetsSentWithEct1: 50,
+                            remoteId: 'r',
+                        },
+                        'r': {
+                            type: 'remote-inbound-rtp',
+                            packetsReceivedWithEct1: 40,
+                            packetsReceivedWithCe: 5,
+                            packetsWithBleachedEct1Marking: 5,
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.packetsSentWithEct1).to.equal(50);
+            expect(features.packetsReceivedWithEct1).to.equal(40);
+            expect(features.packetsReceivedWithCe).to.equal(5);
+            expect(features.packetsWithBleachedEct1Marking).to.equal(5);
+        });
+    });
 });
