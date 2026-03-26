@@ -121,6 +121,15 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         }
 
         pc.addEventListener('icecandidate', (e) => {
+            // Browser intentionally don't serialize .url and .relayProtocol in .toJSON
+            // but we want them for rtcstats.
+            if (e.candidate && (e.candidate.url || e.candidate.relayProtocol)) {
+                const serializedCandidate = e.candidate.toJSON();
+                serializedCandidate.url = e.candidate.url;
+                serializedCandidate.relayProtocol = e.candidate.relayProtocol;
+                trace('onicecandidate', pcId, serializedCandidate);
+                return;
+            }
             trace('onicecandidate', pcId, e.candidate);
         });
         pc.addEventListener('icecandidateerror', (e) => {
