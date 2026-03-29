@@ -183,6 +183,30 @@ export async function extractTracks(peerConnectionTrace) {
                 }
                 associatedTrack.statsId = id;
             });
+        } else if (traceEvent.type === 'transceiverAdded') {
+            // chrome://webrtc-internals non-spec event.
+            const {value} = traceEvent;
+            if (['addTrack', 'addTransceiver'].includes(traceEvent.value?.reason)) {
+                const trackInformation = {
+                    startTime: traceEvent.timestamp,
+                    direction: 'outbound',
+                    kind: value.kind,
+                    id: value.sender.track,
+                    label: value.sender.track,
+                    streams: value.sender.streams,
+                };
+                tracks.push(trackInformation);
+            } else if (traceEvent.value?.reason === 'setRemoteDescription') {
+                const trackInformation = {
+                    startTime: traceEvent.timestamp,
+                    direction: 'inbound',
+                    kind: value.kind,
+                    id: value.receiver.track,
+                    label: value.receiver.track,
+                    streams: value.receiver.streams,
+                };
+                tracks.push(trackInformation);
+            }
         }
     }
     return tracks;
