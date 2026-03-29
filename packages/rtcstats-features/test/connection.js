@@ -81,6 +81,16 @@ describe('extractConnectionFeatures', () => {
         expect(features.setRemoteDescriptionRole).to.equal('answer');
     });
 
+    it('should calculate setLocalDescription delay', () => {
+        const pcTrace = [
+            { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, extra: ['SLD-1'], timestamp: 1000 },
+            { type: 'setLocalDescriptionOnSuccess', extra: ['SLD-1'], timestamp: 1050},
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.setLocalDescriptionDelay).to.equal(50);
+        expect(features.setLocalDescriptionRole).to.equal('offer');
+    });
+
     it('should calculate the ice connection time', () => {
         const pcTrace = [
             { type: 'oniceconnectionstatechange', value: 'checking', timestamp: 1000 },
