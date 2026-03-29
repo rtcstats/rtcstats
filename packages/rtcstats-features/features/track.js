@@ -106,7 +106,7 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
             features['otherQualityLimitationPercentage'] = qualityLimitationDurations['other'] / totalDuration;
         }
         features['qualityLimitationResolutionChanges'] = pluckStat(lastTrackStats, ['qualityLimitationResolutionChanges']);
-        features['averageEncodeTime'] = pluckStat(lastTrackStats, ['totalEncodeTime']) / pluckStat(lastTrackStats, ['framesEncoded']);
+        features['averageEncodeTime'] = divideStat(lastTrackStats, 'totalEncodeTime', 'framesEncoded');
         features['rid'] = pluckStat(lastTrackStats, ['rid']); // rid is important to group by simulcast layer.
         features['encodingIndex'] = pluckStat(lastTrackStats, ['encodingIndex']); // encodingIndex is important to group by simulcast layer.
         if (pluckStat(lastTrackStats, ['psnrMeasurements'])) {
