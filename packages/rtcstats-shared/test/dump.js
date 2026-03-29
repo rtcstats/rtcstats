@@ -272,6 +272,90 @@ describe('RTCStats dump', () => {
                 streams: [ 'streamId' ],
             }]);
         });
+        it('extracts from chromes transceiverAdded (addTrack)', async () => {
+            const blob = new Blob(['RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['transceiverAdded','1',{
+                    reason: 'addTrack',
+                    kind: 'audio',
+                    sender: {
+                        track: 'trackId',
+                        streams: [],
+                    },
+                },1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'outbound-rtp', mediaSourceId: '8'},
+                    8: {type: 'media-source', trackIdentifier: 'trackId'}
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackId',
+                startTime: 1,
+                streams: [],
+                statsId: '7',
+            }]);
+        });
+
+        it('extracts from chromes transceiverAdded (addTransceiver)', async () => {
+            const blob = new Blob(['RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['transceiverAdded','1',{
+                    reason: 'addTransceiver',
+                    kind: 'audio',
+                    sender: {
+                        track: 'trackId',
+                        streams: [],
+                    },
+                },1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'outbound-rtp', mediaSourceId: '8'},
+                    8: {type: 'media-source', trackIdentifier: 'trackId'}
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackId',
+                startTime: 1,
+                streams: [],
+                statsId: '7',
+            }]);
+        });
+        it('extracts from chromes transceiverAdded (setRemoteDescription)', async () => {
+            const blob = new Blob(['RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['transceiverAdded','1',{
+                    reason: 'setRemoteDescription',
+                    kind: 'audio',
+                    receiver: {
+                        track: 'trackId',
+                        streams: ['streamId'],
+                    },
+                },1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'inbound-rtp', trackIdentifier: 'trackId'},
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'inbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackId',
+                startTime: 1,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
     });
 });
 
