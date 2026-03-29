@@ -301,8 +301,33 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     return features;
 }
 
+function setLocalDescriptionFeatures(/* clientTrace*/_, peerConnectionTrace) {
+    let first;
+    let second;
+    for (first = 0; first < peerConnectionTrace.length; first++) {
+        if (peerConnectionTrace[first].type === 'setLocalDescription') {
+            break;
+        }
+    }
+    if (first >= peerConnectionTrace.length) {
+        return;
+    }
+    for (second = first + 1; second < peerConnectionTrace.length; second++) {
+        if (peerConnectionTrace[second].type === 'setLocalDescriptionOnSuccess' &&
+            peerConnectionTrace[second].extra?.[0] === peerConnectionTrace[first].extra?.[0]) {
+            break;
+        }
+    }
+    if (second >= peerConnectionTrace.length) {
+        return;
+    }
+    return {
+        setLocalDescriptionDelay: peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp,
+        setLocalDescriptionRole: peerConnectionTrace[first].value?.type,
+    };
+}
+
 function setRemoteDescriptionFeatures(/* clientTrace*/_, peerConnectionTrace) {
-    // Signaling delay can only measure offer->answer.
     let first;
     let second;
     for (first = 0; first < peerConnectionTrace.length; first++) {
@@ -327,6 +352,7 @@ function setRemoteDescriptionFeatures(/* clientTrace*/_, peerConnectionTrace) {
         setRemoteDescriptionRole: peerConnectionTrace[first].value?.type,
     };
 }
+
 
 function signalingDelay(/* clientTrace*/_, peerConnectionTrace) {
     // (First) signaling delay, i.e. time it takes to do O/A.
@@ -371,6 +397,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
+        ... setLocalDescriptionFeatures(undefined, peerConnectionTrace),
         ... setRemoteDescriptionFeatures(undefined, peerConnectionTrace),
         signalingDelay: signalingDelay(undefined, peerConnectionTrace),
         // The timestamp at which the peer connection was created.
