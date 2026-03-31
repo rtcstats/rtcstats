@@ -47,7 +47,7 @@ describe('Storage', () => {
             await uploader(testFile);
             expect(fetchArgs).to.have.length(0);
         });
-        it.only('splits the data for uploading', async () => {
+        it('splits the data for uploading', async () => {
             const uploader = createRtcStatsUploader({
                 token: 'abc',
                 endpoint: 'http://example.com/',
