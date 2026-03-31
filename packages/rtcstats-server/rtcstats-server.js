@@ -11,8 +11,7 @@ import jwt from 'jsonwebtoken';
 
 import {handleWebSocket, extractMetadata} from './rtcstats-websocket.js';
 import {handleFileupload} from './rtcstats-upload.js';
-import {ObfuscateStream} from './obfuscate-stream.js';
-import {createStorage} from './storage/index.js';
+import {createStorage, ObfuscateStream} from './storage/index.js';
 import {createRtcStatsUploader} from './storage/rtcstats-com.js';
 import {createDatabase} from './database/index.js';
 
