@@ -3,7 +3,7 @@ import { pipeline } from 'node:stream/promises';
 
 import {compressStatsProperty} from '@rtcstats/rtcstats-shared';
 
-import {ObfuscateStream} from '../obfuscate-stream.js';
+import {ObfuscateStream} from '../storage/index.js';
 
 async function obfuscate(input) {
     const readStream = Readable.from(input);
