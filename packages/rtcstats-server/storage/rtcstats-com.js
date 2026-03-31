@@ -52,7 +52,7 @@ export function createRtcStatsUploader(config) {
     // Only for testing.
     const fetchFunction = config.fetch || fetch;
     return (file) => {
-        if (Math.random() < randomPercentage) {
+        if (config.randomPercentage === 0 || Math.random() < randomPercentage) {
             return;
         }
         uploadToRtcStatsCom(file, config.endpoint, config.token, fetchFunction);
