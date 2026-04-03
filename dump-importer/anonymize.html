@@ -25,33 +25,31 @@ table details[open] summary {
         </script>
     </head>
     <body>
-        <p>This is an import tool for dumps from chrome://webrtc-internals and rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a lengthy description of what it does and how to interpret some of the data.</p>
-        <p>Try <a href=https://www.rtcstats.com">rtcstats.com</a> which adds a lot to the raw data visualization you find here:
-            <ul>
-                <li>Reduces the time you'll glare at numbers and graphs from hours to minutes.</li>
-                <li>Adds media quality evaluation algorithms (think MOS for audio and video).</li>
-                <li>Makes important observations for you, like a WebRTC expert.</li>
-                <li>Finds root causes of issues with the help of AI.</li>
-            </ul>
-            Did we mention it is free to use?
-        </p>
-        <hr>
-        <form>
-            <label>Select a WebRTC-internals JSON dump or RTCStats dump:</label>
-            <input type="file" id="import">
-            <br>
-            <a id="download"></a>
-            This downloads a copy of the webrtc-internals or rtcstats dump with IP addresses obfuscated in the following events:
-            <ul>
-                <li>candidate lines in the SDP in setLocalDescription, setRemoteDescription et al</li>
-                <li>ICE candidates (with the exception of TURN server / relay addresses)</li>
-                <li>statistics</li>
-            </ul>
-            The obfuscation replaces the last part of IPv4 and the last six parts of IPv6 with an 'x'.
-            <br>
-            This removes some of the privacy concern about uploading this e.g. to the Chromium issue tracker.
-        </div>
-        <hr>
+        Need to anonymize your webrtc-internals or rtcstats dump file?
+        <br>
+        That's what we're here to do!
+        <br>
+        <label>Select a WebRTC-internals JSON dump or RTCStats dump:</label>
+        <input type="file" id="import">
+        <br>
+        <a id="download"></a>
+        <br>
+        This downloads a copy of the webrtc-internals or rtcstats dump with IP addresses obfuscated in the following events:
+        <ul>
+            <li>candidate lines in the SDP in setLocalDescription, setRemoteDescription et al</li>
+            <li>ICE candidates (with the exception of TURN server / relay addresses)</li>
+            <li>statistics</li>
+        </ul>
+        The obfuscation replaces the last part of IPv4 and the last six parts of IPv6 with an 'x'.
+        <br>
+        This removes some of the privacy concern about uploading this e.g. to the Chromium issue tracker.
+        <br>
+        Why obfuscate and anonymize?
+        <ul>
+            <li>So you can safely upload the file as part of a chrome bug report - or anywhere else for that matter</li>
+            <li>This is part of what we do at rtcstats.com when we visualize your data... we don't own the data and don't want anything to do with the privacy of your users - we're here to help you troubleshoot and debug</li>
+        </ul>
+        Oh, and if we've got your attention, you should DEFINITELY go check out <a href="https://rtcstats.com">rtcstats.com</a> - it will save you a ton of time in your next WebRTC debugging session 💪😎
     </body>
     <script type="module" src="anonymize.js"></script>
 </html>
