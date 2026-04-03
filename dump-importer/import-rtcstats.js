@@ -1,11 +1,7 @@
 import {
     readRTCStatsDump,
     createRtcStatsTimeSeries,
-    decompressMethod,
 } from '@rtcstats/rtcstats-shared';
-import {
-    obfuscateAddress,
-} from '../packages/rtcstats-shared/address-obfuscator.js';
 
 import {StatsRatesCalculatorAdapter} from './chromium/stats_rates_calculator_adapter.js';
 
@@ -290,16 +286,5 @@ export class RTCStatsDumpImporter extends EventTarget {
         }
 
         return row;
-    }
-    async obfuscateDump() {
-        const lines = (await this.blob.text()).split('\n').map(line => {
-            if (line.startsWith('RTCStatsDump')) {
-                return line;
-            }
-            const data = JSON.parse(line);
-            obfuscateAddress(decompressMethod(data[0]), data);
-            return JSON.stringify(data);
-        });
-        return new Blob([lines.join('\n')]);
     }
 }

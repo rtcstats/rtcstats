@@ -1,12 +1,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Import rtcstats dumps</title>
-        <!-- highcharts is used under the terms of
-            http://shop.highsoft.com/faq/non-commercial
-        -->
-        <script src="https://code.highcharts.com/highcharts.js"></script>
-        <script src="https://webrtchacks.github.io/adapter/adapter-latest.js"></script>
+        <title>Remove IP addresses from rtcstats dumps</title>
         <style>
 body, body svg text {
     font-family: monospace;
@@ -17,34 +12,6 @@ details[open] pre {
 }
 table details[open] summary {
     color: blue;
-}
-table details.host summary:after {
-    content: ' (host)';
-}
-table details.relay summary:after {
-    content: ' (relay)';
-}
-table details.srflx summary:after {
-    content: ' (srflx)'
-}
-
-#tables {
-    width: 100%;
-}
-#tables>details:nth-of-type(even) {
-    background-color: #f0f0f0;
-}
-.graph {
-    margin-left: 10px;
-    margin-right: 10px;
-}
-
-.candidatepairtable {
-    text-align: center;
-}
-.candidatepairtable td {
-    background-color: #ddd;
-    padding: 5px;
 }
         </style>
         <script type="importmap">
@@ -73,12 +40,18 @@ table details.srflx summary:after {
             <label>Select a WebRTC-internals JSON dump or RTCStats dump:</label>
             <input type="file" id="import">
             <br>
-            <label for="useReferenceTime">Use RTCPeerConnection creation time as start time for all graphs.</label>
-            <input type="checkbox" id="useReferenceTime">
-        </form>
-        <hr>
-        <div id="tables">
+            <a id="download"></a>
+            This downloads a copy of the webrtc-internals or rtcstats dump with IP addresses obfuscated in the following events:
+            <ul>
+                <li>candidate lines in the SDP in setLocalDescription, setRemoteDescription et al</li>
+                <li>ICE candidates (with the exception of TURN server / relay addresses)</li>
+                <li>statistics</li>
+            </ul>
+            The obfuscation replaces the last part of IPv4 and the last six parts of IPv6 with an 'x'.
+            <br>
+            This removes some of the privacy concern about uploading this e.g. to the Chromium issue tracker.
         </div>
+        <hr>
     </body>
-    <script type="module" src="main.js"></script>
+    <script type="module" src="anonymize.js"></script>
 </html>
