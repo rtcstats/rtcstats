@@ -9,6 +9,10 @@ import {
     createInternalsTimeSeries,
     readWebRTCInternalsDump,
 } from '@rtcstats/rtcstats-shared';
+import {
+    obfuscateAddress,
+    obfuscateIpOrAddress,
+} from '../packages/rtcstats-shared/address-obfuscator.js';
 
 const SDPUtils = window.adapter.sdp;
 
@@ -307,6 +311,27 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
             }
         }
         return row;
+    }
+    obfuscateDump() {
+        const json = structuredClone(this.data);
+        Object.keys(json.PeerConnections).forEach(id => {
+            const pc = json.PeerConnections[id];
+            Object.keys(pc.stats).forEach(statsId => {
+                const stats = pc.stats[statsId];
+                const parts = statsId.split('-');
+                const type = parts[parts.length - 1];
+                if (!['address', 'ip', 'relatedAddress'].includes(type)) return;
+                const values = JSON.parse(stats.values);
+                stats.values = JSON.stringify(values.map(obfuscateIpOrAddress));
+            });
+            pc.updateLog.forEach(traceEvent => {
+                if (!traceEvent.value) return;
+                const value = JSON.parse(traceEvent.value);
+                obfuscateAddress(traceEvent.type, [,, value]);
+                traceEvent.value = JSON.stringify(value);
+            });
+        });
+        return new Blob([JSON.stringify(json, null, ' ')]);
     }
 }
 

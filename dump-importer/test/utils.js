@@ -22,7 +22,6 @@ async function buildDriver() {
 
 async function loadDump(driver, dumpPath) {
     const input = await driver.findElement(webdriver.By.id('import'));
-    const dataPath = path.resolve('./test/data/internals/gumonly.gz');
     return input.sendKeys(path.resolve(dumpPath));
 }
 

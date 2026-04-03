@@ -51,7 +51,8 @@ table details.srflx summary:after {
 {
     "imports": {
         "@rtcstats/rtcstats-js": "../packages/rtcstats.js",
-        "@rtcstats/rtcstats-shared": "../packages/rtcstats-shared/index.js"
+        "@rtcstats/rtcstats-shared": "../packages/rtcstats-shared/index.js",
+        "sdp": "./sdp.js"
     }
 }
         </script>
@@ -75,6 +76,18 @@ table details.srflx summary:after {
             <label for="useReferenceTime">Use RTCPeerConnection creation time as start time for all graphs.</label>
             <input type="checkbox" id="useReferenceTime">
         </form>
+        <div>
+            <button id="downloadButton" disabled>Download obfuscated dump</button>.
+            <a id="download"></a>
+            This generates a copy of the webrtc-internals or rtcstats dump with IP addresses obfuscated in the following events:
+            <ul>
+                <li>candidate lines in the SDP in setLocalDescription, setRemoteDescription et al</li>
+                <li>ICE candidates (with the exception of TURN server / relay addresses)</li>
+                <li>statistics</li>
+            </ul>
+            The obfuscation replaces the last part of IPv4 and the last six parts of IPv6 with an 'x'.
+            This removes some of the privacy concern about uploading this e.g. to the Chromium issue tracker.
+        </div>
         <hr>
         <div id="tables">
         </div>
