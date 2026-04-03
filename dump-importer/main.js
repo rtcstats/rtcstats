@@ -28,13 +28,4 @@ document.getElementById('import').onchange = async (evt) => {
         console.error('Unrecognized format');
     }
     window.rtcStatsDumpImporterSuccess = true;
-    document.getElementById('downloadButton').disabled = false;
-};
-
-document.getElementById('downloadButton').onclick = async () => {
-    const blob = await window.importer.obfuscateDump();
-    const anchor = document.getElementById('download');
-    anchor.download = 'rtcstats-obfuscated.txt';
-    anchor.href = URL.createObjectURL(blob);
-    anchor.click();
 };
