@@ -7,9 +7,11 @@
         -->
         <script src="https://code.highcharts.com/highcharts.js"></script>
         <script src="https://webrtchacks.github.io/adapter/adapter-latest.js"></script>
+        <link rel="stylesheet" href="main.css">
         <style>
-body, body svg text {
-    font-family: monospace;
+.centered {
+    max-width: 640px;
+    margin: 0 auto;
 }
 details[open] pre {
     padding-left: 10px;
@@ -58,24 +60,27 @@ table details.srflx summary:after {
         </script>
     </head>
     <body>
-        <p>This is an import tool for dumps from chrome://webrtc-internals and rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a lengthy description of what it does and how to interpret some of the data.</p>
-        <p>Try <a href=https://www.rtcstats.com">rtcstats.com</a> which adds a lot to the raw data visualization you find here:
-            <ul>
-                <li>Reduces the time you'll glare at numbers and graphs from hours to minutes.</li>
-                <li>Adds media quality evaluation algorithms (think MOS for audio and video).</li>
-                <li>Makes important observations for you, like a WebRTC expert.</li>
-                <li>Finds root causes of issues with the help of AI.</li>
-            </ul>
-            Did we mention it is free to use?
-        </p>
+        <div class="centered">
+            <h1>WebRTC Dump Visualizer</h1>
+            <p>Visualize dumps from chrome://webrtc-internals or rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a detailed walkthrough of the data.</p>
+            <div class="cta">
+                <div class="cta-box">
+                    <div class="cta-text">
+                        <p><strong>Want more from your dump?</strong> <a href="https://www.rtcstats.com">rtcstats.com</a> cuts through the noise to get you to a root cause fast - and makes WebRTC debugging accessible even if you're not a WebRTC expert. Quality scores, automatic observations, AI-powered analysis - free to use.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <hr>
-        <form>
-            <label>Select a WebRTC-internals JSON dump or RTCStats dump:</label>
-            <input type="file" id="import">
-            <br>
+        <div class="upload-area" id="upload-area">
+            <label for="import">Drop a file here, or click to select</label>
+            <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
+            <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
+            <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .txt, .gz)</div>
             <label for="useReferenceTime">Use RTCPeerConnection creation time as start time for all graphs.</label>
             <input type="checkbox" id="useReferenceTime">
-        </form>
+            <div class="status" id="status"></div>
+        </div>
         <hr>
         <div id="tables">
         </div>

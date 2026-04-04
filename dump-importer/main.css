@@ -10,7 +10,6 @@ body {
     line-height: 1.6;
     color: #111;
     background: #fff;
-    max-width: 640px;
     margin: 0 auto;
     padding: 48px 24px 64px;
 }
@@ -88,11 +87,6 @@ h1 {
 
 .status.visible {
     display: block;
-}
-
-/* Download link (hidden until ready) */
-#download {
-    display: none;
 }
 
 /* Sections */
