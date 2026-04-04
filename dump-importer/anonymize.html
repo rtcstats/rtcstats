@@ -32,7 +32,7 @@ body {
             <label for="import">Drop a file here, or click to select</label>
             <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
             <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
-            <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .txt, .gz)</div>
+            <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .jsonl, .txt, .gz)</div>
             <div class="status" id="status"></div>
         </div>
         <a id="download"></a>
@@ -45,8 +45,6 @@ body {
         </ul>
         <p>IPv4 addresses have their last octet replaced with <code>x</code>. IPv6 addresses have their last six segments replaced. The result is safe to attach to bug reports, share in forums, or upload to issue trackers.</p>
 
-        <hr>
-
         <h2>Why anonymize?</h2>
         <ul>
             <li>Share dumps in Chromium bug reports, GitHub issues, or support tickets without exposing user IPs</li>
@@ -58,13 +56,9 @@ body {
             <p><strong>Need more than anonymization?</strong></p>
             <p><a href="https://rtcstats.com">rtcstats.com</a> gives you interactive visualizations, automatic analysis, and debugging tools for your WebRTC data - so you can find the problem instead of reading raw JSON.</p>
         </div>
-
         <footer>
             <a href="https://github.com/rtcstats/rtcstats">rtcstats on GitHub</a>
         </footer>
-
-        <script>
-        </script>
     </body>
     <script type="module" src="anonymize.js"></script>
 </html>
