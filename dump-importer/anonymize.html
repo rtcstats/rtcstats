@@ -1,19 +1,10 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Remove IP addresses from rtcstats dumps</title>
-        <style>
-body, body svg text {
-    font-family: monospace;
-}
-details[open] pre {
-    padding-left: 10px;
-    padding-bottom: 10px;
-}
-table details[open] summary {
-    color: blue;
-}
-        </style>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>WebRTC Dump Anonymizer - rtcstats</title>
+        <link rel="stylesheet" href="main.css">
         <script type="importmap">
 {
     "imports": {
@@ -25,31 +16,46 @@ table details[open] summary {
         </script>
     </head>
     <body>
-        Need to anonymize your webrtc-internals or rtcstats dump file?
-        <br>
-        That's what we're here to do!
-        <br>
-        <label>Select a WebRTC-internals JSON dump or RTCStats dump:</label>
-        <input type="file" id="import">
-        <br>
+        <h1>WebRTC Dump Anonymizer</h1>
+        <p class="subtitle">Strip IP addresses from your webrtc-internals or rtcstats dumps before sharing them.</p>
+
+        <div class="upload-area" id="upload-area">
+            <label for="import">Drop a file here, or click to select</label>
+            <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
+            <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
+            <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .txt, .gz)</div>
+            <div class="status" id="status"></div>
+        </div>
         <a id="download"></a>
-        <br>
-        This downloads a copy of the webrtc-internals or rtcstats dump with IP addresses obfuscated in the following events:
+
+        <h2>What gets anonymized</h2>
         <ul>
-            <li>candidate lines in the SDP in setLocalDescription, setRemoteDescription et al</li>
-            <li>ICE candidates (with the exception of TURN server / relay addresses)</li>
-            <li>statistics</li>
+            <li>Candidate lines in SDP (<code>setLocalDescription</code>, <code>setRemoteDescription</code>, etc.)</li>
+            <li>ICE candidates (except TURN server / relay addresses)</li>
+            <li>IP-related fields in statistics</li>
         </ul>
-        The obfuscation replaces the last part of IPv4 and the last six parts of IPv6 with an 'x'.
-        <br>
-        This removes some of the privacy concern about uploading this e.g. to the Chromium issue tracker.
-        <br>
-        Why obfuscate and anonymize?
+        <p>IPv4 addresses have their last octet replaced with <code>x</code>. IPv6 addresses have their last six segments replaced. The result is safe to attach to bug reports, share in forums, or upload to issue trackers.</p>
+
+        <hr>
+
+        <h2>Why anonymize?</h2>
         <ul>
-            <li>So you can safely upload the file as part of a chrome bug report - or anywhere else for that matter</li>
-            <li>This is part of what we do at rtcstats.com when we visualize your data... we don't own the data and don't want anything to do with the privacy of your users - we're here to help you troubleshoot and debug</li>
+            <li>Share dumps in Chromium bug reports, GitHub issues, or support tickets without exposing user IPs</li>
+            <li>Comply with privacy practices before handing off diagnostic data</li>
+            <li>Everything runs locally in your browser - no data leaves your machine</li>
         </ul>
-        Oh, and if we've got your attention, you should DEFINITELY go check out <a href="https://rtcstats.com">rtcstats.com</a> - it will save you a ton of time in your next WebRTC debugging session 💪😎
+
+        <div class="cta">
+            <p><strong>Need more than anonymization?</strong></p>
+            <p><a href="https://rtcstats.com">rtcstats.com</a> gives you interactive visualizations, automatic analysis, and debugging tools for your WebRTC data - so you can find the problem instead of reading raw JSON.</p>
+        </div>
+
+        <footer>
+            <a href="https://github.com/rtcstats/rtcstats">rtcstats on GitHub</a>
+        </footer>
+
+        <script>
+        </script>
     </body>
     <script type="module" src="anonymize.js"></script>
 </html>

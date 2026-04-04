@@ -1,0 +1,176 @@
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #111;
+    background: #fff;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 24px 64px;
+}
+
+h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 1.05rem;
+    color: #555;
+    margin-bottom: 40px;
+}
+
+/* Upload area */
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 40px;
+    transition: border-color 0.15s;
+    cursor: pointer;
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: #111;
+}
+
+.upload-area label {
+    display: block;
+    font-size: 0.95rem;
+    color: #333;
+    margin-bottom: 16px;
+    cursor: pointer;
+}
+
+.upload-area input[type="file"] {
+    display: none;
+}
+
+.upload-button {
+    display: inline-block;
+    padding: 10px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    background: #111;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.upload-button:hover {
+    background: #333;
+}
+
+.upload-hint {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 12px;
+}
+
+.status {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 12px;
+    display: none;
+}
+
+.status.visible {
+    display: block;
+}
+
+/* Download link (hidden until ready) */
+#download {
+    display: none;
+}
+
+/* Sections */
+h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 32px;
+}
+
+p {
+    font-size: 0.925rem;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+ul {
+    margin: 0 0 16px 20px;
+    font-size: 0.925rem;
+    color: #333;
+}
+
+ul li {
+    margin-bottom: 6px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #e5e5e5;
+    margin: 32px 0;
+}
+
+code {
+    font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+    font-size: 0.85em;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* CTA section */
+.cta {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 40px;
+}
+
+.cta p {
+    margin-bottom: 8px;
+}
+
+.cta a {
+    color: #111;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.cta a:hover {
+    color: #555;
+}
+
+/* Footer */
+footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e5e5;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+footer a {
+    color: #999;
+    text-decoration: underline;
+}
+
+footer a:hover {
+    color: #555;
+}
+
