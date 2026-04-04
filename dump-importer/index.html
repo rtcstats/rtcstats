@@ -63,6 +63,17 @@ table details.srflx summary:after {
         <div class="centered">
             <h1>WebRTC Dump Importer</h1>
             <p>Visualize dumps from chrome://webrtc-internals or rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a detailed walkthrough of the data.</p>
+            <div class="upload-area" id="upload-area">
+                <label for="import">Drop a file here, or click to select</label>
+                <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
+                <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
+                <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .jsonl, .txt, .gz)</div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="useReferenceTime">
+                    <label for="useReferenceTime">Use RTCPeerConnection creation time as start time for all graphs.</label>
+                </div>
+                <div class="status" id="status"></div>
+            </div>
             <div class="cta">
                 <div class="cta-box">
                     <div class="cta-text">
@@ -71,21 +82,11 @@ table details.srflx summary:after {
                 </div>
             </div>
         </div>
-        <hr>
-        <div class="upload-area" id="upload-area">
-            <label for="import">Drop a file here, or click to select</label>
-            <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
-            <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
-            <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .txt, .gz)</div>
-            <div class="checkbox-container">
-                <input type="checkbox" id="useReferenceTime">
-                <label for="useReferenceTime">Use RTCPeerConnection creation time as start time for all graphs.</label>
-            </div>
-            <div class="status" id="status"></div>
-        </div>
-        <hr>
         <div id="tables">
         </div>
+        <footer>
+            <a href="https://github.com/rtcstats/rtcstats">rtcstats on GitHub</a>
+        </footer>
     </body>
     <script type="module" src="main.js"></script>
 </html>
