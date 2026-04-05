@@ -8,12 +8,21 @@ import url from 'node:url';
 import {WebSocketServer} from 'ws';
 import {v4 as uuidv4} from 'uuid';
 import jwt from 'jsonwebtoken';
+import maxmind from 'maxmind';
 
 import {handleWebSocket, extractMetadata} from './rtcstats-websocket.js';
 import {handleFileupload} from './rtcstats-upload.js';
-import {createStorage, ObfuscateStream} from './storage/index.js';
+import {createStorage, ObfuscateStream, GeolookupStream} from './storage/index.js';
 import {createRtcStatsUploader} from './storage/rtcstats-com.js';
 import {createDatabase} from './database/index.js';
+
+let maxmindLookup;
+async function lookupAddress(ipAddress, maxmindPath) {
+    if (maxmindPath && !maxmindLookup) {
+        maxmindLookup = await maxmind.open(maxmindPath);
+    }
+    return maxmindLookup.get(ipAddress);
+}
 
 export class RTCStatsServer {
     constructor(config) {
@@ -122,7 +131,11 @@ export class RTCStatsServer {
         const startTime = Date.now();
         const clientId = uuidv4();
         console.log('Accepted new connection with uuid', clientId);
-        const metadata = await extractMetadata(upgradeRequest);
+        const metadata = await extractMetadata(upgradeRequest, {
+            lookupAddress: this.config.maxmind.path ? address => lookupAddress(address, this.config.maxmind.path) : undefined,
+            obfuscateIpAddresses: this.config.server.obfuscateIpAddresses,
+        });
+        metadata.fileFormat = this.config.rtcStats.fileFormat;
         const dbId = await this.database.insert(startTime, authData);
 
         const workPath = path.join(this.config.server.workDirectory, clientId);
@@ -154,7 +167,12 @@ export class RTCStatsServer {
         if (this.config.server.obfuscateIpAddresses) {
             const source = fs.createReadStream(sourcePath);
             const dest = fs.createWriteStream(destPath);
-            await pipeline(source, new ObfuscateStream(), dest);
+            const transforms = [];
+            if (this.config.maxmind.path) {
+                transforms.push(new GeolookupStream({}, address => lookupAddress(address, this.config.maxmind.path)));
+            }
+            transforms.push(new ObfuscateStream);
+            await pipeline(source, ...transforms, dest);
         } else {
             await fsPromises.copyFile(sourcePath, destPath);
         }

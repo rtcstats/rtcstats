@@ -1,17 +1,18 @@
 // Applies IP address obfuscation to a dump file.
-import { Transform } from 'node:stream';
-import { StringDecoder } from 'node:string_decoder';
-import { decompressMethod } from '@rtcstats/rtcstats-shared';
-import { obfuscateAddress } from '@rtcstats/rtcstats-shared/address-obfuscator.js';
+import {Transform} from 'node:stream';
+import {StringDecoder} from 'node:string_decoder';
+
+import {decompressMethod} from '@rtcstats/rtcstats-shared';
+import {obfuscateAddress} from '@rtcstats/rtcstats-shared/address-obfuscator.js';
 
 export class ObfuscateStream extends Transform {
-    constructor (options) {
+    constructor(options) {
         super(options);
         this._decoder = new StringDecoder('utf-8');
         this._last = '';
     }
 
-    _transform (chunk, encoding, callback) {
+    _transform(chunk, encoding, callback) {
         let data = this._last + this._decoder.write(chunk);
         const lines = data.split('\n');
         this._last = lines.pop();
@@ -22,12 +23,12 @@ export class ObfuscateStream extends Transform {
         callback();
     }
 
-    _flush (callback) {
+    _flush(callback) {
         this.processLine(this._last + this._decoder.end());
         callback();
     }
 
-    processLine (line) {
+    processLine(line) {
         if (!line) {
             return;
         }

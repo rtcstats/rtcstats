@@ -1,17 +1,6 @@
-import config from 'config';
-import maxmind from 'maxmind';
-
 import {obfuscateIpOrAddress} from '@rtcstats/rtcstats-shared/address-obfuscator.js';
 
-let maxmindLookup;
-async function lookupAddress(ipAddress) {
-    if (config.maxmind.path && !maxmindLookup) {
-        maxmindLookup = await maxmind.open(config.maxmind.path);
-    }
-    return maxmindLookup.get(ipAddress);
-}
-
-export async function extractMetadata(upgradeRequest) {
+export async function extractMetadata(upgradeRequest, options = {}) {
     // The url the client is coming from
     const url = upgradeRequest.url;
     // TODO: check origin against known/valid urls?
@@ -29,11 +18,11 @@ export async function extractMetadata(upgradeRequest) {
         remoteAddresses = [remoteAddress];
     }
     let locations;
-    if (config.maxmind.path) {
-        locations = await Promise.all(remoteAddresses.map(lookupAddress));
+    if (options.lookupAddress) {
+        locations = await Promise.all(remoteAddresses.map(options.lookupAddress));
     }
     // Obfuscate only after feeding to geolocation.
-    if (config.server.obfuscateIpAddresses) {
+    if (options.obfuscateIpAddresses) {
         remoteAddresses = remoteAddresses.map(obfuscateIpOrAddress);
     }
 
@@ -47,7 +36,6 @@ export async function extractMetadata(upgradeRequest) {
         remoteAddresses,
         locations,
         clientProtocol,
-        fileFormat: config.rtcStats.fileFormat,
     };
 }
 
