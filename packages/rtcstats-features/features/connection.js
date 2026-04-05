@@ -198,6 +198,9 @@ function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
                 return candidate.type === 'host' && candidate.address.endsWith('.local');
             }
         }) !== undefined,
+        addedNullCandidate: peerConnectionTrace.find(traceEvent => {
+            return traceEvent.type === 'addIceCandidate' && traceEvent.value === null;
+        }) !== undefined,
         addedSrflx: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
