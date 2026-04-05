@@ -17,6 +17,7 @@ describe('extractConnectionFeatures', () => {
             addedMdns: false,
             addedSrflx: false,
             addedTurn: false,
+            addedNullCandidate: false,
             closed: false,
             connected: false,
             duration: 2,
@@ -192,6 +193,7 @@ describe('extractConnectionFeatures', () => {
             expect(features.addedMdns).to.be.false;
             expect(features.addedSrflx).to.be.false;
             expect(features.addedTurn).to.be.false;
+            expect(features.addedNullCandidate).to.be.false;
         });
 
         it('should identify a host candidate', () => {
@@ -203,6 +205,7 @@ describe('extractConnectionFeatures', () => {
             expect(features.addedMdns).to.be.false;
             expect(features.addedSrflx).to.be.false;
             expect(features.addedTurn).to.be.false;
+            expect(features.addedNullCandidate).to.be.false;
         });
 
         it('should identify an mDNS candidate', () => {
@@ -214,6 +217,7 @@ describe('extractConnectionFeatures', () => {
             expect(features.addedMdns).to.be.true;
             expect(features.addedSrflx).to.be.false;
             expect(features.addedTurn).to.be.false;
+            expect(features.addedNullCandidate).to.be.false;
         });
 
         it('should identify a srflx candidate', () => {
@@ -225,6 +229,7 @@ describe('extractConnectionFeatures', () => {
             expect(features.addedMdns).to.be.false;
             expect(features.addedSrflx).to.be.true;
             expect(features.addedTurn).to.be.false;
+            expect(features.addedNullCandidate).to.be.false;
         });
 
         it('should identify a relay candidate', () => {
@@ -236,6 +241,18 @@ describe('extractConnectionFeatures', () => {
             expect(features.addedMdns).to.be.false;
             expect(features.addedSrflx).to.be.false;
             expect(features.addedTurn).to.be.true;
+            expect(features.addedNullCandidate).to.be.false;
+        });
+        it('should identify a null candidate', () => {
+            const pcTrace = [
+                { type: 'addIceCandidate', value: null, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addedHost).to.be.false;
+            expect(features.addedMdns).to.be.false;
+            expect(features.addedSrflx).to.be.false;
+            expect(features.addedTurn).to.be.false;
+            expect(features.addedNullCandidate).to.be.true;
         });
 
         it('should identify a mix of candidates', () => {
