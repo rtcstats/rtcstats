@@ -33,6 +33,11 @@ describe('address obfuscation', () => {
         obfuscateAddress('publicIP', e);
         expect(e[2]).to.equal('::1');
     });
+    it('does not obfuscate 0.0.0.0', () => {
+        const e = ['publicIP', null, '::1'];
+        obfuscateAddress('publicIP', e);
+        expect(e[2]).to.equal('0.0.0.0');
+    });
     it('obfuscates the public ip', () => {
         const e = ['publicIP', null, '8.8.8.8'];
         obfuscateAddress('publicIP', e);
