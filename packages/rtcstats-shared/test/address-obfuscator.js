@@ -34,7 +34,7 @@ describe('address obfuscation', () => {
         expect(e[2]).to.equal('::1');
     });
     it('does not obfuscate 0.0.0.0', () => {
-        const e = ['publicIP', null, '::1'];
+        const e = ['publicIP', null, '0.0.0.0'];
         obfuscateAddress('publicIP', e);
         expect(e[2]).to.equal('0.0.0.0');
     });
