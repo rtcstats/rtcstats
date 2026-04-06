@@ -13,19 +13,19 @@ describe('extractConnectionFeatures', () => {
             if (features[name] === undefined) delete features[name];
         });
         expect(features).to.deep.equal({
-            addedHost: false,
-            addedMdns: false,
-            addedSrflx: false,
-            addedTurn: false,
+            addedHostCandidate: false,
+            addedMdnsCandidate: false,
+            addedSrflxCandidate: false,
+            addedTurnCandidate: false,
             addedNullCandidate: false,
             closed: false,
             connected: false,
             duration: 2,
             iceConnected: false,
-            gatheredHost: false,
-            gatheredMdns: false,
-            gatheredSrflx: false,
-            gatheredTurn: false,
+            gatheredHostCandidate: false,
+            gatheredMdnsCandidate: false,
+            gatheredSrflxCandidate: false,
+            gatheredTurnCandidate: false,
             iceRestart: false,
             iceRestartFollowedBySetRemoteDescription: false,
             numberOfEvents: 3,
@@ -189,10 +189,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'createOffer', timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.false;
-            expect(features.addedMdns).to.be.false;
-            expect(features.addedSrflx).to.be.false;
-            expect(features.addedTurn).to.be.false;
+            expect(features.addedHostCandidate).to.be.false;
+            expect(features.addedMdnsCandidate).to.be.false;
+            expect(features.addedSrflxCandidate).to.be.false;
+            expect(features.addedTurnCandidate).to.be.false;
             expect(features.addedNullCandidate).to.be.false;
         });
 
@@ -201,10 +201,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 udp 2122260223 192.168.1.2 9000 typ host' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.true;
-            expect(features.addedMdns).to.be.false;
-            expect(features.addedSrflx).to.be.false;
-            expect(features.addedTurn).to.be.false;
+            expect(features.addedHostCandidate).to.be.true;
+            expect(features.addedMdnsCandidate).to.be.false;
+            expect(features.addedSrflxCandidate).to.be.false;
+            expect(features.addedTurnCandidate).to.be.false;
             expect(features.addedNullCandidate).to.be.false;
         });
 
@@ -213,10 +213,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 udp 2122260223 abc.local 9000 typ host' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.true;
-            expect(features.addedMdns).to.be.true;
-            expect(features.addedSrflx).to.be.false;
-            expect(features.addedTurn).to.be.false;
+            expect(features.addedHostCandidate).to.be.true;
+            expect(features.addedMdnsCandidate).to.be.true;
+            expect(features.addedSrflxCandidate).to.be.false;
+            expect(features.addedTurnCandidate).to.be.false;
             expect(features.addedNullCandidate).to.be.false;
         });
 
@@ -225,10 +225,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ srflx' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.false;
-            expect(features.addedMdns).to.be.false;
-            expect(features.addedSrflx).to.be.true;
-            expect(features.addedTurn).to.be.false;
+            expect(features.addedHostCandidate).to.be.false;
+            expect(features.addedMdnsCandidate).to.be.false;
+            expect(features.addedSrflxCandidate).to.be.true;
+            expect(features.addedTurnCandidate).to.be.false;
             expect(features.addedNullCandidate).to.be.false;
         });
 
@@ -237,10 +237,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ relay' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.false;
-            expect(features.addedMdns).to.be.false;
-            expect(features.addedSrflx).to.be.false;
-            expect(features.addedTurn).to.be.true;
+            expect(features.addedHostCandidate).to.be.false;
+            expect(features.addedMdnsCandidate).to.be.false;
+            expect(features.addedSrflxCandidate).to.be.false;
+            expect(features.addedTurnCandidate).to.be.true;
             expect(features.addedNullCandidate).to.be.false;
         });
         it('should identify a null candidate', () => {
@@ -248,10 +248,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'addIceCandidate', value: null, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.false;
-            expect(features.addedMdns).to.be.false;
-            expect(features.addedSrflx).to.be.false;
-            expect(features.addedTurn).to.be.false;
+            expect(features.addedHostCandidate).to.be.false;
+            expect(features.addedMdnsCandidate).to.be.false;
+            expect(features.addedSrflxCandidate).to.be.false;
+            expect(features.addedTurnCandidate).to.be.false;
             expect(features.addedNullCandidate).to.be.true;
         });
 
@@ -261,10 +261,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ srflx' }, timestamp: 1001 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.addedHost).to.be.true;
-            expect(features.addedMdns).to.be.false;
-            expect(features.addedSrflx).to.be.true;
-            expect(features.addedTurn).to.be.false;
+            expect(features.addedHostCandidate).to.be.true;
+            expect(features.addedMdnsCandidate).to.be.false;
+            expect(features.addedSrflxCandidate).to.be.true;
+            expect(features.addedTurnCandidate).to.be.false;
         });
     });
 
@@ -274,10 +274,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'createOffer', timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.gatheredHost).to.be.false;
-            expect(features.gatheredMdns).to.be.false;
-            expect(features.gatheredSrflx).to.be.false;
-            expect(features.gatheredTurn).to.be.false;
+            expect(features.gatheredHostCandidate).to.be.false;
+            expect(features.gatheredMdnsCandidate).to.be.false;
+            expect(features.gatheredSrflxCandidate).to.be.false;
+            expect(features.gatheredTurnCandidate).to.be.false;
         });
 
         it('should identify a host candidate', () => {
@@ -285,10 +285,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'onicecandidate', value: { candidate: 'candidate:1 1 udp 2122260223 192.168.1.2 9000 typ host' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.gatheredHost).to.be.true;
-            expect(features.gatheredMdns).to.be.false;
-            expect(features.gatheredSrflx).to.be.false;
-            expect(features.gatheredTurn).to.be.false;
+            expect(features.gatheredHostCandidate).to.be.true;
+            expect(features.gatheredMdnsCandidate).to.be.false;
+            expect(features.gatheredSrflxCandidate).to.be.false;
+            expect(features.gatheredTurnCandidate).to.be.false;
         });
 
         it('should identify an mDNS candidate', () => {
@@ -296,10 +296,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'onicecandidate', value: { candidate: 'candidate:1 1 udp 2122260223 abc.local 9000 typ host' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.gatheredHost).to.be.true;
-            expect(features.gatheredMdns).to.be.true;
-            expect(features.gatheredSrflx).to.be.false;
-            expect(features.gatheredTurn).to.be.false;
+            expect(features.gatheredHostCandidate).to.be.true;
+            expect(features.gatheredMdnsCandidate).to.be.true;
+            expect(features.gatheredSrflxCandidate).to.be.false;
+            expect(features.gatheredTurnCandidate).to.be.false;
         });
 
         it('should identify a srflx candidate', () => {
@@ -307,10 +307,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'onicecandidate', value: { candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ srflx' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.gatheredHost).to.be.false;
-            expect(features.gatheredMdns).to.be.false;
-            expect(features.gatheredSrflx).to.be.true;
-            expect(features.gatheredTurn).to.be.false;
+            expect(features.gatheredHostCandidate).to.be.false;
+            expect(features.gatheredMdnsCandidate).to.be.false;
+            expect(features.gatheredSrflxCandidate).to.be.true;
+            expect(features.gatheredTurnCandidate).to.be.false;
         });
 
         it('should identify a relay candidate', () => {
@@ -318,10 +318,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'onicecandidate', value: { candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ relay' }, timestamp: 1000 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.gatheredHost).to.be.false;
-            expect(features.gatheredMdns).to.be.false;
-            expect(features.gatheredSrflx).to.be.false;
-            expect(features.gatheredTurn).to.be.true;
+            expect(features.gatheredHostCandidate).to.be.false;
+            expect(features.gatheredMdnsCandidate).to.be.false;
+            expect(features.gatheredSrflxCandidate).to.be.false;
+            expect(features.gatheredTurnCandidate).to.be.true;
         });
 
         it('should identify a mix of candidates', () => {
@@ -330,10 +330,10 @@ describe('extractConnectionFeatures', () => {
                 { type: 'onicecandidate', value: { candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ srflx' }, timestamp: 1001 },
             ];
             const features = extractConnectionFeatures([], pcTrace);
-            expect(features.gatheredHost).to.be.true;
-            expect(features.gatheredMdns).to.be.false;
-            expect(features.gatheredSrflx).to.be.true;
-            expect(features.gatheredTurn).to.be.false;
+            expect(features.gatheredHostCandidate).to.be.true;
+            expect(features.gatheredMdnsCandidate).to.be.false;
+            expect(features.gatheredSrflxCandidate).to.be.true;
+            expect(features.gatheredTurnCandidate).to.be.false;
         });
     });
 

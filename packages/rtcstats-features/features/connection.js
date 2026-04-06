@@ -186,13 +186,13 @@ function iceServerFeatures(/* clientTrace*/_, peerConnectionTrace) {
 
 function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const candidates = {
-        addedHost: peerConnectionTrace.find(traceEvent => {
+        addedHostCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'host';
             }
         }) !== undefined,
-        addedMdns: peerConnectionTrace.find(traceEvent => {
+        addedMdnsCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'host' && candidate.address.endsWith('.local');
@@ -201,37 +201,37 @@ function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
         addedNullCandidate: peerConnectionTrace.find(traceEvent => {
             return traceEvent.type === 'addIceCandidate' && traceEvent.value === null;
         }) !== undefined,
-        addedSrflx: peerConnectionTrace.find(traceEvent => {
+        addedSrflxCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'srflx';
             }
         }) !== undefined,
-        addedTurn: peerConnectionTrace.find(traceEvent => {
+        addedTurnCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'relay';
             }
         }) !== undefined,
-        gatheredHost: peerConnectionTrace.find(traceEvent => {
+        gatheredHostCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'host';
             }
         }) !== undefined,
-        gatheredMdns: peerConnectionTrace.find(traceEvent => {
+        gatheredMdnsCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'host' && candidate.address.endsWith('.local');
             }
         }) !== undefined,
-        gatheredSrflx: peerConnectionTrace.find(traceEvent => {
+        gatheredSrflxCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'onicecandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
                 return candidate.type === 'srflx';
             }
         }) !== undefined,
-        gatheredTurn: peerConnectionTrace.find(traceEvent => {
+        gatheredTurnCandidate: peerConnectionTrace.find(traceEvent => {
             // TODO: Determining the TURN relayProtocol is tricky. We could restore the old
             // priority->type table but that is incorrect in Firefox since they use
             // 0 for both TURN/TCP and TURN/TLS. We could send `relayProtocol` from
