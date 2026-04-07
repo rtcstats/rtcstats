@@ -38,7 +38,9 @@ export async function uploadToRtcStatsCom(file, endpoint, token, fetchFunction) 
     if (!assembleResponse.ok) {
         const errorData = await assembleResponse.json();
         console.error(errorData.error || 'File assembly failed');
+        return;
     }
+    return assembleResponse.json();
 };
 
 export function createRtcStatsUploader(config) {
