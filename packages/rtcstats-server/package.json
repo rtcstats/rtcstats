@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint *.js database/ storage/ test/",
-    "coverage": "c8 --reporter html --reporter lcov mocha test",
+    "coverage": "NODE_CONFIG_DIR=../../config/ c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage",
     "start": "npm i && NODE_CONFIG_DIR=../../config/ node app.js"
   },
