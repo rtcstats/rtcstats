@@ -18,7 +18,7 @@ used to be integrated with the server.
 ```
 npm start
 ```
-will start the server, using the default configuration in `config/default.yaml`.
+will start the server, using the default configuration in the toplevel `config/default.yaml`.
 The server will listen for websockets on the default port 8080.
 
 This configuration typically needs to be adjusted to specify the
