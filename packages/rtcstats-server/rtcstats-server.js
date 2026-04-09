@@ -34,6 +34,9 @@ export class RTCStatsServer {
         return createDatabase(databaseConfig);
     }
     createRtcStatsUploader(rtcStatsConfig) {
+        if (!rtcStatsConfig) {
+            return;
+        }
         return createRtcStatsUploader(rtcStatsConfig);
     }
 
