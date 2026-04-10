@@ -283,6 +283,30 @@ function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
     };
 }
 
+function relayLocation(/* clientTrace*/_, peerConnectionTrace) {
+    const relayCandidateWithLocation = peerConnectionTrace.find(traceEvent => {
+        return traceEvent.type === 'onicecandidate' && traceEvent.extra && traceEvent.extra.length > 0;
+    });
+    if (!relayCandidateWithLocation) {
+        return {};
+    }
+    const features = {};
+    const extra = relayCandidateWithLocation.extra[0];
+    if (extra.rtcstatsRelayLocation) {
+        const loc = extra.rtcstatsRelayLocation;
+        features['rtcstatsRelayLocationContinent'] = loc.continent;
+        features['rtcstatsRelayLocationCountry'] = loc.country;
+        features['rtcstatsRelayLocationCity'] = loc.city;
+    }
+    if (extra.rtcstatsLocation) {
+        const loc = extra.rtcstatsLocation;
+        features['rtcstatsLocationContinent'] = loc.continent;
+        features['rtcstatsLocationCountry'] = loc.country;
+        features['rtcstatsLocationCity'] = loc.city;
+    }
+    return features;
+}
+
 function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     // Find the last stats and extract stats events (typically averages over the whole duration).
     const features = {};
@@ -402,6 +426,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
         ... setLocalDescriptionFeatures(undefined, peerConnectionTrace),
         ... setRemoteDescriptionFeatures(undefined, peerConnectionTrace),
+        ... relayLocation(undefined, peerConnectionTrace),
         signalingDelay: signalingDelay(undefined, peerConnectionTrace),
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,

@@ -404,6 +404,34 @@ describe('extractConnectionFeatures', () => {
         expect(features.firstCandidatePairRemoteAddress).to.equal('2.2.2.2');
     });
 
+    it('should extract relay location features', () => {
+        const pcTrace = [
+            {
+                type: 'onicecandidate',
+                extra: [{
+                    rtcstatsRelayLocation: {
+                        continent: 'EU',
+                        country: 'DE',
+                        city: 'Berlin',
+                    },
+                    rtcstatsLocation: {
+                        continent: 'NA',
+                        country: 'US',
+                        city: 'New York',
+                    },
+                }],
+                timestamp: 1000,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.rtcstatsRelayLocationContinent).to.equal('EU');
+        expect(features.rtcstatsRelayLocationCountry).to.equal('DE');
+        expect(features.rtcstatsRelayLocationCity).to.equal('Berlin');
+        expect(features.rtcstatsLocationContinent).to.equal('NA');
+        expect(features.rtcstatsLocationCountry).to.equal('US');
+        expect(features.rtcstatsLocationCity).to.equal('New York');
+    });
+
     it('should extract last candidate pair stats', () => {
         const pcTrace = [
             {
