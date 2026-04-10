@@ -29,7 +29,9 @@ async function extract(id, dump) {
     }
     const {locations} = dump;
     if (locations && locations[0]) {
-        metadata.locationCountry = locations[0].country.iso_code;
+        metadata.locationContinent = locations[0].continent?.names['en'];
+        metadata.locationCountry = locations[0].country?.names['en'];
+        metadata.locationCity = locations[0].city?.names['en'];
     }
     const metadataToInsert = {
         dumpId: id,
@@ -40,7 +42,9 @@ async function extract(id, dump) {
         useragent: metadata.userAgent,
         clientProtocol: metadata.clientProtocol,
         fileFormat: metadata.fileFormat,
-        locationCountry: metadata.locationCountry
+        locationCountry: metadata.locationCountry,
+        locationContinent: metadata.locationContinent,
+        locationCity: metadata.locationCity,
     };
     result = await sql`insert into ${sql('features_metadata')} ${sql(metadataToInsert)} returning id`;
     const dumpId = result[0].id;
