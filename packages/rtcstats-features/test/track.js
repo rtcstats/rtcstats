@@ -261,4 +261,75 @@ describe('extractTrackFeatures', () => {
             expect(features.packetsWithBleachedEct1Marking).to.equal(5);
         });
     });
+
+    describe('hasNullVideoDecoder', () => {
+        it('should extract hasNullVideoDecoder for inbound video tracks', () => {
+            const trackInfo = {
+                direction: 'inbound',
+                id: 'track1',
+                kind: 'video',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            decoderImplementation: 'NullVideoDecoder',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.hasNullVideoDecoder).to.equal(true);
+        });
+
+        it('should return false if NullVideoDecoder was not used', () => {
+            const trackInfo = {
+                direction: 'inbound',
+                id: 'track1',
+                kind: 'video',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            decoderImplementation: 'libvpx',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.hasNullVideoDecoder).to.equal(false);
+        });
+
+        it('should return undefined for outbound tracks', () => {
+            const trackInfo = {
+                direction: 'outbound',
+                id: 'track1',
+                kind: 'video',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            decoderImplementation: 'NullVideoDecoder',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.hasNullVideoDecoder).to.be.undefined;
+        });
+    });
 });
