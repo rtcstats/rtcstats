@@ -35,6 +35,22 @@ function codecFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation)
     }
 }
 
+function hasNullVideoDecoder(peerConnectionTrace, trackInformation) {
+    if (trackInformation.kind !== 'video' || trackInformation.direction !== 'inbound') {
+        return undefined;
+    }
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        const report = traceEvent.value;
+        if (!report[trackInformation.statsId]) continue;
+        const decoderImplementation = report[trackInformation.statsId].decoderImplementation;
+        if (decoderImplementation === 'NullVideoDecoder') {
+            return true;
+        }
+    }
+    return false;
+}
+
 function resolutionFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     if (trackInformation.kind === 'audio') return {};
     const widths = {};
@@ -165,6 +181,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         startTime: trackInformation.startTime,
         trackIdentifier: trackInformation.id,
     };
+    features.hasNullVideoDecoder = hasNullVideoDecoder(peerConnectionTrace, trackInformation);
 
     return {
         ...codecFeatures(undefined, peerConnectionTrace, trackInformation),
