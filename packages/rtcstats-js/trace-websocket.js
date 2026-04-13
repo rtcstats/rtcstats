@@ -61,6 +61,7 @@ export function WebSocketTrace(config = {}) {
             height: window.innerHeight,
         },
         reloadCount,
+        webdriver: navigator.webdriver,
     });
 
     trace.close = () => {
