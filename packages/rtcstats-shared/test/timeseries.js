@@ -36,6 +36,30 @@ describe('timeseries', () => {
                 },
             });
         });
+        it('handles series with different starting points', () => {
+            const input = {
+                'a-frameHeight': {
+                    endTime: '2025-09-25T10:04:24.377Z',
+                    startTime: '2025-09-25T10:04:18.088Z',
+                    statsType: 'outbound-rtp',
+                    values: '[640]',
+                },
+                'a-timestamp': {
+                    endTime: '2025-09-25T10:04:24.377Z',
+                    startTime: '2025-09-25T10:04:18.088Z',
+                    statsType: 'outbound-rtp',
+                    values: '[0, 1]',
+                },
+            };
+            const result = createInternalsTimeSeries({stats: input});
+            expect(result).to.deep.equal({
+                a: {
+                    type: 'outbound-rtp',
+                    frameHeight: [[1, 640]],
+                    timestamp: [[0, 0], [1, 1]],
+                },
+            });
+        });
 
         it('does not parse the <M117 legacy format without timestamps', () => {
             const input = {

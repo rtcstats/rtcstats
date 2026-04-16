@@ -33,8 +33,15 @@ export function createInternalsTimeSeries(connection) {
             return;
         }
         const timestamps = JSON.parse(connection.stats[statsId + '-timestamp'].values);
-        series[statsId][statsProperty] = JSON.parse(stats.values).map((currentValue, index) => {
-            return [timestamps[index], currentValue];
+        // Note: this does not work if a property only shows up on a stat "late".
+        // Observed e.g. with targetBitrate when the encoding is initially disabled.
+        // Then stats exist (and create a timestamp) but targetBitrate does not.
+        // Taking this from the end does not always work either, e.g. for remote rtcp-based
+        // reports.
+        const values = JSON.parse(stats.values);
+        const offset = timestamps.length - values.length;
+        series[statsId][statsProperty] = values.map((currentValue, index) => {
+            return [timestamps[index + offset], currentValue];
         });
     }
     return series;
