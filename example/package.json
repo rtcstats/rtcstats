@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint *.js",
     "test": "npm run lint",
-    "start": "NODE_ENV=example NODE_CONFIG_DIR='../packages/rtcstats-server/config' node example.js"
+    "start": "NODE_ENV=example NODE_CONFIG_DIR='../config' node example.js"
   },
   "dependencies": {
     "config": "^4.1.1",
