@@ -8,6 +8,7 @@ export function WebSocketTrace(config = {}) {
     let connection;
     let lastTime = 0;
     let connectionStartTime = 0;
+    const createTime = Date.now();
 
     // This counts the number of times the trace itself has been initialized.
     // Typically this is done once per session and counting (re)loads based
@@ -47,21 +48,6 @@ export function WebSocketTrace(config = {}) {
             buffer.push(args);
         }
     };
-    trace('create', null, {
-        hardwareConcurrency: navigator.hardwareConcurrency,
-        userAgentData: navigator.userAgentData,
-        deviceMemory: navigator.deviceMemory,
-        screen: {
-            width: window.screen.availWidth,
-            height: window.screen.availHeight,
-            devicePixelRatio: window.devicePixelRatio,
-        },
-        window: {
-            width: window.innerWidth,
-            height: window.innerHeight,
-        },
-        reloadCount,
-    });
 
     trace.close = () => {
         if (window.sessionStorage && config.countReloads) {
@@ -94,6 +80,23 @@ export function WebSocketTrace(config = {}) {
             // Note: open is called while the socket is still authenticating.
             // This can lead to messages being send and dropped when the token
             // is not valid.
+
+            // Note: this does not use trace so avoids the buffer.
+            connection.send(JSON.stringify(['create', null, {
+                hardwareConcurrency: navigator.hardwareConcurrency,
+                userAgentData: navigator.userAgentData,
+                deviceMemory: navigator.deviceMemory,
+                screen: {
+                    width: window.screen.availWidth,
+                    height: window.screen.availHeight,
+                    devicePixelRatio: window.devicePixelRatio,
+                },
+                window: {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                },
+                reloadCount,
+            }, createTime]));
             const connectionTime = Date.now() - connectionStartTime;
             setTimeout(function flush() {
                 if (!buffer.length) {
