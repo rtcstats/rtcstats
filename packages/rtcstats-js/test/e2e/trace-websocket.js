@@ -61,6 +61,22 @@ describe('WebSocketTrace', () => {
         expect(JSON.parse(wsInstance.send.getCall(0).args)[2]).to.be.an('object');
     });
 
+    it('sends metadata and ws connection time on reconnect', async () => {
+        const trace = new WebSocketTrace();
+        trace.connect(TEST_WSURL);
+        await wsInstance.mockOpen();
+        expect(wsInstance.send.callCount).to.be.at.least(2);
+        expect(JSON.parse(wsInstance.send.getCall(0).args)[1]).to.equal(null);
+        expect(JSON.parse(wsInstance.send.getCall(0).args)[2]).to.be.an('object');
+
+        // Now reconnect.
+        trace.connect(TEST_WSURL);
+        await wsInstance.mockOpen();
+        expect(wsInstance.send.callCount).to.be.at.least(4);
+        expect(JSON.parse(wsInstance.send.getCall(0).args)).to.deep.equal(
+            JSON.parse(wsInstance.send.getCall(2).args));
+    });
+
     it('adds the timestamp at which the event was traced', async () => {
         const trace = new WebSocketTrace();
         const before = Date.now();
