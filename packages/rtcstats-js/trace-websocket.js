@@ -6,7 +6,7 @@ const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
 export function WebSocketTrace(config = {}) {
     let buffer = [];
     let connection;
-    let lastTime = 0;
+    let lastTime = Date.now();
     let connectionStartTime = 0;
     const createTime = Date.now();
 
@@ -82,7 +82,7 @@ export function WebSocketTrace(config = {}) {
             // is not valid.
 
             // Note: this does not use trace so avoids the buffer.
-            connection.send(JSON.stringify(['create', null, {
+            connection.send(JSON.stringify([compressMethod('create'), null, {
                 hardwareConcurrency: navigator.hardwareConcurrency,
                 userAgentData: navigator.userAgentData,
                 deviceMemory: navigator.deviceMemory,
