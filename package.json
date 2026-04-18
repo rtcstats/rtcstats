@@ -1,6 +1,7 @@
 {
   "name": "rtcstats",
   "type": "module",
+  "private": true,
   "version": "1.0.0",
   "description": "gather WebRTC API traces and statistics",
   "author": "rtcstats.com",
