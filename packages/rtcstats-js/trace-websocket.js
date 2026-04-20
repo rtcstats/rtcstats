@@ -6,9 +6,8 @@ const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
 export function WebSocketTrace(config = {}) {
     let buffer = [];
     let connection;
-    let lastTime = Date.now();
+    let lastTime = 0;
     let connectionStartTime = 0;
-    const createTime = Date.now();
 
     // This counts the number of times the trace itself has been initialized.
     // Typically this is done once per session and counting (re)loads based
@@ -56,12 +55,31 @@ export function WebSocketTrace(config = {}) {
         }
         if (connection) {
             connection.close();
+            connection = null;
         }
+        // New traces need to get an absolute timestamp.
+        lastTime = 0;
     };
     trace.connect = (wsURL) => {
         if (connection) {
             connection.close();
+            lastTime = 0;
         }
+        trace('create', null, {
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            userAgentData: navigator.userAgentData,
+            deviceMemory: navigator.deviceMemory,
+            screen: {
+                width: window.screen.availWidth,
+                height: window.screen.availHeight,
+                devicePixelRatio: window.devicePixelRatio,
+            },
+            window: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+            },
+            reloadCount,
+        });
         connectionStartTime = Date.now();
         connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
         connection.addEventListener('error', (e) => {
@@ -80,23 +98,6 @@ export function WebSocketTrace(config = {}) {
             // Note: open is called while the socket is still authenticating.
             // This can lead to messages being send and dropped when the token
             // is not valid.
-
-            // Note: this does not use trace so avoids the buffer.
-            connection.send(JSON.stringify([compressMethod('create'), null, {
-                hardwareConcurrency: navigator.hardwareConcurrency,
-                userAgentData: navigator.userAgentData,
-                deviceMemory: navigator.deviceMemory,
-                screen: {
-                    width: window.screen.availWidth,
-                    height: window.screen.availHeight,
-                    devicePixelRatio: window.devicePixelRatio,
-                },
-                window: {
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                },
-                reloadCount,
-            }, createTime]));
             const connectionTime = Date.now() - connectionStartTime;
             setTimeout(function flush() {
                 if (!buffer.length) {

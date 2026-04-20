@@ -2,6 +2,7 @@ import {expect} from '@esm-bundle/chai';
 import sinon from 'sinon';
 
 import {WebSocketTrace} from '../../trace-websocket.js';
+import {compressMethod} from '@rtcstats/rtcstats-shared';
 
 class MockWebSocket extends EventTarget{
     constructor(...args) {
@@ -38,8 +39,8 @@ describe('WebSocketTrace', () => {
         trace.connect(TEST_WSURL);
         await wsInstance.mockOpen();
         expect(wsInstance.send.callCount).to.at.least(2);
-        expect(JSON.parse(wsInstance.send.getCall(1).args)[0]).to.equal('something');
-        expect(JSON.parse(wsInstance.send.getCall(1).args)[1]).to.equal(null);
+        expect(JSON.parse(wsInstance.send.getCall(0).args)[0]).to.equal('something');
+        expect(JSON.parse(wsInstance.send.getCall(0).args)[1]).to.equal(null);
     });
 
     it('buffers while connecting', async () => {
@@ -66,6 +67,7 @@ describe('WebSocketTrace', () => {
         trace.connect(TEST_WSURL);
         await wsInstance.mockOpen();
         expect(wsInstance.send.callCount).to.be.at.least(2);
+        expect(JSON.parse(wsInstance.send.getCall(0).args)[0]).to.equal(compressMethod('create'));
         expect(JSON.parse(wsInstance.send.getCall(0).args)[1]).to.equal(null);
         expect(JSON.parse(wsInstance.send.getCall(0).args)[2]).to.be.an('object');
 
@@ -73,8 +75,9 @@ describe('WebSocketTrace', () => {
         trace.connect(TEST_WSURL);
         await wsInstance.mockOpen();
         expect(wsInstance.send.callCount).to.be.at.least(4);
-        expect(JSON.parse(wsInstance.send.getCall(0).args)).to.deep.equal(
-            JSON.parse(wsInstance.send.getCall(2).args));
+        expect(JSON.parse(wsInstance.send.getCall(2).args)[0]).to.equal(compressMethod('create'));
+        expect(JSON.parse(wsInstance.send.getCall(2).args)[1]).to.equal(null);
+        expect(JSON.parse(wsInstance.send.getCall(2).args)[2]).to.be.an('object');
     });
 
     it('adds the timestamp at which the event was traced', async () => {
