@@ -107,13 +107,16 @@ export function createContainers(connid, url, containers) {
     if (url) {
         const parsedUrl = new URL(url);
         if (parsedUrl && parsedUrl.searchParams.has('rtcstats-token')) { // Parse JWT by hand.
-            const rawJwt = atob(parsedUrl.searchParams.get('rtcstats-token').split('.')[1]);
-            if (rawJwt) {
-                const parsedJwt = JSON.parse(rawJwt);
-                if (parsedJwt.rtcStats) {
-                    const rtcstatsToken = document.createElement('div');
-                    rtcstatsToken.innerText = 'Decoded RTCStats token: ' + JSON.stringify(parsedJwt.rtcStats, null, ' ');
-                    container.appendChild(rtcstatsToken);
+            const parts = parsedUrl.searchParams.get('rtcstats-token').split('.');
+            if (parts[1]) {
+                const rawJwt = atob(parts[1]);
+                if (rawJwt[1]) {
+                    const parsedJwt = JSON.parse(rawJwt[1]);
+                    if (parsedJwt.rtcStats) {
+                        const rtcstatsToken = document.createElement('div');
+                        rtcstatsToken.innerText = 'Decoded RTCStats token: ' + JSON.stringify(parsedJwt.rtcStats, null, ' ');
+                        container.appendChild(rtcstatsToken);
+                    }
                 }
             }
         }
