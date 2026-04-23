@@ -11,7 +11,7 @@ function pluckStat(statsObject, properties) {
 }
 
 function getSelectedCandidatePairStats(report) {
-    const selectedCandidatePairId = Object.keys(report).find(id => {
+    const transportId = Object.keys(report).find(id => {
         const stats = report[id];
         // Spec.
         return stats.type === 'transport' && stats.selectedCandidatePairId;
@@ -20,7 +20,8 @@ function getSelectedCandidatePairStats(report) {
         return report.type === 'candidate-pair' && report.selected === true;
         */
     });
-    if (selectedCandidatePairId) {
+    if (transportId) {
+        const {selectedCandidatePairId} = report[transportId];
         return report[selectedCandidatePairId];
     }
     return undefined;
@@ -257,23 +258,23 @@ function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
         for (; i < peerConnectionTrace.length; i++) {
             if (peerConnectionTrace[i].type !== 'getStats') continue;
             const report = peerConnectionTrace[i].value;
-            const stats = getSelectedCandidatePairStats(report);
-            if (stats) {
-                const candidatePair = report[stats.selectedCandidatePairId];
-                const localCandidate = report[candidatePair.localCandidateId];
-                const remoteCandidate = report[candidatePair.remoteCandidateId];
-                return {
-                    firstCandidatePairLocalAddress: localCandidate.address,
-                    firstCandidatePairLocalNetworkType: localCandidate.networkType,
-                    firstCandidatePairLocalProtocol: localCandidate.protocol,
-                    firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
-                    firstCandidatePairLocalRelayUrl: localCandidate.url,
-                    firstCandidatePairLocalType: localCandidate.candidateType,
-                    firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
-                    firstCandidatePairRemoteAddress: remoteCandidate.address,
-                    firstCandidatePairRemoteType: remoteCandidate.candidateType,
-                };
+            const candidatePair = getSelectedCandidatePairStats(report);
+            if (!candidatePair) {
+                continue;
             }
+            const localCandidate = report[candidatePair.localCandidateId];
+            const remoteCandidate = report[candidatePair.remoteCandidateId];
+            return {
+                firstCandidatePairLocalAddress: localCandidate.address,
+                firstCandidatePairLocalNetworkType: localCandidate.networkType,
+                firstCandidatePairLocalProtocol: localCandidate.protocol,
+                firstCandidatePairLocalRelayProtocol: localCandidate.relayProtocol,
+                firstCandidatePairLocalRelayUrl: localCandidate.url,
+                firstCandidatePairLocalType: localCandidate.candidateType,
+                firstCandidatePairLocalTypePreference: localCandidate.priority >> 24,
+                firstCandidatePairRemoteAddress: remoteCandidate.address,
+                firstCandidatePairRemoteType: remoteCandidate.candidateType,
+            };
         }
         return {};
     })();
@@ -315,10 +316,9 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
         const traceEvent = peerConnectionTrace[i];
         if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-        const stats = getSelectedCandidatePairStats(traceEvent.value);
-        if (!stats) continue;
+        lastCandidatePairStats = getSelectedCandidatePairStats(traceEvent.value);
+        if (!lastCandidatePairStats) continue;
         lastStatsEvent = traceEvent;
-        lastCandidatePairStats = traceEvent.value[stats.selectedCandidatePairId];
         break;
     }
     if (!(lastStatsEvent && lastCandidatePairStats)) {
