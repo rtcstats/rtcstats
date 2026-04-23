@@ -284,27 +284,69 @@ function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
     };
 }
 
-function relayLocation(/* clientTrace*/_, peerConnectionTrace) {
-    const relayCandidateWithLocation = peerConnectionTrace.find(traceEvent => {
-        return traceEvent.type === 'onicecandidate' && traceEvent.extra && traceEvent.extra.length > 0;
-    });
-    if (!relayCandidateWithLocation) {
-        return {};
-    }
+function location(/* clientTrace*/_, peerConnectionTrace) {
     const features = {};
-    const extra = relayCandidateWithLocation.extra[0];
-    if (extra.rtcstatsRelayLocation) {
-        const loc = extra.rtcstatsRelayLocation;
-        features['rtcstatsRelayLocationContinent'] = loc.continent;
-        features['rtcstatsRelayLocationCountry'] = loc.country;
-        features['rtcstatsRelayLocationCity'] = loc.city;
+    const localCandidateEvents = [];
+    const remoteCandidateEvents = [];
+    let statsEvent;
+    for (const traceEvent of peerConnectionTrace) {
+        // Look for the connect/failure getStats which has a correlation id.
+        if (traceEvent.type === 'getStats' && traceEvent.extra) {
+            statsEvent = traceEvent;
+            break;
+        }
+        if (!(['onicecandidate', 'addIceCandidate'].includes(traceEvent.type) && traceEvent.extra?.length > 0)) {
+            continue;
+        }
+        if (traceEvent.type === 'onicecandidate') {
+            localCandidateEvents.push(traceEvent);
+        } else {
+            remoteCandidateEvents.push(traceEvent);
+        }
+        if (traceEvent.type === 'onicecandidate' && traceEvent.extra && traceEvent.extra.length > 0) {
+            const extra = traceEvent.extra[0];
+            if (extra.rtcstatsLocation) {
+                const loc = extra.rtcstatsLocation;
+                features['rtcstatsRelayLocationContinent'] = loc.continent;
+                features['rtcstatsRelayLocationCountry'] = loc.country;
+                features['rtcstatsRelayLocationCity'] = loc.city;
+            }
+        }
     }
-    if (extra.rtcstatsLocation) {
-        const loc = extra.rtcstatsLocation;
-        features['rtcstatsLocationContinent'] = loc.continent;
-        features['rtcstatsLocationCountry'] = loc.country;
-        features['rtcstatsLocationCity'] = loc.city;
+    if (!statsEvent) {
+        return features;
     }
+    const stats = statsEvent.value;
+    const pair = getSelectedCandidatePairStats(stats);
+    const localAddress = stats[pair.localCandidateId]?.address;
+    if (localAddress) {
+        for (let traceEvent of localCandidateEvents) {
+            const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+            const extra = traceEvent.extra[0];
+            if (candidate.address === localAddress && extra.rtcstatsLocation) {
+                const loc = extra.rtcstatsLocation;
+                features['rtcstatsLocationContinent'] = loc.continent;
+                features['rtcstatsLocationCountry'] = loc.country;
+                features['rtcstatsLocationCity'] = loc.city;
+                break;
+            }
+        }
+    }
+    const remoteAddress = stats[pair.remoteCandidateId]?.address;
+    if (remoteAddress) {
+        for (let traceEvent of remoteCandidateEvents) {
+            const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+            const extra = traceEvent.extra[0];
+            if (candidate.address === remoteAddress && extra.rtcstatsLocation) {
+                const loc = extra.rtcstatsLocation;
+                features['rtcstatsPeerLocationContinent'] = loc.continent;
+                features['rtcstatsPeerLocationCountry'] = loc.country;
+                features['rtcstatsPeerLocationCity'] = loc.city;
+                break;
+            }
+        }
+    }
+
     return features;
 }
 
@@ -416,17 +458,17 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         closed: peerConnectionTrace[peerConnectionTrace.length - 1].type === 'close',
         // The lifetime of the peer connection in milliseconds.
         duration: peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp,
-        ...iceFeatures(undefined, peerConnectionTrace),
+        ... iceFeatures(undefined, peerConnectionTrace),
         ... iceServerFeatures(undefined, peerConnectionTrace),
-        ...candidateFeatures(undefined, peerConnectionTrace),
-        ...lastStatsFeatures(undefined, peerConnectionTrace),
+        ... candidateFeatures(undefined, peerConnectionTrace),
+        ... lastStatsFeatures(undefined, peerConnectionTrace),
+        ... location(undefined, peerConnectionTrace),
         // The total number of events in the peer connection trace.
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
         ... setLocalDescriptionFeatures(undefined, peerConnectionTrace),
         ... setRemoteDescriptionFeatures(undefined, peerConnectionTrace),
-        ... relayLocation(undefined, peerConnectionTrace),
         signalingDelay: signalingDelay(undefined, peerConnectionTrace),
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
