@@ -83,7 +83,9 @@ export function WebSocketTrace(config = {}) {
         connectionStartTime = Date.now();
         connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
         connection.addEventListener('error', (e) => {
-            // console.error('WS ERROR', e);
+            if (config.log) {
+                config.log('rtcstats websocket connection error', e, connection.readyState);
+            }
         });
 
         connection.addEventListener('close', (e) => {

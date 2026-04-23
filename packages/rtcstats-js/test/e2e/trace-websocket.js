@@ -17,6 +17,12 @@ class MockWebSocket extends EventTarget{
         // Flush any events.
         await new Promise(r => setTimeout(r, 10));
     }
+    async mockRefuse() {
+        this.readyState = WebSocket.CLOSED;
+        this.dispatchEvent(new Event('error'));
+        // Flush any events.
+        await new Promise(r => setTimeout(r, 10));
+    }
 }
 
 const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
@@ -117,7 +123,7 @@ describe('WebSocketTrace', () => {
         expect(wsInstance.close.callCount).to.equal(1);
     });
 
-    it('logs authorization errors if configured', () => {
+    it('logs authorization errors if configured', async () => {
         const logStub = sinon.stub();
         const trace = new WebSocketTrace({log: logStub});
         trace.connect(TEST_WSURL);
@@ -125,16 +131,19 @@ describe('WebSocketTrace', () => {
         const ev = new Event('close');
         ev.code = 1008;
         wsInstance.dispatchEvent(ev);
+        expect(logStub.callCount).to.equal(1);
+        expect(logStub.getCall(0).firstArg).to.equal(
+            'rtcstats websocket connection closed with error=1008. ' +
+            'Typically this means authorization is required and failed.');
     });
 
-    it('logs authorization errors if configured', () => {
+    it('logs connection failures if configured', async () => {
         const logStub = sinon.stub();
         const trace = new WebSocketTrace({log: logStub});
         trace.connect(TEST_WSURL);
-
-        const ev = new Event('close');
-        ev.code = 1008;
-        wsInstance.dispatchEvent(ev);
+        await wsInstance.mockRefuse();
+        expect(logStub.callCount).to.equal(1);
+        expect(logStub.getCall(0).firstArg).to.equal('rtcstats websocket connection error');
     });
 
     describe('session reload counting', () => {
