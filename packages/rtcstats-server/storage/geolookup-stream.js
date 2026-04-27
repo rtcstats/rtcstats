@@ -40,32 +40,21 @@ export class GeolookupStream extends Transform {
         }
         try {
             const data = JSON.parse(line);
-            if (decompressMethod(data[0]) === 'onicecandidate' && data[2] && typeof(data[2]) === 'object') {
+            const method = decompressMethod(data[0]);
+            if (['onicecandidate', 'addIceCandidate'].includes(method) && data[2] && typeof(data[2]) === 'object') {
                 const candidate = SDPUtils.parseCandidate(data[2].candidate);
-                if (candidate && candidate.type === 'relay') {
+                if (candidate && candidate.address) {
                     const result = {};
-                    if (candidate.address) {
-                        const relayLookup = await this._lookup(candidate.address);
-                        if (relayLookup) {
-                            result.rtcstatsRelayLocation = { // English names of contintent, country and city.
-                                continent: relayLookup.continent?.names['en'],
-                                country: relayLookup.country?.names['en'],
-                                city: relayLookup.city?.names['en'],
-                            };
-                        }
-                        if (candidate.relatedAddress && candidate.relatedAddress !== '0.0.0.0') {
-                            const srflxLookup = await this._lookup(candidate.relatedAddress);
-                            if (srflxLookup) {
-                                result.rtcstatsLocation = { // English names of contintent, country and city.
-                                    continent: srflxLookup.continent?.names['en'],
-                                    country: srflxLookup.country?.names['en'],
-                                    city: srflxLookup.city?.names['en'],
-                                };
-                            }
-                        }
-                        if (result.rtcstatsRelayLocation || result.rtcstatsLocation) {
-                            data.splice(3, 0, result);
-                        }
+                    const geoLookup = await this._lookup(candidate.address);
+                    if (geoLookup) {
+                        result.rtcstatsLocation = { // English names of continent, country and city.
+                            continent: geoLookup.continent?.names['en'],
+                            country: geoLookup.country?.names['en'],
+                            city: geoLookup.city?.names['en'],
+                        };
+                    }
+                    if (result.rtcstatsLocation) {
+                        data.splice(3, 0, result);
                     }
                 }
             }

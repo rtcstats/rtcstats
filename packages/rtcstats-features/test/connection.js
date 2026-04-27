@@ -404,20 +404,82 @@ describe('extractConnectionFeatures', () => {
         expect(features.firstCandidatePairRemoteAddress).to.equal('2.2.2.2');
     });
 
-    it('should extract relay location features', () => {
+    it('should extract location features', () => {
         const pcTrace = [
             {
                 type: 'onicecandidate',
+                value: {
+                    candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ host',
+                },
                 extra: [{
-                    rtcstatsRelayLocation: {
-                        continent: 'EU',
-                        country: 'DE',
-                        city: 'Berlin',
-                    },
                     rtcstatsLocation: {
                         continent: 'NA',
                         country: 'US',
                         city: 'New York',
+                    },
+                }],
+                timestamp: 1000,
+            },
+            {
+                type: 'addIceCandidate',
+                value: {
+                    candidate: 'candidate:1 1 udp 1694498815 4.3.2.1 9000 typ host',
+                },
+                extra: [{
+                    rtcstatsLocation: {
+                        continent: 'EU',
+                        country: 'DE',
+                        city: 'Berlin',
+                    },
+                }],
+                timestamp: 1000,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', localCandidateId: '3', remoteCandidateId: '4' },
+                    3: { type: 'local-candidate', candidateType: 'host', address: '1.2.3.4' },
+                    4: { type: 'remote-candidate', candidateType: 'host', address: '4.3.2.1' },
+                },
+                extra: ['connected'],
+                timestamp: 1001,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.rtcstatsLocationContinent).to.equal('NA');
+        expect(features.rtcstatsLocationCountry).to.equal('US');
+        expect(features.rtcstatsLocationCity).to.equal('New York');
+        expect(features.rtcstatsPeerLocationContinent).to.equal('EU');
+        expect(features.rtcstatsPeerLocationCountry).to.equal('DE');
+        expect(features.rtcstatsPeerLocationCity).to.equal('Berlin');
+    });
+    it('should extract relay location features', () => {
+        const pcTrace = [
+            {
+                type: 'onicecandidate',
+                candidate: {
+                    candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ host',
+                },
+                extra: [{
+                    rtcstatsLocation: {
+                        continent: 'NA',
+                        country: 'US',
+                        city: 'New York',
+                    },
+                }],
+                timestamp: 1000,
+            },
+            {
+                type: 'onicecandidate',
+                candidate: {
+                    candidate: 'candidate:1 1 udp 1694498815 1.2.3.4 9000 typ relay',
+                },
+                extra: [{
+                    rtcstatsLocation: {
+                        continent: 'EU',
+                        country: 'DE',
+                        city: 'Berlin',
                     },
                 }],
                 timestamp: 1000,
@@ -427,9 +489,6 @@ describe('extractConnectionFeatures', () => {
         expect(features.rtcstatsRelayLocationContinent).to.equal('EU');
         expect(features.rtcstatsRelayLocationCountry).to.equal('DE');
         expect(features.rtcstatsRelayLocationCity).to.equal('Berlin');
-        expect(features.rtcstatsLocationContinent).to.equal('NA');
-        expect(features.rtcstatsLocationCountry).to.equal('US');
-        expect(features.rtcstatsLocationCity).to.equal('New York');
     });
 
     it('should extract last candidate pair stats', () => {

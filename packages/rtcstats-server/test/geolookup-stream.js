@@ -29,7 +29,7 @@ describe('GeolookupStream', () => {
         country: 'Home of the Penguins',
         city: 'McMurdo',
     };
-    it('should lookup the relay address in onicecandidate', async () => {
+    it('should lookup the address in onicecandidate', async () => {
         const candidate = {
             candidate: 'candidate:469859642 1 UDP 58532095 8.8.8.8 53709 typ relay raddr 0.0.0.0 rport 4404 ufrag ojYK',
             sdpMid: '0',
@@ -46,13 +46,13 @@ describe('GeolookupStream', () => {
         expect(output).to.equal([
             'RTCStatsDump',
             JSON.stringify(['onicecandidate', 'PC_0', candidate, {
-                rtcstatsRelayLocation: expectedLocation,
+                rtcstatsLocation: expectedLocation,
             }, 1]),
             JSON.stringify(['onicecandidate', 'PC_0', null, 2]),
         ].join('\n') + '\n');
     });
 
-    it('should lookup the public address in onicecandidate', async () => {
+    it('should lookup the public address in addIceCandidate', async () => {
         const candidate = {
             candidate: 'candidate:469859642 1 UDP 58532095 8.8.8.8 53709 typ relay raddr 127.0.0.1 rport 4404 ufrag ojYK',
             sdpMid: '0',
@@ -61,18 +61,17 @@ describe('GeolookupStream', () => {
         };
         const input = [
             'RTCStatsDump',
-            JSON.stringify(['onicecandidate', 'PC_0', candidate, 1]),
-            JSON.stringify(['onicecandidate', 'PC_0', null, 2]),
+            JSON.stringify(['addIceCandidate', 'PC_0', candidate, 1]),
+            JSON.stringify(['addIceCandidate', 'PC_0', null, 2]),
         ].join('\n') + '\n';
 
         const output = await lookup(input, geolookup);
         expect(output).to.equal([
             'RTCStatsDump',
-            JSON.stringify(['onicecandidate', 'PC_0', candidate, {
-                rtcstatsRelayLocation: expectedLocation,
+            JSON.stringify(['addIceCandidate', 'PC_0', candidate, {
                 rtcstatsLocation: expectedLocation,
             }, 1]),
-            JSON.stringify(['onicecandidate', 'PC_0', null, 2]),
+            JSON.stringify(['addIceCandidate', 'PC_0', null, 2]),
         ].join('\n') + '\n');
     });
 });
