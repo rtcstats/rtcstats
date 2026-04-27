@@ -200,7 +200,7 @@ export class RTCStatsServer {
                 console.error('Uploading to rtcstats.com failed', e);
             }
             if (response && response.url) {
-                await this.database.setRtcStatsEmbedUrl(response.url, dbId);
+                await this.database.setRtcStatsEmbedUrl(dbId, response.url);
             }
         }
         if (this.config.server.deleteAfterUpload) {
