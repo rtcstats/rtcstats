@@ -158,7 +158,7 @@ export class RTCStatsServer {
 
     async process(clientId, startTime, endTime, dbId) {
         const destPath = await this.postProcess(clientId);
-        const blobUrl = await this.uploadDump(clientId, destPath);
+        const blobUrl = await this.uploadDump(clientId, destPath, dbId);
         await this.database.update(dbId, endTime, blobUrl);
         console.log('Processed data from connection with uuid', clientId, 'dbІd', dbId);
     }
@@ -183,7 +183,7 @@ export class RTCStatsServer {
         return destPath;
     }
 
-    async uploadDump(clientId, destPath) {
+    async uploadDump(clientId, destPath, dbId) {
         // Upload to storage and unlink the destination path.
         const blobLocation = await this.storage.put(clientId, destPath);
 
@@ -192,11 +192,15 @@ export class RTCStatsServer {
             const data = fs.readFileSync(destPath);
             data.name = clientId;
             data.size = data.length;
+            let response;
             try {
-                await this.rtcstatsUploader(data);
+                response = await this.rtcstatsUploader(data);
             } catch (e) {
                 // Should an error prevent deletion?
                 console.error('Uploading to rtcstats.com failed', e);
+            }
+            if (response && response.url) {
+                await this.database.setRtcStatsEmbedUrl(response.url, dbId);
             }
         }
         if (this.config.server.deleteAfterUpload) {

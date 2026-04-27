@@ -47,6 +47,11 @@ export function createPostgres(config) {
                         blob_url = ${blobUrl}
                     where id = ${id}`;
         },
+        setRtcStatsEmbedUrl: (id, rtcStatsEmbedUrl) => {
+            return sql`update ${sql(config.tableName)}
+                    set rtcstats_embed_url = ${rtcStatsEmbedUrl}
+                    where id = ${id}`;
+        },
         close: () => {
             return sql.close();
         },
