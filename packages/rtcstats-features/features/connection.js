@@ -318,6 +318,9 @@ function location(/* clientTrace*/_, peerConnectionTrace) {
     }
     const stats = statsEvent.value;
     const pair = getSelectedCandidatePairStats(stats);
+    if (!pair) {
+        return features;
+    }
     const localAddress = stats[pair.localCandidateId]?.address;
     if (localAddress) {
         for (let traceEvent of localCandidateEvents) {
@@ -335,6 +338,9 @@ function location(/* clientTrace*/_, peerConnectionTrace) {
     const remoteAddress = stats[pair.remoteCandidateId]?.address;
     if (remoteAddress) {
         for (let traceEvent of remoteCandidateEvents) {
+            if (!traceEvent.value?.candidate) {
+                continue;
+            }
             const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
             const extra = traceEvent.extra[0];
             if (candidate.address === remoteAddress && extra.rtcstatsLocation) {
