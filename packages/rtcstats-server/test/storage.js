@@ -10,6 +10,7 @@ describe('Storage', () => {
             fetchArgs.push(args);
             return {
                 ok: true,
+                json: () => {},
             };
         };
         const testFile = Buffer.from('hello world', 'ascii');

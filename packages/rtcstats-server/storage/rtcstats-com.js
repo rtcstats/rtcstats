@@ -57,6 +57,6 @@ export function createRtcStatsUploader(config) {
         if (config.randomPercentage === 0 || Math.random() < randomPercentage) {
             return;
         }
-        uploadToRtcStatsCom(file, config.endpoint, config.token, fetchFunction);
+        return uploadToRtcStatsCom(file, config.endpoint, config.token, fetchFunction);
     };
 }
