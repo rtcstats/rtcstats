@@ -421,6 +421,11 @@ describe('extractConnectionFeatures', () => {
                 timestamp: 1000,
             },
             {
+                type: 'onicecandidate',
+                value: null,
+                timestamp: 1,
+            },
+            {
                 type: 'addIceCandidate',
                 value: {
                     candidate: 'candidate:1 1 udp 1694498815 4.3.2.1 9000 typ host',
@@ -433,6 +438,11 @@ describe('extractConnectionFeatures', () => {
                     },
                 }],
                 timestamp: 1000,
+            },
+            {
+                type: 'addIceCandidate',
+                value: null,
+                timestamp: 1,
             },
             {
                 type: 'getStats',
@@ -454,6 +464,7 @@ describe('extractConnectionFeatures', () => {
         expect(features.rtcstatsPeerLocationCountry).to.equal('DE');
         expect(features.rtcstatsPeerLocationCity).to.equal('Berlin');
     });
+
     it('should extract relay location features', () => {
         const pcTrace = [
             {
