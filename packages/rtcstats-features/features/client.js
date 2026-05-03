@@ -85,6 +85,31 @@ function webSocketFeatures(clientTrace) {
 
 }
 
+// Client features related to the track (in case it is never added to a connection).
+function trackFeatures(clientTrace, kind) {
+    const features = {};
+    const allTracks = {};
+    for (const traceEvent of clientTrace) {
+        if (traceEvent.type === 'navigator.mediaDevices.getUserMediaOnSuccess') {
+            for (const track of traceEvent.value) {
+                allTracks[track[1]] = {
+                    kind: track[0],
+                    start: traceEvent.timestamp,
+                };
+            }
+        } else if (traceEvent.type === 'MediaStreamTrack.onended') {
+            const track = allTracks[traceEvent.value];
+            if (track) {
+                features[track.kind + 'Ended'] = true;
+                if (traceEvent.timestamp - track.start < 1000) {
+                    features[track.kind + 'ShortDuration'] = true;
+                }
+            }
+        }
+    }
+    return features;
+}
+
 export function extractClientFeatures(clientTrace) {
     // A trace will always have at least one event.
     const create = clientTrace.find(traceEvent => traceEvent.type === 'create').value;
@@ -98,6 +123,7 @@ export function extractClientFeatures(clientTrace) {
         ...getUserMediaFeatures(clientTrace),
         // The timestamp at which RTCStatsDump was started.
         startTime: clientTrace[0].timestamp,
+        ...trackFeatures(clientTrace),
         ...webSocketFeatures(clientTrace),
     };
 }
