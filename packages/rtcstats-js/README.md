@@ -71,6 +71,7 @@ trace(method name, e.g. `:userRating`,
 * The trace function will internally add a timestamp to the event.
 * rtcstats-server will not process such events by default.
 * A dump-importer should still display a generic rendering of the event.
+* Compression should not be used for custom methods.
 
 ### Using a JWT to connect to rtcstats-server
 See [the server README](https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md) for how to

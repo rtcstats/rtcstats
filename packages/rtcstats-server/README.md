@@ -82,6 +82,7 @@ Every line after this is a JSON array with RTCStats events.
 * Usually four elements but some methods have additional elements.
 * First element is the method or event name, e.g., `setLocalDescription` or `ontrack`.
   * This SHOULD be compressed using a static table during transfer and MAY be compressed in storage.
+  * Custom methods SHOULD NOT be compressed.
   * For promise resolutions or callbacks this should have either a `OnSuccess` or `OnFailure` suffix.
 * Second element is the peerconnection ID or `null` if this is not related to a peerconnection.
   * E.g., `getUserMedia`-related events are not associated with a peerconnection, so
