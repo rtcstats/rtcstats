@@ -90,7 +90,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         return;
     }
     let lastComputePressureRecord;
-    if (window.PressureObserver) {
+    if (window.PressureObserver && getStatsInterval) {
         const observer = new PressureObserver((records) => {
             const lastRecord = records[records.length - 1]; // Usually only one record.
             lastComputePressureRecord = [Date.now(), lastRecord];
@@ -416,13 +416,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
 
     // wrap static methods. Currently just generateCertificate.
     if (OrigPeerConnection.generateCertificate) {
-        Object.defineProperty(RTCStatsPeerConnection, 'generateCertificate', {
-            get(...args) {
-                return args.length ?
-                    OrigPeerConnection.generateCertificate.apply(null, args)
-                    : OrigPeerConnection.generateCertificate;
-            },
-        });
+        RTCStatsPeerConnection.generateCertificate = OrigPeerConnection.generateCertificate;
     }
     window.RTCPeerConnection = RTCStatsPeerConnection;
     window.RTCPeerConnection.prototype = OrigPeerConnection.prototype;

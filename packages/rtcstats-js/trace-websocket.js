@@ -14,11 +14,8 @@ export function WebSocketTrace(config = {}) {
     // on that does not require listening for onload etc.
     let reloadCount = undefined;
     if (window.sessionStorage && config.countReloads) {
-        reloadCount =  window.sessionStorage.getItem(RELOAD_COUNT_KEY);
-        if (reloadCount === null || isNaN(reloadCount)) {
-            reloadCount = -1;
-        }
-        reloadCount = parseInt(reloadCount, 10) + 1;
+        const stored = parseInt(window.sessionStorage.getItem(RELOAD_COUNT_KEY), 10);
+        reloadCount = Number.isNaN(stored) ? 0 : stored + 1;
         window.sessionStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
     }
     const trace = function(...args) {
