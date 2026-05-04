@@ -13,7 +13,7 @@ import {map2obj, dumpTrackWithStreams, copyAndSanitizeConfig} from '@rtcstats/rt
  *
  * @protected
  * @param {function} trace - RTCStats trace callback
- * @param {object} window - window object from which to take the RTCRtpTransceiver protoype.
+ * @param {object} window - window object from which to take the RTCRtpTransceiver prototype.
  */
 function wrapRTCRtpTransceiver(trace, window) {
     if (!window.RTCRtpTransceiver) {
@@ -31,13 +31,13 @@ function wrapRTCRtpTransceiver(trace, window) {
 }
 
 /**
- * Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:
+ * Wraps a RTCRtpSender for RTCStats. Currently applied to these methods:
  * * setParameters
- * * replaceTrack 
+ * * replaceTrack
  *
  * @protected
  * @param {function} trace - RTCStats trace callback
- * @param {object} window - window object from which to take the RTCRtpSender protoype.
+ * @param {object} window - window object from which to take the RTCRtpSender prototype.
  */
 function wrapRTCRtpSender(trace, window) {
     if (!window.RTCRtpSender) {
@@ -77,7 +77,7 @@ function wrapRTCRtpSender(trace, window) {
  * Legacy methods and events are not wrapped.
  *
  * @param {function} trace - RTCStats trace callback
- * @param {object} window - window object from which to take the RTCPeerConnection protoype.
+ * @param {object} window - window object from which to take the RTCPeerConnection prototype.
  * @param {object} configuration - various configurable properties. Currently:
  * * getStatsInterval {number} - interval at which getStats will be polled.
  */
@@ -279,7 +279,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
             }
             trace(method, this.__rtcStatsId, serializedArgs);
             const transceiver = nativeMethod.apply(this, [trackOrKind, ...args]);
-            transceiver.__rtcStatsId =  this.__rtcStatsId;
+            transceiver.__rtcStatsId = this.__rtcStatsId;
             transceiver.sender.__rtcStatsId = this.__rtcStatsId;
             transceiver.sender.__rtcStatsSenderId = transceiver.receiver.track.id;
             trace(method + 'OnSuccess', this.__rtcStatsId, null, transceiver.receiver.track.id);
@@ -393,10 +393,9 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
             const trackingId = compressMethod(method) + '-' + (counters[method]++);
             trace(method, this.__rtcStatsId, args[0], trackingId);
             return nativeMethod.apply(this, args)
-                .then((description) => {
+                .then(() => {
                     trace(method + 'OnSuccess', this.__rtcStatsId, undefined,
                         trackingId);
-                    return description;
                 }, (err) => {
                     trace(method + 'OnFailure', this.__rtcStatsId, err.toString(),
                         trackingId);
