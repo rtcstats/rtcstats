@@ -48,6 +48,28 @@ describe('Storage', () => {
             await uploader(testFile);
             expect(fetchArgs).to.have.length(0);
         });
+        it('uploads when the random value is below the sampling percentage', async () => {
+            const uploader = createRtcStatsUploader({
+                token: 'abc',
+                endpoint: 'http://example.com/',
+                fetch: fetchMock,
+                random: () => 0.3,
+                randomPercentage: 0.5,
+            });
+            await uploader(testFile);
+            expect(fetchArgs).to.have.length(2);
+        });
+        it('does not upload when the random value is above the sampling percentage', async () => {
+            const uploader = createRtcStatsUploader({
+                token: 'abc',
+                endpoint: 'http://example.com/',
+                fetch: fetchMock,
+                random: () => 0.7,
+                randomPercentage: 0.5,
+            });
+            await uploader(testFile);
+            expect(fetchArgs).to.have.length(0);
+        });
         it('splits the data for uploading', async () => {
             const uploader = createRtcStatsUploader({
                 token: 'abc',

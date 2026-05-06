@@ -47,14 +47,15 @@ export function createRtcStatsUploader(config) {
     if (!(config.token && config.endpoint)) {
         return;
     }
-    let randomPercentage = 0.0;
-    if (config.randomPercentage && config.randomPercentage >= 0 && config.randomPercentage < 1.0) {
+    let randomPercentage = 1.0;
+    if (config.randomPercentage >= 0 && config.randomPercentage < 1.0) {
         randomPercentage = config.randomPercentage;
     }
     // Only for testing.
     const fetchFunction = config.fetch || fetch;
+    const randomFunction = config.random || Math.random;
     return (file) => {
-        if (config.randomPercentage === 0 || Math.random() < randomPercentage) {
+        if (randomFunction() >= randomPercentage) {
             return;
         }
         return uploadToRtcStatsCom(file, config.endpoint, config.token, fetchFunction);
