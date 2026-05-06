@@ -10,8 +10,10 @@ server:
     # when the path is set. Typically starts with a '/'.
     httpUploadPath:
     # Directory where files are being stored while the websocket is still active.
+    # Relative to server `cwd`.
     workDirectory: work
     # Directory where files are stored after preprocessed and when ready to upload.
+    # Relative to server `cwd`.
     uploadDirectory: upload
     # Setting these to false is useful in dev environments where one needs to look at the generated files.
     deleteAtStart: true

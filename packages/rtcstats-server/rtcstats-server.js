@@ -203,7 +203,8 @@ export class RTCStatsServer {
                 await this.database.setRtcStatsEmbedUrl(dbId, response.url);
             }
         }
-        if (this.config.server.deleteAfterUpload) {
+        // blobLocation should be set if this was uploaded somewhere.
+        if (blobLocation && this.config.server.deleteAfterUpload) {
             await fsPromises.unlink(destPath);
         }
         return blobLocation;
