@@ -28,6 +28,25 @@ This configuration typically needs to be adjusted to specify the
   stored locally and removed on the next restart.
 * the Postgres database configuration for storing metadata such as the S3 storage configuration.
 
+## Configuration
+
+`rtcstats-server` uses the [node-config](https://www.npmjs.com/package/config) package
+for configuration. Configuration files are shared between `rtcstats-server` and `rtcstats-features`
+and located in [`/config/`](https://github.com/rtcstats/rtcstats/blob/main/config),
+with `default.yaml` containing the defaults shipped with the project.
+
+Following `node-config` conventions, you can override settings without editing
+`default.yaml`:
+
+- Add a `development.yaml` (gitignored) for machine-specific overrides.
+- Add a `production.yaml`, `staging.yaml`, etc. and select it via the `NODE_ENV`
+  environment variable.
+- For ad-hoc overrides, the `NODE_CONFIG` environment variable accepts a JSON object
+  that is merged on top of all other sources.
+
+See the [node-config documentation](https://github.com/node-config/node-config/wiki/Configuration-Files)
+for the full list of supported file names, formats and precedence rules.
+
 ## Usage with Docker
 See the Dockerfile in the toplevel directory.
 
@@ -103,4 +122,36 @@ Every line after this is a JSON array with RTCStats events.
 
 ## Old versions
 Versions 1 and 2 were used by the legacy RTCStats server. They are not supported.
+
+# Uploading dumps to rtcstats.com
+
+Alongside the configured backend storage (not as a replacement), `rtcstats-server`
+can forward each collected dump to the hosted [rtcstats.com](https://rtcstats.com)
+service, where it can be inspected and analyzed using the same tooling used for
+local dumps.
+
+This integration is **disabled by default**. The relevant section in `default.yaml` looks
+like this:
+
+```
+rtcstats:
+    # rtcstats.com public endpoint.
+    endpoint: https://www.rtcstats.com/api/rtcstats/v1.0/upload
+    # rtcstats.com token needs to be configured.
+    token:
+    # If set to a number between 0 and 1 a random percentage of dumps will be uploaded.
+    # Defaults to 1 to disable randomness.
+    randomPercentage: 1.0
+```
+The **endpoint url** shown is the official rtcstats.com upload endpoint. It points to
+the production endpoint and rarely needs to be changed.
+
+The rtcstats **token** MUST be configured to enable uploads and can be obtained from
+the `Applications` tab in the rtcstats.com settings page. Since this token is a secret it
+should be injected via environment variables.
+
+The **randomPercentage** parameter controls upload sampling. Set it to a value in
+`[0, 1)` to upload that fraction of dumps (e.g. `0.3` uploads 30%). The default of
+`1.0` uploads every dump. Use sampling for high-volume deployments where uploading
+every dump is unnecessary.
 
