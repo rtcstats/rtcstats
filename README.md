@@ -14,6 +14,9 @@ A full rtcstats-based deployment consists of
   * backend storage, e.g. Amazon S3 or compatible APIs.
   * A database for storing metadata about the dumps and features extracted from the dumps.
 * a server-side component ([rtcstats-features](packages/rtcstats-features)) processing the dumps and extracting the features.
+* optionally, the [rtcstats.com](https://rtcstats.com) hosted service can be configured as
+  an additional upload target so collected dumps are forwarded there for visualization
+  and analysis. See [Uploading dumps to rtcstats.com](packages/rtcstats-server/README.md#uploading-dumps-to-rtcstatscom).
 
 Since metrics gathering is not time-critical, rtcstats-server can be deployed centrally in a single location.
 Multiple instances writing to the same storage and database can be used to scale the metrics gathering horizontally.
