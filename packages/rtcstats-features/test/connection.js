@@ -515,6 +515,65 @@ describe('extractConnectionFeatures', () => {
         ];
         const features = extractConnectionFeatures([], pcTrace);
         expect(features.averageStunRoundTripTime).to.equal(50);
+        expect(features.averageInboundBitrate).to.be.undefined;
+        expect(features.averageOutboundBitrate).to.be.undefined;
+    });
+
+    it('should extract average inbound and outbound bitrate', () => {
+        const pcTrace = [
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', bytesSent: 0, bytesReceived: 0 },
+                },
+                timestamp: 1000,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', bytesSent: 1000, bytesReceived: 2000 },
+                },
+                timestamp: 5000,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', bytesSent: 5000, bytesReceived: 10000 },
+                },
+                timestamp: 9000,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        // The first stats event with non-zero bytes is at t=5000; last is at t=9000 (4 second delta).
+        expect(features.averageOutboundBitrate).to.equal((5000 - 1000) * 8 / 4);
+        expect(features.averageInboundBitrate).to.equal((10000 - 2000) * 8 / 4);
+    });
+
+    it('should not extract bitrate when there is only one non-zero stats event', () => {
+        const pcTrace = [
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', bytesSent: 0, bytesReceived: 0 },
+                },
+                timestamp: 1000,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', bytesSent: 1000, bytesReceived: 2000 },
+                },
+                timestamp: 5000,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.averageInboundBitrate).to.be.undefined;
+        expect(features.averageOutboundBitrate).to.be.undefined;
     });
 
     it('should extract ice restart and whether it was followed by setRemoteDescription', () => {

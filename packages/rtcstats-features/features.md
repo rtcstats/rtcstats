@@ -251,6 +251,8 @@ Computed from the selected [`RTCIceCandidatePairStats`](https://w3c.github.io/we
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
 | `averageStunRoundTripTime` | number | last getStats ratio | Average STUN RTT over the connection's lifetime ([`totalRoundTripTime`](https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-totalroundtriptime) / [`responsesReceived`](https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-responsesreceived) on the selected candidate pair). |
+| `averageOutboundBitrate` | number | last getStats ratio | Average outbound bitrate (bits/s) over the connection's lifetime: `(last.bytesSent - first.bytesSent) * 8 / (last.timestamp - first.timestamp)` on the selected candidate pair, where `first` is the earliest `getStats` report whose selected pair has non-zero `bytesSent` and `bytesReceived`. |
+| `averageInboundBitrate` | number | last getStats ratio | Average inbound bitrate (bits/s) over the connection's lifetime: `(last.bytesReceived - first.bytesReceived) * 8 / (last.timestamp - first.timestamp)` on the selected candidate pair, with `first` defined as for `averageOutboundBitrate`. |
 
 ### Geolocation
 

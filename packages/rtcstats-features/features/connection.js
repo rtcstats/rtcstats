@@ -361,18 +361,31 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const features = {};
     let lastStatsEvent;
     let lastCandidatePairStats;
-    for (let i = peerConnectionTrace.length - 1; i >= 0; i--) {
+    let firstStatsEvent;
+    let firstCandidatePairStats;
+    for (let i = 0; i < peerConnectionTrace.length; i++) {
         const traceEvent = peerConnectionTrace[i];
         if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-        lastCandidatePairStats = getSelectedCandidatePairStats(traceEvent.value);
-        if (!lastCandidatePairStats) continue;
+        const candidatePairStats = getSelectedCandidatePairStats(traceEvent.value);
+        if (!candidatePairStats) continue;
         lastStatsEvent = traceEvent;
-        break;
+        lastCandidatePairStats = candidatePairStats;
+        if (!firstStatsEvent &&
+            pluckStat(candidatePairStats, ['bytesSent']) > 0 &&
+            pluckStat(candidatePairStats, ['bytesReceived']) > 0) {
+            firstStatsEvent = traceEvent;
+            firstCandidatePairStats = candidatePairStats;
+        }
     }
     if (!(lastStatsEvent && lastCandidatePairStats)) {
         return features;
     }
     features['averageStunRoundTripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundTripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
+    if (firstStatsEvent && firstStatsEvent.timestamp < lastStatsEvent.timestamp) {
+        const deltaSeconds = (lastStatsEvent.timestamp - firstStatsEvent.timestamp) / 1000;
+        features['averageOutboundBitrate'] = ((pluckStat(lastCandidatePairStats, ['bytesSent']) - pluckStat(firstCandidatePairStats, ['bytesSent'])) * 8) / deltaSeconds;
+        features['averageInboundBitrate'] = ((pluckStat(lastCandidatePairStats, ['bytesReceived']) - pluckStat(firstCandidatePairStats, ['bytesReceived'])) * 8) / deltaSeconds;
+    }
     return features;
 }
 
