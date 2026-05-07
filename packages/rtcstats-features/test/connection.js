@@ -14,6 +14,7 @@ describe('extractConnectionFeatures', () => {
         });
         expect(features).to.deep.equal({
             addedHostCandidate: false,
+            addedConnectableIceTcpCandidate: false,
             addedMdnsCandidate: false,
             addedSrflxCandidate: false,
             addedTurnCandidate: false,
@@ -265,6 +266,38 @@ describe('extractConnectionFeatures', () => {
             expect(features.addedMdnsCandidate).to.be.false;
             expect(features.addedSrflxCandidate).to.be.true;
             expect(features.addedTurnCandidate).to.be.false;
+        });
+
+        it('should identify an ICE TCP passive candidate', () => {
+            const pcTrace = [
+                { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 tcp 1518280447 192.168.1.2 9 typ host tcptype passive' }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addedConnectableIceTcpCandidate).to.be.true;
+        });
+
+        it('should ignore ICE TCP active candidates', () => {
+            const pcTrace = [
+                { type: 'addIceCandidate', value: { candidate: 'candidate:1 1 tcp 1518280447 192.168.1.2 9 typ host tcptype active' }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addedConnectableIceTcpCandidate).to.be.false;
+        });
+
+        it('should identify an ICE TCP passive candidate signalled in setRemoteDescription', () => {
+            const pcTrace = [
+                { type: 'setRemoteDescription', value: { type: 'answer', sdp: 'v=0\r\na=candidate:1 1 tcp 1671430143 1.2.3.4 443 typ host tcptype passive\r\n' }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addedConnectableIceTcpCandidate).to.be.true;
+        });
+
+        it('should ignore ICE TCP active candidates signalled in setRemoteDescription', () => {
+            const pcTrace = [
+                { type: 'setRemoteDescription', value: { type: 'answer', sdp: 'v=0\r\na=candidate:1 1 tcp 1671430143 1.2.3.4 9 typ host tcptype active\r\n' }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.addedConnectableIceTcpCandidate).to.be.false;
         });
     });
 

@@ -187,6 +187,18 @@ function iceServerFeatures(/* clientTrace*/_, peerConnectionTrace) {
 
 function candidateFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const candidates = {
+        addedConnectableIceTcpCandidate: peerConnectionTrace.find(traceEvent => {
+            if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
+                const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
+                return candidate.tcpType === 'passive';
+            }
+            if (traceEvent.type === 'setRemoteDescription' && traceEvent.value?.sdp) {
+                return SDPUtils.splitLines(traceEvent.value.sdp).some(line => {
+                    if (!line.startsWith('a=candidate:')) return false;
+                    return SDPUtils.parseCandidate(line).tcpType === 'passive';
+                });
+            }
+        }) !== undefined,
         addedHostCandidate: peerConnectionTrace.find(traceEvent => {
             if (traceEvent.type === 'addIceCandidate' && traceEvent.value?.candidate) {
                 const candidate = SDPUtils.parseCandidate(traceEvent.value.candidate);
