@@ -47,6 +47,9 @@ Following `node-config` conventions, you can override settings without editing
 See the [node-config documentation](https://github.com/node-config/node-config/wiki/Configuration-Files)
 for the full list of supported file names, formats and precedence rules.
 
+Note: `rtcstats-server` does not handle TLS or certificates itself and assumes that it is sitting
+behind a load balancer that terminates TLS.
+
 ## Usage with Docker
 See the Dockerfile in the toplevel directory.
 
