@@ -86,6 +86,15 @@ following fields to the database:
 
 See the [example](/example/) for how such a integration looks like.
 
+## Generating a token from the command line
+For testing or ad-hoc use, [`bin/generate-token.js`](/bin/generate-token.js) reads
+the configured `authorization.jwtSecret` and prints a signed token:
+```
+node bin/generate-token.js --lifetime 600
+```
+Pass `--url wss://example.com` to print a full WebSocket URL with the
+`rtcstats-token` query parameter already appended.
+
 # RTCStats dump file format
 
 RTCStats dump files are line-oriented JSON as described in [JSON Lines](https://jsonlines.org/).
