@@ -1,7 +1,7 @@
 import fsPromises from 'node:fs/promises';
 
 import {readRTCStatsDump, extractTracks} from '@rtcstats/rtcstats-shared';
-import {extractClientFeatures, extractConnectionFeatures, extractTrackFeatures} from './features.js';
+import {extractClientFeatures, extractConnectionFeatures, extractTrackFeatures} from '../packages/rtcstats-features/features.js';
 
 function cleanFeatures(features) {
     Object.keys(features).forEach(name => {
