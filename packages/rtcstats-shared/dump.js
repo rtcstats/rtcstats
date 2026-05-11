@@ -3,6 +3,7 @@ import {
     descriptionDecompression,
     statsDecompression,
 } from './compression.js';
+import {createInternalsTimeSeries} from './timeseries.js';
 import {parseTrackWithStreams} from './utils.js';
 
 export async function detectRTCStatsDump(blob) {
@@ -120,6 +121,106 @@ export async function readRTCStatsDump(blob) {
 export async function readWebRTCInternalsDump(blob) {
     const textBlob = await blob.text();
     return JSON.parse(textBlob);
+}
+
+// Convert a webrtc-internals dump into the same shape readRTCStatsDump returns
+// so the existing feature extractors (mostly) work.
+export function internalsToRtcstats(data) {
+    const peerConnections = {};
+    const startTimestamp = data.timestamp || 0;
+
+    const clientTrace = [{
+        type: 'create',
+        value: {
+            cpuPerformance: data.cpuPerformance,
+            deviceMemory: data.deviceMemory,
+            hardwareConcurrency: data.hardwareConcurrency,
+            userAgent: data.UserAgent,
+            userAgentData: data.UserAgentData,
+        },
+        timestamp: startTimestamp,
+        extra: [],
+    }];
+
+    for (const gum of (data.getUserMedia || [])) {
+        const baseType = 'navigator.mediaDevices.' + gum.request_type;
+        if (gum.error !== undefined) {
+            clientTrace.push({type: baseType + 'OnFailure', value: gum.error, timestamp: gum.timestamp, extra: []});
+        } else if (gum.audio_track_info !== undefined || gum.video_track_info !== undefined) {
+            const tracks = [];
+            if (gum.audio_track_info) {
+                const t = JSON.parse(gum.audio_track_info);
+                tracks.push(['audio', t.id, t.label, gum.stream_id]);
+            }
+            if (gum.video_track_info) {
+                const t = JSON.parse(gum.video_track_info);
+                tracks.push(['video', t.id, t.label, gum.stream_id]);
+            }
+            clientTrace.push({type: baseType + 'OnSuccess', value: tracks, timestamp: gum.timestamp, extra: []});
+        } else if (gum.audio !== undefined || gum.video !== undefined) {
+            const value = {};
+            if (gum.audio !== undefined) value.audio = gum.audio === '' ? true : gum.audio;
+            if (gum.video !== undefined) value.video = gum.video === '' ? true : gum.video;
+            clientTrace.push({type: baseType, value, timestamp: gum.timestamp, extra: []});
+        }
+    }
+    clientTrace.sort((a, b) => a.timestamp - b.timestamp);
+    peerConnections['null'] = clientTrace;
+
+    for (const id of Object.keys(data.PeerConnections || {})) {
+        const pc = data.PeerConnections[id];
+        const trace = [{
+            type: 'create',
+            value: pc.rtcConfiguration,
+            timestamp: pc.updateLog?.[0]?.timestamp || startTimestamp,
+            extra: [],
+        }];
+        for (const ev of (pc.updateLog || [])) {
+            let value = ev.value;
+            if (typeof value === 'string' && value.length > 0) {
+                try { value = JSON.parse(value); } catch (_) { /* keep as string */ }
+            }
+            trace.push({
+                type: ev.type,
+                value,
+                timestamp: ev.timestamp || (ev.time ? new Date(ev.time).getTime() : 0),
+                extra: [],
+            });
+        }
+        // Convert the per-property stats timeseries back into per-tick getStats events.
+        const series = createInternalsTimeSeries(pc);
+        if (series) {
+            const byTimestamp = new Map();
+            for (const statsId of Object.keys(series)) {
+                const statsType = series[statsId].type;
+                for (const property of Object.keys(series[statsId])) {
+                    if (['type', 'timestamp', 'id'].includes(property)) continue;
+                    for (const [ts, value] of series[statsId][property]) {
+                        if (!byTimestamp.has(ts)) byTimestamp.set(ts, {});
+                        const report = byTimestamp.get(ts);
+                        if (!report[statsId]) {
+                            report[statsId] = {id: statsId, timestamp: ts, type: statsType};
+                        }
+                        report[statsId][property] = value;
+                    }
+                }
+            }
+            for (const ts of byTimestamp.keys()) {
+                trace.push({type: 'getStats', value: byTimestamp.get(ts), timestamp: ts, extra: []});
+            }
+        }
+        trace.sort((a, b) => a.timestamp - b.timestamp);
+        peerConnections[id] = trace;
+    }
+    return {peerConnections, eventSizes: {}};
+}
+
+// Auto-detect the dump format and dispatch.
+export async function readDump(blob) {
+    if (await detectRTCStatsDump(blob)) {
+        return readRTCStatsDump(blob);
+    }
+    return internalsToRtcstats(await readWebRTCInternalsDump(blob));
 }
 
 export async function extractTracks(peerConnectionTrace) {

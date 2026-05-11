@@ -1,6 +1,8 @@
 import {
     detectRTCStatsDump,
     detectWebRTCInternalsDump,
+    internalsToRtcstats,
+    readDump,
     readRTCStatsDump,
     readWebRTCInternalsDump,
     extractTracks,
@@ -369,5 +371,94 @@ describe('webrtc-internals dump', () => {
         const blob = new Blob(['{}']);
         const result = await readWebRTCInternalsDump(blob);
         expect(result).to.deep.equal({});
+    });
+
+    describe('internalsToRtcstats', () => {
+        // Minimal slice extracted from a real Chrome webrtc-internals dump:
+        // top-level UA + one getUserMedia call, one PeerConnection with a
+        // string-encoded createOffer/setLocalDescription pair, and one outbound
+        // stat with two timeseries samples.
+        const sample = {
+            cpuPerformance: 4,
+            deviceMemory: 32,
+            hardwareConcurrency: 24,
+            timestamp: 1778229287516,
+            UserAgent: 'Mozilla/5.0 (X11; Linux x86_64) Chrome/149.0.0.0',
+            UserAgentData: {brands: [{brand: 'Chromium', version: '149'}], mobile: false, platform: 'Linux'},
+            getUserMedia: [{
+                request_type: 'getUserMedia',
+                audio: '',
+                video: '',
+                timestamp: 1778229253217.358,
+            }],
+            PeerConnections: {
+                '23-3': {
+                    rtcConfiguration: '{"alwaysNegotiateDataChannels":false}',
+                    updateLog: [
+                        {type: 'createOffer', value: '{"offerToReceiveAudio":true}', timestamp: 1778229282213.069},
+                        {type: 'setLocalDescription', value: '{"type":"offer","sdp":"v=0\\r\\n"}', timestamp: 1778229282214.603},
+                    ],
+                    stats: {
+                        'OT01-bytesSent': {statsType: 'outbound-rtp', values: '[1839,3424]'},
+                        'OT01-timestamp': {statsType: 'outbound-rtp', values: '[1778229283171.292,1778229284001.946]'},
+                    },
+                },
+            },
+        };
+
+        it('builds the client trace from top-level fields and getUserMedia, sorted by timestamp', () => {
+            const {peerConnections} = internalsToRtcstats(sample);
+            expect(peerConnections['null']).to.deep.equal([
+                {type: 'navigator.mediaDevices.getUserMedia', value: {audio: true, video: true}, timestamp: 1778229253217.358, extra: []},
+                {type: 'create', value: {
+                    cpuPerformance: 4,
+                    deviceMemory: 32,
+                    hardwareConcurrency: 24,
+                    userAgent: sample.UserAgent,
+                    userAgentData: sample.UserAgentData,
+                }, timestamp: 1778229287516, extra: []},
+            ]);
+        });
+
+        it('parses string-encoded updateLog values into objects', () => {
+            const {peerConnections} = internalsToRtcstats(sample);
+            const sld = peerConnections['23-3'].find(e => e.type === 'setLocalDescription');
+            expect(sld.value).to.deep.equal({type: 'offer', sdp: 'v=0\r\n'});
+        });
+
+        it('reconstructs per-tick getStats events from the stats timeseries', () => {
+            const {peerConnections} = internalsToRtcstats(sample);
+            const getStats = peerConnections['23-3'].filter(e => e.type === 'getStats');
+            expect(getStats).to.have.length(2);
+            expect(getStats[0]).to.deep.equal({
+                type: 'getStats',
+                timestamp: 1778229283171.292,
+                value: {OT01: {id: 'OT01', type: 'outbound-rtp', timestamp: 1778229283171.292, bytesSent: 1839}},
+                extra: [],
+            });
+            expect(getStats[1].value.OT01.bytesSent).to.equal(3424);
+        });
+    });
+
+    describe('readDump', () => {
+        it('dispatches RTCStatsDump blobs to the rtcstats reader', async () => {
+            const blob = new Blob(['RTCStatsDump\n' +
+                JSON.stringify({fileFormat: 3}) + '\n' +
+                JSON.stringify(['close', null, 1001, 1]) + '\n']);
+            const result = await readDump(blob);
+            expect(result.fileFormat).to.equal(3);
+            expect(result.peerConnections['null'][0].type).to.equal('close');
+        });
+
+        it('dispatches webrtc-internals blobs through internalsToRtcstats', async () => {
+            const blob = new Blob([JSON.stringify({
+                timestamp: 1778229287516,
+                PeerConnections: {'23-3': {rtcConfiguration: '{}', updateLog: [], stats: {}}},
+            })]);
+            const result = await readDump(blob);
+            expect(Object.keys(result.peerConnections)).to.have.members(['null', '23-3']);
+            expect(result.peerConnections['23-3'][0].type).to.equal('create');
+            expect(result.peerConnections['23-3'][0].timestamp).to.equal(1778229287516);
+        });
     });
 });

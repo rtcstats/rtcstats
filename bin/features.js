@@ -1,6 +1,6 @@
 import fsPromises from 'node:fs/promises';
 
-import {readRTCStatsDump, extractTracks} from '@rtcstats/rtcstats-shared';
+import {extractTracks, readDump} from '@rtcstats/rtcstats-shared';
 import {extractClientFeatures, extractConnectionFeatures, extractTrackFeatures} from '../packages/rtcstats-features/features.js';
 
 function cleanFeatures(features) {
@@ -9,6 +9,7 @@ function cleanFeatures(features) {
     });
     return features;
 }
+
 async function extract(dump) {
     // Client information is gathered on the client.
     const clientTrace = dump.peerConnections['null'];
@@ -35,5 +36,5 @@ async function extract(dump) {
 
 fsPromises.readFile(process.argv[2])
     .then(data => new Blob([data]))
-    .then(readRTCStatsDump)
+    .then(readDump)
     .then(extract);
