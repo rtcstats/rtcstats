@@ -332,4 +332,78 @@ describe('extractTrackFeatures', () => {
             expect(features.hasNullVideoDecoder).to.be.undefined;
         });
     });
+
+    describe('audio concealment features', () => {
+        const trackInfo = {
+            direction: 'inbound',
+            id: 'track1',
+            kind: 'audio',
+            startTime: 1000,
+            statsId: 'track1_stats',
+        };
+        it('should extract concealment features for inbound audio tracks', () => {
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            concealedSamples: 1473,
+                            totalSamplesReceived: 49050,
+                            type: 'inbound-rtp',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.concealedSamples).to.equal(1473);
+            expect(features.totalSamplesReceived).to.equal(49050);
+            expect(features.concealmentPercentage).to.equal(1473 / 49050);
+        });
+
+        it('should return undefined if concealedSamples is missing', () => {
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            totalSamplesReceived: 49050,
+                            type: 'inbound-rtp',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.concealedSamples).to.be.undefined;
+            expect(features.concealmentPercentage).to.be.undefined;
+        });
+
+        it('should return undefined for outbound tracks', () => {
+            const outboundTrackInfo = {
+                direction: 'outbound',
+                id: 'track1',
+                kind: 'audio',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            concealedSamples: 1473,
+                            totalSamplesReceived: 49050,
+                            type: 'outbound-rtp',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, outboundTrackInfo);
+            expect(features.concealedSamples).to.be.undefined;
+            expect(features.totalSamplesReceived).to.be.undefined;
+            expect(features.concealmentPercentage).to.be.undefined;
+        });
+    });
 });
