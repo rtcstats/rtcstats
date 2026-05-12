@@ -163,6 +163,11 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
         features['framesAssembledFromMultiplePackets'] = pluckStat(lastTrackStats, ['framesAssembledFromMultiplePackets']);
         features['totalAssemblyTime'] = pluckStat(lastTrackStats, ['totalAssemblyTime']);
 
+        // Audio concealment.
+        features['concealedSamples'] = pluckStat(lastTrackStats, ['concealedSamples']);
+        features['totalSamplesReceived'] = pluckStat(lastTrackStats, ['totalSamplesReceived']);
+        features['concealmentPercentage'] = divideStat(lastTrackStats, 'concealedSamples', 'totalSamplesReceived');
+
         // Averages.
         features['averageDecodeTime'] = divideStat(lastTrackStats, 'totalDecodeTime', 'framesDecoded');
         features['averageJitterBufferDelay'] = divideStat(lastTrackStats, 'jitterBufferDelay', 'jitterBufferEmittedCount');
