@@ -44,7 +44,6 @@ export function WebSocketTrace(config = {}) {
             buffer.push(args);
         }
     };
-
     trace.close = () => {
         if (window.sessionStorage && config.countReloads) {
             // A clean disconnect clears the reload count.
@@ -66,6 +65,7 @@ export function WebSocketTrace(config = {}) {
             hardwareConcurrency: navigator.hardwareConcurrency,
             userAgentData: navigator.userAgentData,
             deviceMemory: navigator.deviceMemory,
+            cpuPerformance: navigator.cpuPerformance,
             screen: {
                 width: window.screen.availWidth,
                 height: window.screen.availHeight,
