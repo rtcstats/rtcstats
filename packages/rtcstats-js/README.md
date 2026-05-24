@@ -5,6 +5,9 @@ dump-importer (supporting rtcstats and webrtc-internals formats).
 It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
 an online service for debugging and troubleshooting WebRTC statistics.
 
+For a complete reference of every getStats() metric rtcstats collects and analyzes, see
+the [WebRTC Stats Reference](https://rtcstats.com/kb/webrtc-stats-reference-page).
+
 # rtcstats-js: A Javascript client SDK for monitoring WebRTC
 
 The Javascript SDK provides low-level logging on peerconnection API calls and periodic getStats calls for analytics/debugging purposes.
@@ -112,6 +115,7 @@ Note that RTCStats is not keeping track of whether all RTCPeerConnections have b
 have been stopped.
 
 ### See also
-See also the [end-to-end example](/example/) in `example/` directory and
-the (internal) API docs [here](docs/index.md).
+* the [end-to-end example](/example/) in `example/` directory and
+* the (internal) API docs [here](docs/index.md) - note that these may not be fully up-to-date.
+* the [WebRTC Stats Reference](https://rtcstats.com/kb/webrtc-stats-reference-page) which tells you what each getStats() metric means, expected values, and common issues.
 
