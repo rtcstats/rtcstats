@@ -137,6 +137,7 @@ describe('extractTrackFeatures', () => {
                 framesDecoded: 100,
                 framesDropped: 2,
                 totalDecodeTime: 20,
+                totalInterFrameDelay: 5,
                 freezeCount: 1,
                 totalFreezesDuration: 30,
                 powerEfficientDecoder: true,
@@ -156,6 +157,7 @@ describe('extractTrackFeatures', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features.averageDecodeTime).to.equal(0.2);
+            expect(features.averageInterFrameDelay).to.equal(0.05);
             expect(features.framesDropped).to.equal(2);
         });
         it('should extract freeze-related features', () => {

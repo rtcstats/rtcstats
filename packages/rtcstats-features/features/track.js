@@ -165,6 +165,7 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
 
         // Averages.
         features['averageDecodeTime'] = divideStat(lastTrackStats, 'totalDecodeTime', 'framesDecoded');
+        features['averageInterFrameDelay'] = divideStat(lastTrackStats, 'totalInterFrameDelay', 'framesDecoded');
         features['averageJitterBufferDelay'] = divideStat(lastTrackStats, 'jitterBufferDelay', 'jitterBufferEmittedCount');
         features['averageProcessingDelay'] = divideStat(lastTrackStats, 'totalProcessingDelay', 'jitterBufferEmittedCount');
         features['averageAssemblyTime'] = divideStat(lastTrackStats, 'totalAssemblyTime', 'framesAssembledFromMultiplePackets');
