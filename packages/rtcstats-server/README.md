@@ -78,7 +78,7 @@ trace.connect('wss://example.com?rtcstats-token=...
 When configured with `authorization.jwtSecret`, rtcstats-server will validate the token.
 If the token is not valid, the WebSocket connection will be closed with a `policy-violation`
 (code 1008) error.
-If the token is valid, RTCStats-server will extract the `rtcstats` object and export the
+If the token is valid, RTCStats-server will extract the `rtcStats` object and export the
 following fields to the database:
 * **user**: a long-lived service-defined identifer for the user
 * **session**: a short-lived service-defined identifier for the user session.

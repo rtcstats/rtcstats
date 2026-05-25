@@ -55,7 +55,7 @@ const server = new RTCStatsAndHttpServer(config);
 server.listen();
 
 // This section shows JWT-based authorization with a shared secret.
-// It generates a token with an rtcStats object than can be used for
+// It generates a token with an `rtcStats` object than can be used for
 // authenticated user and conference (or session) metadata.
 // This is passed to the sample page which passes the token during
 // the websocket connection.
