@@ -7,4 +7,4 @@ an online service for debugging and troubleshooting WebRTC statistics.
 
 ## rtcstats shared code
 
-Internal package with shared code used by rtcstats-js and rtcstats-server.
+Internal package with shared code used by rtcstats-js (client/browser) and rtcstats-server (server/nodejs).
