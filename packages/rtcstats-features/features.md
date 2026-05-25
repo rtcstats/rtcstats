@@ -367,6 +367,7 @@ All fields below are read from the last `getStats` report containing the track's
 | `framesAssembledFromMultiplePackets` | number | last getStats | Cumulative frames that required multiple packets to assemble. |
 | `totalAssemblyTime` | number | last getStats | Cumulative time spent assembling frames from packets. |
 | `averageDecodeTime` | number | last getStats ratio | Average decode time per frame (`totalDecodeTime / framesDecoded`). |
+| `averageInterFrameDelay` | number | last getStats ratio | Average inter-frame delay (`totalInterFrameDelay / framesDecoded`). |
 | `averageJitterBufferDelay` | number | last getStats ratio | Average jitter buffer delay per emitted frame/sample (`jitterBufferDelay / jitterBufferEmittedCount`). |
 | `averageProcessingDelay` | number | last getStats ratio | Average processing delay per emitted frame/sample (`totalProcessingDelay / jitterBufferEmittedCount`). |
 | `averageAssemblyTime` | number | last getStats ratio | Average assembly time per multi-packet frame (`totalAssemblyTime / framesAssembledFromMultiplePackets`). |
