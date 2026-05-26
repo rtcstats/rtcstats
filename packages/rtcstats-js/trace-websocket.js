@@ -53,9 +53,9 @@ export function WebSocketTrace(config = {}) {
         if (connection) {
             connection.close();
             connection = null;
+            // New traces need to get an absolute timestamp.
+            lastTime = 0;
         }
-        // New traces need to get an absolute timestamp.
-        lastTime = 0;
     };
     trace.connect = (wsURL) => {
         if (connection) {

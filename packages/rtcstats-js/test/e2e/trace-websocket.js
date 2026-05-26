@@ -123,6 +123,26 @@ describe('WebSocketTrace', () => {
         expect(wsInstance.close.callCount).to.equal(1);
     });
 
+    it('close() does not reset the timestamp baseline when there is no connection', async () => {
+        const trace = new WebSocketTrace();
+        const before = Date.now();
+        trace('something', null);
+        trace.close();
+        trace.connect(TEST_WSURL);
+        await wsInstance.mockOpen();
+        const after = Date.now();
+
+        expect(wsInstance.send.callCount).to.be.at.least(2);
+        const firstArgs = JSON.parse(wsInstance.send.getCall(0).args);
+        const secondArgs = JSON.parse(wsInstance.send.getCall(1).args);
+        expect(firstArgs[0]).to.equal(compressMethod('something'));
+        expect(secondArgs[0]).to.equal(compressMethod('create'));
+
+        const delta = after - before;
+        expect(firstArgs[firstArgs.length - 1]).to.be.within(before, after);
+        expect(secondArgs[secondArgs.length - 1]).to.be.at.most(delta);
+    });
+
     it('logs authorization errors if configured', async () => {
         const logStub = sinon.stub();
         const trace = new WebSocketTrace({log: logStub});
