@@ -61,6 +61,7 @@ export function WebSocketTrace(config = {}) {
         if (connection) {
             connection.close();
             lastTime = 0;
+            connection = null;
         }
         trace('create', null, {
             hardwareConcurrency: navigator.hardwareConcurrency,
