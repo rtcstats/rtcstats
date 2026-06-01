@@ -82,7 +82,7 @@ export class RTCStatsServer {
                 const {metadata} = result;
                 const endTime = Date.now();
                 const startTime = metadata.startTime || Date.now();
-                const dbId = await this.database.insert(startTime, authData);
+                const dbId = await this.database.insert(startTime, authData, this.config.hostIdentifier);
                 process.nextTick(async() => {
                     console.log('Connection with uuid', clientId, 'uploaded via HTTP, starting to process data');
                     this.process(clientId, startTime, endTime, dbId);
@@ -139,7 +139,7 @@ export class RTCStatsServer {
             obfuscateIpAddresses: this.config.server.obfuscateIpAddresses,
         });
         metadata.fileFormat = this.config.rtcStats.fileFormat;
-        const dbId = await this.database.insert(startTime, authData);
+        const dbId = await this.database.insert(startTime, authData, this.config.hostIdentifier);
 
         const workPath = path.join(this.config.server.workDirectory, clientId);
         const writeStream = fs.createWriteStream(workPath);
