@@ -17,7 +17,7 @@ export function createPostgres(config) {
     });
     return {
         sql, // raw SQL access.
-        insert: async (startTime, authData) => {
+        insert: async (startTime, authData, hostIdentifier) => {
             const startDate = new Date(startTime);
 
             // Extract authentication data.
@@ -31,10 +31,12 @@ export function createPostgres(config) {
             }
             const result = await sql`insert into ${sql(config.tableName)}
                     (session_start,
-                     rtcstats_user, rtcstats_conference, rtcstats_session)
+                     rtcstats_user, rtcstats_conference, rtcstats_session,
+                     host_identifier)
                     values
                     (${startDate.toISOString()},
-                     ${userId || null}, ${conferenceId || null}, ${sessionId || null}
+                     ${userId || null}, ${conferenceId || null}, ${sessionId || null},
+                     ${hostIdentifier || null}
                     )
                     returning id`;
             return result[0].id;

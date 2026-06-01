@@ -1,11 +1,24 @@
 import cluster from 'node:cluster';
 import os from 'node:os';
 import process from 'node:process';
+import {parseArgs} from 'node:util';
 
 import config from 'config';
 
 import {RTCStatsServer} from './rtcstats-server.js';
 import {setupDirectory} from './utils.js';
+
+// Command-line parameters.
+//   --host-identifier <string>  Identifier for this server, stored with every
+//                               dump to attribute it to the server that
+//                               received it. Undefined when not provided.
+const {values: args} = parseArgs({
+    strict: false,
+    options: {
+        'host-identifier': {type: 'string'},
+    },
+});
+const hostIdentifier = args['host-identifier'];
 
 // Setup work and upload directories.
 setupDirectory(config, config.server.workDirectory);
@@ -30,6 +43,6 @@ if (cluster.isPrimary) {
         cluster.fork();
     }
 } else {
-    const server = new RTCStatsServer(config);
+    const server = new RTCStatsServer({...config, hostIdentifier});
     server.listen();
 }
