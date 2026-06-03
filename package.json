@@ -21,6 +21,7 @@
     "packages/rtcstats-features",
     "packages/rtcstats-server",
     "packages/rtcstats-shared",
+    "packages/rtcstats-node-shared",
     "dump-importer",
     "example",
     "extension"

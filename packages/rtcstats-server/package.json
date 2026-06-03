@@ -6,12 +6,14 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "lint": "eslint *.js database/ storage/ test/",
+    "lint": "eslint *.js storage/ test/",
     "coverage": "NODE_CONFIG_DIR=../../config/ c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage",
     "start": "npm i && NODE_CONFIG_DIR=../../config/ node app.js"
   },
   "dependencies": {
+    "@rtcstats/rtcstats-node-shared": "*",
+    "@rtcstats/rtcstats-shared": "*",
     "config": "^4.1.1",
     "globals": "^16.2.0",
     "maxmind": "^5.0.0",

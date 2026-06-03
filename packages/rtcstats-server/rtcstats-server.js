@@ -12,9 +12,13 @@ import maxmind from 'maxmind';
 
 import {handleWebSocket, extractMetadata} from './rtcstats-websocket.js';
 import {handleFileupload} from './rtcstats-upload.js';
-import {createStorage, ObfuscateStream, GeolookupStream} from './storage/index.js';
+import {
+    createStorage,
+    ObfuscateStream,
+    GeolookupStream,
+    createDatabase,
+} from '@rtcstats/rtcstats-node-shared';
 import {createRtcStatsUploader} from './storage/rtcstats-com.js';
-import {createDatabase} from './database/index.js';
 
 let maxmindLookup;
 async function lookupAddress(ipAddress, maxmindPath) {
