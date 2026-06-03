@@ -193,7 +193,7 @@ export class RTCStatsServer {
 
         if (this.rtcstatsUploader) {
             // Read data and upload to rtcstats.com if configured.
-            const data = fs.readFileSync(destPath);
+            const data = await fsPromises.readFile(destPath);
             data.name = clientId;
             data.size = data.length;
             let response;
