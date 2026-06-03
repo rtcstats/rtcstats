@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
-import url from 'node:url';
 
 import {WebSocketServer} from 'ws';
 import {v4 as uuidv4} from 'uuid';
@@ -55,8 +54,9 @@ export class RTCStatsServer {
 
     async handleHttpRequest(request, response) {
         if (request.method === 'POST') {
-            const urlParts = url.parse(request.url, true);
-            if (urlParts.pathname === this.config.server.httpUploadPath) {
+            // Base is irrelevant; only the path is read.
+            const requestUrl = new URL(request.url, 'http://localhost');
+            if (requestUrl.pathname === this.config.server.httpUploadPath) {
                 const authData = await this.authorizeRequest(request);
                 if (authData === false) {
                     response.writeHead(403, { 'Content-Type': 'text/plain' });
@@ -110,13 +110,15 @@ export class RTCStatsServer {
         if (!(this.config.authorization && this.config.authorization.jwtSecret)) {
             return true;
         }
-        const urlParts = url.parse(request.headers.origin + request.url, true);
-        if (!urlParts || !urlParts.query['rtcstats-token']) {
+        // Base is irrelevant; only the query string is read.
+        const requestUrl = new URL(request.url, 'http://localhost');
+        const token = requestUrl.searchParams.get('rtcstats-token');
+        if (!token) {
             console.warn('Authentication is configured but rtcstats-token is missing');
             return false;
         }
         return await new Promise(resolve => {
-            jwt.verify(urlParts.query['rtcstats-token'], this.config.authorization.jwtSecret, (err, res) => {
+            jwt.verify(token, this.config.authorization.jwtSecret, (err, res) => {
                 if (err) {
                     console.warn('JWT authorization failed', err);
                     return resolve(false);
