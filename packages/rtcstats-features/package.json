@@ -12,6 +12,8 @@
     "start": "npm i && NODE_CONFIG_DIR=../../config/ node app.js"
   },
   "dependencies": {
+    "@rtcstats/rtcstats-node-shared": "*",
+    "@rtcstats/rtcstats-shared": "*",
     "config": "^4.1.1"
   }
 }

@@ -1,0 +1,26 @@
+{
+  "name": "@rtcstats/rtcstats-node-shared",
+  "private": true,
+  "version": "1.0.0",
+  "author": "rtcstats.com",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./storage": "./storage/index.js",
+    "./database": "./database/index.js"
+  },
+  "scripts": {
+    "lint": "eslint *.js storage/ database/ test/",
+    "coverage": "c8 --reporter html --reporter lcov mocha test",
+    "test": "npm run lint && npm run coverage"
+  },
+  "dependencies": {
+    "@rtcstats/rtcstats-shared": "*",
+    "@aws-sdk/client-s3": "^3.888.0",
+    "@aws-sdk/lib-storage": "^3.888.0",
+    "postgres": "^3.4.7",
+    "sdp": "^3.2.1"
+  }
+}

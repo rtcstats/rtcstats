@@ -3,8 +3,7 @@ import fsPromises from 'node:fs/promises';
 import config from 'config';
 
 import {readRTCStatsDump, extractTracks} from '@rtcstats/rtcstats-shared';
-import {createStorage} from '@rtcstats/rtcstats-server/storage/index.js';
-import {createDatabase} from '@rtcstats/rtcstats-server/database/index.js';
+import {createStorage, createDatabase} from '@rtcstats/rtcstats-node-shared';
 
 import {extractClientFeatures, extractConnectionFeatures, extractTrackFeatures} from './features.js';
 

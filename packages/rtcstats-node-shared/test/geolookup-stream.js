@@ -3,7 +3,7 @@ import {pipeline} from 'node:stream/promises';
 
 import sinon from 'sinon';
 
-import {GeolookupStream} from '../storage/index.js';
+import {GeolookupStream} from '@rtcstats/rtcstats-node-shared';
 
 async function lookup(input, geolookup) {
     const readStream = Readable.from(input);
