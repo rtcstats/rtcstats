@@ -165,7 +165,7 @@ export class RTCStatsServer {
         const destPath = await this.postProcess(clientId);
         const blobUrl = await this.uploadDump(clientId, destPath, dbId);
         await this.database.update(dbId, endTime, blobUrl);
-        console.log('Processed data from connection with uuid', clientId, 'dbІd', dbId);
+        console.log('Processed data from connection with uuid', clientId, 'dbId', dbId);
     }
 
     async postProcess(clientId) {
