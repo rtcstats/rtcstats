@@ -20,10 +20,6 @@ const {values: args} = parseArgs({
 });
 const hostIdentifier = args['host-identifier'];
 
-// Setup work and upload directories.
-setupDirectory(config, config.server.workDirectory);
-setupDirectory(config, config.server.uploadDirectory);
-
 // Setup unhandled exception handler in production.
 if (process.env.NODE_ENV === 'production') {
     process.on('uncaughtException', (err, origin) => {
@@ -38,6 +34,12 @@ const numProc = process.env.NODE_ENV === 'production'
     : 1;
 
 if (cluster.isPrimary) {
+    // Setup work and upload directories once, in the primary, before forking.
+    // Workers only need the directories to exist; running this per-worker would
+    // race (and with deleteAtStart, delete files other workers are writing).
+    setupDirectory(config, config.server.workDirectory);
+    setupDirectory(config, config.server.uploadDirectory);
+
     console.log('Primary process running with', numProc, 'child processes');
     for (let i = 0; i < numProc; i++) {
         cluster.fork();
