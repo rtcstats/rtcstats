@@ -61,6 +61,7 @@ export class RTCStatsServer {
                 if (authData === false) {
                     response.writeHead(403, { 'Content-Type': 'text/plain' });
                     response.end('Forbidden');
+                    return;
                 }
 
                 // TODO: somewhat duplicated from below.
