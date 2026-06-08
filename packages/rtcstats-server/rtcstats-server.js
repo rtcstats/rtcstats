@@ -156,7 +156,15 @@ export class RTCStatsServer {
             obfuscateIpAddresses: this.config.server.obfuscateIpAddresses,
         });
         metadata.fileFormat = this.config.rtcStats.fileFormat;
-        const dbId = await this.database.insert(startTime, authData, this.config.hostIdentifier);
+        let dbId;
+        try {
+            dbId = await this.database.insert(startTime, authData, this.config.hostIdentifier);
+        } catch (e) {
+            console.error('Insert for websocket connection failed', clientId, e);
+            socket.resume();
+            socket.close(1011); // Internal error.
+            return;
+        }
 
         const workPath = path.join(this.config.server.workDirectory, clientId);
         const writeStream = fs.createWriteStream(workPath);
