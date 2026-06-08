@@ -20,10 +20,15 @@ const {values: args} = parseArgs({
 });
 const hostIdentifier = args['host-identifier'];
 
-// Setup unhandled exception handler in production.
+// Setup unhandled exception and rejection handlers in production. Async event
+// handlers (e.g. ws 'connection', http 'request') return promises the emitter
+// never awaits, so a rejection there would otherwise terminate the process.
 if (process.env.NODE_ENV === 'production') {
     process.on('uncaughtException', (err, origin) => {
         console.error('Caught exception:', err, 'Exception origin:', origin);
+    });
+    process.on('unhandledRejection', (reason, promise) => {
+        console.error('Unhandled rejection:', reason, 'Promise:', promise);
     });
 }
 const cpus = os.availableParallelism();
