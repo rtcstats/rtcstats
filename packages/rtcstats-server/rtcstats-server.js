@@ -56,44 +56,54 @@ export class RTCStatsServer {
         if (request.method === 'POST') {
             // Base is irrelevant; only the path is read.
             const requestUrl = new URL(request.url, 'http://localhost');
-            if (requestUrl.pathname === this.config.server.httpUploadPath) {
-                const authData = await this.authorizeRequest(request);
-                if (authData === false) {
-                    response.writeHead(403, { 'Content-Type': 'text/plain' });
-                    response.end('Forbidden');
-                    return;
-                }
-
-                // TODO: somewhat duplicated from below.
-                const clientId = uuidv4();
-                console.log('Accepted new HTTP upload with uuid', clientId);
-                const workPath = path.join(this.config.server.workDirectory, clientId);
-                const writeStream = fs.createWriteStream(workPath);
-                let result;
-                try {
-                    result = await handleFileupload(clientId, request, response, writeStream);
-                } catch (e) {
-                    console.error('Uploading failed', workPath, e);
-                    response.writeHead(500, { 'Content-Type': 'text/plain' });
-                    response.end('Internal Server Error');
-                    await fsPromises.unlink(workPath);
-                    return;
-                }
-                if (!result || result.numberOfMessages === 0) {
-                    // Drop empty files.
-                    await fsPromises.unlink(workPath);
-                    return;
-                }
-                const {metadata} = result;
-                const endTime = Date.now();
-                const startTime = metadata.startTime || Date.now();
-                const dbId = await this.database.insert(startTime, authData, this.config.hostIdentifier);
-                process.nextTick(async() => {
-                    console.log('Connection with uuid', clientId, 'uploaded via HTTP, starting to process data');
-                    this.process(clientId, startTime, endTime, dbId);
-                });
+            if (requestUrl.pathname !== this.config.server.httpUploadPath) {
                 return;
             }
+            const authData = await this.authorizeRequest(request);
+            if (authData === false) {
+                response.writeHead(403, { 'Content-Type': 'text/plain' });
+                response.end('Forbidden');
+                return;
+            }
+
+            // TODO: somewhat duplicated from below.
+            const clientId = uuidv4();
+            console.log('Accepted new HTTP upload with uuid', clientId);
+            const workPath = path.join(this.config.server.workDirectory, clientId);
+            const writeStream = fs.createWriteStream(workPath);
+            let result;
+            try {
+                result = await handleFileupload(clientId, request, response, writeStream);
+            } catch (e) {
+                console.error('Uploading failed', workPath, e);
+                response.writeHead(500, { 'Content-Type': 'text/plain' });
+                response.end('Internal Server Error');
+                await fsPromises.unlink(workPath);
+                return;
+            }
+            if (!result || result.numberOfMessages === 0) {
+                // Drop empty files.
+                await fsPromises.unlink(workPath);
+                return;
+            }
+            const {metadata} = result;
+            const endTime = Date.now();
+            const startTime = metadata.startTime || Date.now();
+            let dbId;
+            try {
+                dbId = await this.database.insert(startTime, authData, this.config.hostIdentifier);
+            } catch (e) {
+                console.error('Insert after uploading failed', workPath, e);
+                response.writeHead(500, { 'Content-Type': 'text/plain' });
+                response.end('Internal Server Error');
+                await fsPromises.unlink(workPath);
+                return;
+            }
+            process.nextTick(async() => {
+                console.log('Connection with uuid', clientId, 'uploaded via HTTP, starting to process data');
+                this.process(clientId, startTime, endTime, dbId);
+            });
+            return;
         }
         switch (request.url) {
         case '/healthcheck':
