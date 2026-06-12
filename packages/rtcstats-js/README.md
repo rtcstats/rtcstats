@@ -28,7 +28,7 @@ The main rtcstats.js exports a number of methods that facilitate this:
 * `wrapGetUserMedia` and `wrapEnumerateDevices` do the same for the `getUserMedia`/`getDisplayMedia`,
   `enumerateDevices` and related APIs such as MediaStreamTracks and HTMLVideoElement.
 
-Typical usage looks like this:
+Typical usage with the default WebSocket trace looks like this:
 ```
 import {wrapRTCStatsWithDefaultOptions} from '@rtcstats/rtcstats-js';
 
@@ -41,6 +41,17 @@ trace.connect('ws://localhost:8080' + window.location.pathname);
 
 const pc = new RTCPeerConnection();
 ```
+
+An even simpler variant using `console.log` as a trace function would look like this:
+```
+import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices} from '@rtcstats/rtcstats-js';
+
+const trace = console.log.bind(console);
+wrapRTCPeerConnection(trace, window, {});
+wrapGetUserMedia(trace, window);
+wrapEnumerateDevices(trace, window);
+```
+This will print all traces to the Javascript console.log.
 
 ### Nondefault options
 
