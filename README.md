@@ -1,10 +1,16 @@
 # rtcstats monorepo
 
-This is a monorepo for rtcstats-js (clientside monitoring), rtcstats-server (serverside dump collection)
-and the updated dump-importer (supporting rtcstats and webrtc-internals formats).
+> WebRTC observability: rtcStats reads a WebRTC dump and tells you what went wrong on the call. AI reads the dump so you don't have to.
 
-It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
-an online service for debugging and troubleshooting WebRTC statistics.
+This repository is the open-source collection layer of rtcStats: rtcstats-js (client-side monitoring),
+rtcstats-server (server-side dump collection), and the dump-importer (supporting both the rtcstats and
+webrtc-internals formats).
+
+The hosted analysis layer at [rtcstats.com](https://rtcstats.com) turns collected dumps into Observations,
+Deductions, an Experience Score, and a plain-English AI summary of what went wrong on the call. You self-host
+the collector and choose what to send: there is no vendor lock-in, and there is a free plan. AI agents such as
+Claude Code and Cursor can query analyzed sessions over the
+[MCP server](https://rtcstats.com/integrations/mcp) (Model Context Protocol) on the Enterprise plan.
 
 # A typical RTCStats deployment
 A full rtcstats-based deployment consists of

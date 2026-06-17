@@ -3,7 +3,8 @@ This is part of the [monorepo](https://github.com/rtcstats/rtcstats) for rtcstat
 dump-importer (supporting rtcstats and webrtc-internals formats).
 
 It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
-an online service for debugging and troubleshooting WebRTC statistics.
+the hosted WebRTC observability service that reads collected dumps and returns Observations,
+an Experience Score, and a plain-English AI summary of what went wrong on the call.
 
 For a complete reference of every getStats() metric rtcstats collects and analyzes, see
 the [WebRTC Stats Reference](https://rtcstats.com/kb/webrtc-stats-reference-page).
