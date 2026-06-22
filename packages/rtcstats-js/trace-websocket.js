@@ -44,7 +44,6 @@ export function WebSocketTrace(config = {}) {
             buffer.push(args);
         }
     };
-
     trace.close = () => {
         if (window.sessionStorage && config.countReloads) {
             // A clean disconnect clears the reload count.
@@ -77,6 +76,7 @@ export function WebSocketTrace(config = {}) {
                 height: window.innerHeight,
             },
             reloadCount,
+            webdriver: navigator.webdriver,
         });
         connectionStartTime = Date.now();
         connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
