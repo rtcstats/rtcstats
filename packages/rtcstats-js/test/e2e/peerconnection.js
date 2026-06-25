@@ -732,12 +732,11 @@ describe('RTCPeerConnection', () => {
             await pc.setRemoteDescription({type: 'offer', sdp});
             const track = pc.getReceivers()[0].track;
 
-            // TODO: remove once unmute bug is fixed on Chrome.
-            const events = testSink.reset().filter(e => e[0] !== 'MediaStreamTrack.onunmute');
+            const events = testSink.reset();
             expect(events).to.have.length(5);
             const trackEvent = events.find(e => e[0] === 'ontrack');
             expect(trackEvent[0]).to.equal('ontrack');
-            expect(trackEvent[2]).to.deep.equal(['audio',  track.id, track.id, 'streamid']);
+            expect(trackEvent[2]).to.deep.equal(['audio',  track.id, 'remote audio', 'streamid']);
         });
 
         it('serializeѕ MediaStreamTrack.on(un)mute', async () => {
