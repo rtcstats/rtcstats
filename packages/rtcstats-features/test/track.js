@@ -146,6 +146,7 @@ describe('extractTrackFeatures', () => {
                 jitterBufferMinimumDelay: 1,
                 jitterBufferTargetDelay: 2,
                 jitterBufferEmittedCount: 100,
+                jitterBufferFlushes: 3,
                 totalProcessingDelay: 5,
                 framesAssembledFromMultiplePackets: 50,
                 totalAssemblyTime: 2.5,
@@ -179,6 +180,7 @@ describe('extractTrackFeatures', () => {
             expect(features.jitterBufferMinimumDelay).to.equal(1);
             expect(features.jitterBufferTargetDelay).to.equal(2);
             expect(features.jitterBufferEmittedCount).to.equal(100);
+            expect(features.jitterBufferFlushes).to.equal(3);
             expect(features.totalProcessingDelay).to.equal(5);
             expect(features.averageJitterBufferDelay).to.equal(0.1);
             expect(features.averageProcessingDelay).to.equal(0.05);
@@ -406,6 +408,38 @@ describe('extractTrackFeatures', () => {
             expect(features.concealedSamples).to.be.undefined;
             expect(features.totalSamplesReceived).to.be.undefined;
             expect(features.concealmentPercentage).to.be.undefined;
+        });
+    });
+
+    describe('audio jitter buffer flush features', () => {
+        const trackInfo = {
+            direction: 'inbound',
+            id: 'track1',
+            kind: 'audio',
+            startTime: 1000,
+            statsId: 'track1_stats',
+        };
+        // getStats is polled once a second; jitterBufferFlushes steps up every flushIntervalMs.
+        const traceFromFlushes = (flushes, flushIntervalMs = 4000) => {
+            const trace = [];
+            for (let t = 0; t <= flushes * flushIntervalMs; t += 1000) {
+                trace.push({
+                    timestamp: 1000 + t,
+                    type: 'getStats',
+                    value: {'track1_stats': {jitterBufferFlushes: Math.floor(t / flushIntervalMs), type: 'inbound-rtp'}},
+                });
+            }
+            return trace;
+        };
+
+        it('detects a roughly four-second flush cadence', () => {
+            const features = extractTrackFeatures([], traceFromFlushes(5), trackInfo);
+            expect(features.hasPeriodicJitterBufferFlushes).to.equal(true);
+        });
+
+        it('does not flag flushes that are too far apart', () => {
+            const features = extractTrackFeatures([], traceFromFlushes(4, 8000), trackInfo);
+            expect(features.hasPeriodicJitterBufferFlushes).to.equal(false);
         });
     });
 });

@@ -363,6 +363,8 @@ All fields below are read from the last `getStats` report containing the track's
 | `jitterBufferMinimumDelay` | number | last getStats | Cumulative jitter buffer minimum target delay. |
 | `jitterBufferTargetDelay` | number | last getStats | Cumulative jitter buffer target delay. |
 | `jitterBufferEmittedCount` | number | last getStats | Cumulative frames/samples emitted by the jitter buffer. |
+| `jitterBufferFlushes` | number | last getStats | Cumulative number of times the [jitter buffer was flushed](https://w3c.github.io/webrtc-stats/#dom-rtcinboundrtpstreamstats-jitterbufferflushes). |
+| `hasPeriodicJitterBufferFlushes` | boolean | aggregated getStats | Whether `jitterBufferFlushes` increments at a regular roughly-four-second cadence (a known NetEq pathology), detected from at least three increments (audio only). |
 | `totalProcessingDelay` | number | last getStats | Cumulative processing delay. |
 | `framesAssembledFromMultiplePackets` | number | last getStats | Cumulative frames that required multiple packets to assemble. |
 | `totalAssemblyTime` | number | last getStats | Cumulative time spent assembling frames from packets. |
