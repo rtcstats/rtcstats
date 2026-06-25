@@ -84,6 +84,41 @@ function resolutionFeatures(/* clientTrace*/_, peerConnectionTrace, trackInforma
     };
 }
 
+function audioJitterBufferFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
+    // NetEq flushes the jitter buffer when it falls too far behind.
+    // If this happens periodically every four seconds something is very wrong.
+    if (trackInformation.direction !== 'inbound' || trackInformation.kind !== 'audio') {
+        return {};
+    }
+    const flushTimestamps = [];
+    let seen = false;
+    let lastFlushes;
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        const stats = traceEvent.value[trackInformation.statsId];
+        if (!stats || !stats.hasOwnProperty('jitterBufferFlushes')) continue;
+        seen = true;
+        const flushes = stats.jitterBufferFlushes;
+        if (lastFlushes !== undefined && flushes > lastFlushes) {
+            flushTimestamps.push(traceEvent.timestamp);
+        }
+        lastFlushes = flushes;
+    }
+    if (!seen || flushTimestamps.length < 3) {
+        return {};
+    }
+    // getStats polls roughly every second, so a periodic four-second cadence is observed somewhere in [3000, 5000].
+    let hasPeriodicJitterBufferFlushes = true;
+    for (let i = 1; i < flushTimestamps.length; i++) {
+        const interval = flushTimestamps[i] - flushTimestamps[i - 1];
+        if (interval < 3000 || interval > 5000) {
+            hasPeriodicJitterBufferFlushes = false;
+            break;
+        }
+    }
+    return {hasPeriodicJitterBufferFlushes};
+}
+
 function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     const features = {
         duration: 0,
@@ -158,6 +193,7 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
         features['jitterBufferMinimumDelay'] = pluckStat(lastTrackStats, ['jitterBufferMinimumDelay']);
         features['jitterBufferTargetDelay'] = pluckStat(lastTrackStats, ['jitterBufferTargetDelay']);
         features['jitterBufferEmittedCount'] = pluckStat(lastTrackStats, ['jitterBufferEmittedCount']);
+        features['jitterBufferFlushes'] = pluckStat(lastTrackStats, ['jitterBufferFlushes']);
         features['totalProcessingDelay'] = pluckStat(lastTrackStats, ['totalProcessingDelay']);
 
         features['framesAssembledFromMultiplePackets'] = pluckStat(lastTrackStats, ['framesAssembledFromMultiplePackets']);
@@ -193,6 +229,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         ...codecFeatures(undefined, peerConnectionTrace, trackInformation),
         ...features,
         ...resolutionFeatures(undefined, peerConnectionTrace, trackInformation),
+        ...audioJitterBufferFeatures(undefined, peerConnectionTrace, trackInformation),
         ...lastStatsFeatures(undefined, peerConnectionTrace, trackInformation),
     };
 }
