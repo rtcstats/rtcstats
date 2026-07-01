@@ -204,6 +204,12 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
         features['totalSamplesReceived'] = pluckStat(lastTrackStats, ['totalSamplesReceived']);
         features['concealmentPercentage'] = divideStat(lastTrackStats, 'concealedSamples', 'totalSamplesReceived');
 
+        // NetEq time-stretching (relative to totalSamplesReceived, like concealmentPercentage).
+        features['insertedSamplesForDeceleration'] = pluckStat(lastTrackStats, ['insertedSamplesForDeceleration']);
+        features['removedSamplesForAcceleration'] = pluckStat(lastTrackStats, ['removedSamplesForAcceleration']);
+        features['decelerationPercentage'] = divideStat(lastTrackStats, 'insertedSamplesForDeceleration', 'totalSamplesReceived');
+        features['accelerationPercentage'] = divideStat(lastTrackStats, 'removedSamplesForAcceleration', 'totalSamplesReceived');
+
         // Averages.
         features['averageDecodeTime'] = divideStat(lastTrackStats, 'totalDecodeTime', 'framesDecoded');
         features['averageInterFrameDelay'] = divideStat(lastTrackStats, 'totalInterFrameDelay', 'framesDecoded');

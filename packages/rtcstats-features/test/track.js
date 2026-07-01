@@ -353,6 +353,8 @@ describe('extractTrackFeatures', () => {
                     value: {
                         'track1_stats': {
                             concealedSamples: 1473,
+                            insertedSamplesForDeceleration: 981,
+                            removedSamplesForAcceleration: 327,
                             totalSamplesReceived: 49050,
                             type: 'inbound-rtp',
                         },
@@ -363,6 +365,31 @@ describe('extractTrackFeatures', () => {
             expect(features.concealedSamples).to.equal(1473);
             expect(features.totalSamplesReceived).to.equal(49050);
             expect(features.concealmentPercentage).to.equal(1473 / 49050);
+            expect(features.insertedSamplesForDeceleration).to.equal(981);
+            expect(features.removedSamplesForAcceleration).to.equal(327);
+            expect(features.decelerationPercentage).to.equal(981 / 49050);
+            expect(features.accelerationPercentage).to.equal(327 / 49050);
+        });
+
+        it('should return undefined for time-stretching features if the sample counts are missing', () => {
+            const pcTrace = [
+                {
+                    timestamp: 1001,
+                    type: 'getStats',
+                    value: {
+                        'track1_stats': {
+                            concealedSamples: 1473,
+                            totalSamplesReceived: 49050,
+                            type: 'inbound-rtp',
+                        },
+                    },
+                },
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.insertedSamplesForDeceleration).to.be.undefined;
+            expect(features.removedSamplesForAcceleration).to.be.undefined;
+            expect(features.decelerationPercentage).to.be.undefined;
+            expect(features.accelerationPercentage).to.be.undefined;
         });
 
         it('should return undefined if concealedSamples is missing', () => {
@@ -398,6 +425,8 @@ describe('extractTrackFeatures', () => {
                     value: {
                         'track1_stats': {
                             concealedSamples: 1473,
+                            insertedSamplesForDeceleration: 981,
+                            removedSamplesForAcceleration: 327,
                             totalSamplesReceived: 49050,
                             type: 'outbound-rtp',
                         },
@@ -408,6 +437,10 @@ describe('extractTrackFeatures', () => {
             expect(features.concealedSamples).to.be.undefined;
             expect(features.totalSamplesReceived).to.be.undefined;
             expect(features.concealmentPercentage).to.be.undefined;
+            expect(features.insertedSamplesForDeceleration).to.be.undefined;
+            expect(features.removedSamplesForAcceleration).to.be.undefined;
+            expect(features.decelerationPercentage).to.be.undefined;
+            expect(features.accelerationPercentage).to.be.undefined;
         });
     });
 
