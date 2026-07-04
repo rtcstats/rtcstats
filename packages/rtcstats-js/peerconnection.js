@@ -153,7 +153,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
                 e.transceiver.sender.__rtcStatsId = pcId;
                 e.transceiver.sender.__rtcStatsSenderId = e.track.id;
             }
-            if (e.track.kind === 'video') {
+            if (e.track.kind === 'video' && typeof document !== 'undefined' && document.querySelectorAll) {
                 setTimeout(() => {
                     document.querySelectorAll('video').forEach(el => {
                         if (!el.srcObject) return;
