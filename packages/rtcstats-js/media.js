@@ -13,6 +13,9 @@ import {compressMethod, dumpTrackWithStreams} from '@rtcstats/rtcstats-shared';
 function wrapTrackProperty(track, property, trace) {
     const prop = Object.getOwnPropertyDescriptor(
         MediaStreamTrack.prototype, property);
+    if (!prop || !prop.get || !prop.set) {
+        return;
+    }
 
     // Replace the property with a custom one
     Object.defineProperty(track, property, {
