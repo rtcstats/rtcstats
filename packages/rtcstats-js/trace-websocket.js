@@ -68,8 +68,8 @@ export function WebSocketTrace(config = {}) {
             userAgentData: navigator.userAgentData,
             deviceMemory: navigator.deviceMemory,
             screen: {
-                width: window.screen.availWidth,
-                height: window.screen.availHeight,
+                width: window.screen?.availWidth,
+                height: window.screen?.availHeight,
                 devicePixelRatio: window.devicePixelRatio,
             },
             window: {
