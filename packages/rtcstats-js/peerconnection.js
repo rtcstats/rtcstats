@@ -91,7 +91,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     }
     let lastComputePressureRecord;
     if (window.PressureObserver && getStatsInterval) {
-        const observer = new PressureObserver((records) => {
+        const observer = new window.PressureObserver((records) => {
             const lastRecord = records[records.length - 1]; // Usually only one record.
             lastComputePressureRecord = [Date.now(), lastRecord];
         });
@@ -153,9 +153,9 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
                 e.transceiver.sender.__rtcStatsId = pcId;
                 e.transceiver.sender.__rtcStatsSenderId = e.track.id;
             }
-            if (e.track.kind === 'video' && typeof document !== 'undefined' && document.querySelectorAll) {
+            if (e.track.kind === 'video' && window.document?.querySelectorAll) {
                 setTimeout(() => {
-                    document.querySelectorAll('video').forEach(el => {
+                    window.document.querySelectorAll('video').forEach(el => {
                         if (!el.srcObject) return;
                         if (el.srcObject.getTracks().indexOf(e.track) === -1) return;
                         el.addEventListener('resize', () => {

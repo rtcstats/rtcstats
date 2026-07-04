@@ -7,15 +7,15 @@ import {WebSocketTrace} from './trace-websocket.js';
  *
  * @returns {function} RTCStats trace function.
  */
-export function wrapRTCStatsWithDefaultOptions(config = {getStatsInterval: 1000}) {
+export function wrapRTCStatsWithDefaultOptions(config = {getStatsInterval: 1000}, target = globalThis) {
     const trace = new WebSocketTrace(config);
 
     // Wrap RTCPeerConnection-related APIs and events
-    wrapRTCPeerConnection(trace, window, config);
+    wrapRTCPeerConnection(trace, target, config);
     // Wrap getUserMedia, getDisplayMedia and related events.
-    wrapGetUserMedia(trace, window);
+    wrapGetUserMedia(trace, target);
     // Wrap enumerateDevices.
-    wrapEnumerateDevices(trace, window);
+    wrapEnumerateDevices(trace, target);
 
     return trace;
 }
