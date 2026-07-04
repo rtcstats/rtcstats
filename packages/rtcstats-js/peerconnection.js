@@ -188,7 +188,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         let statsInterval;
         const statsIdMap = {};
         const getStats = async (reason) => {
-            if (pc.signalingState === 'closed') {
+            if (pc.signalingState === 'closed' || pc.connectionState === 'closed') {
                 if (statsInterval) {
                     window.clearInterval(statsInterval);
                 }
