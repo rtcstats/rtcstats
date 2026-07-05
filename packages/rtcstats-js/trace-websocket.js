@@ -3,67 +3,74 @@ import {compressMethod} from '@rtcstats/rtcstats-shared';
 const PROTOCOL_VERSION = '5.0';
 const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
 
-export function WebSocketTrace(config = {}) {
-    let buffer = [];
-    let connection;
-    let lastTime = 0;
-    let connectionStartTime = 0;
+class WebSocketTracer {
+    #config;
+    #buffer = [];
+    #connection = null;
+    #lastTime = 0;
+    #connectionStartTime = 0;
+    #reloadCount = undefined;
 
-    // This counts the number of times the trace itself has been initialized.
-    // Typically this is done once per session and counting (re)loads based
-    // on that does not require listening for onload etc.
-    let reloadCount = undefined;
-    if (window.sessionStorage && config.countReloads) {
-        const stored = parseInt(window.sessionStorage.getItem(RELOAD_COUNT_KEY), 10);
-        reloadCount = Number.isNaN(stored) ? 0 : stored + 1;
-        window.sessionStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
+    constructor(config = {}) {
+        this.#config = config;
+
+        // This counts the number of times the trace itself has been initialized.
+        // Typically this is done once per session and counting (re)loads based
+        // on that does not require listening for onload etc.
+        if (window.sessionStorage && config.countReloads) {
+            const stored = parseInt(window.sessionStorage.getItem(RELOAD_COUNT_KEY), 10);
+            this.#reloadCount = Number.isNaN(stored) ? 0 : stored + 1;
+            window.sessionStorage.setItem(RELOAD_COUNT_KEY, this.#reloadCount);
+        }
     }
-    const trace = function(...args) {
+
+    trace(...args) {
         const now = Date.now();
-        args.push(now - lastTime);
-        lastTime = now;
+        args.push(now - this.#lastTime);
+        this.#lastTime = now;
 
         if (args[1] instanceof RTCPeerConnection) {
             args[1] = args[1].__rtcStatsId;
         }
         const method = args[0];
         args[0] = compressMethod(method);
-        if (connection) {
-            if (connection.readyState === WebSocket.OPEN) {
-                if (buffer.length === 0) {
-                    connection.send(JSON.stringify(args));
+        if (this.#connection) {
+            if (this.#connection.readyState === WebSocket.OPEN) {
+                if (this.#buffer.length === 0) {
+                    this.#connection.send(JSON.stringify(args));
                 } else {
-                    buffer.push(args);
+                    this.#buffer.push(args);
                 }
-            } else if (connection.readyState === WebSocket.CONNECTING) {
-                buffer.push(args);
-            } else if ([WebSocket.CLOSING, WebSocket.CLOSED].includes(connection.readyState)) {
+            } else if (this.#connection.readyState === WebSocket.CONNECTING) {
+                this.#buffer.push(args);
+            } else if ([WebSocket.CLOSING, WebSocket.CLOSED].includes(this.#connection.readyState)) {
                 // no-op. Possibly log?
             }
         } else {
-            buffer.push(args);
+            this.#buffer.push(args);
         }
-    };
+    }
 
-    trace.close = () => {
-        if (window.sessionStorage && config.countReloads) {
+    close() {
+        if (window.sessionStorage && this.#config.countReloads) {
             // A clean disconnect clears the reload count.
             window.sessionStorage.removeItem(RELOAD_COUNT_KEY);
         }
-        if (connection) {
-            connection.close();
-            connection = null;
+        if (this.#connection) {
+            this.#connection.close();
+            this.#connection = null;
             // New traces need to get an absolute timestamp.
-            lastTime = 0;
+            this.#lastTime = 0;
         }
-    };
-    trace.connect = (wsURL) => {
-        if (connection) {
-            connection.close();
-            lastTime = 0;
-            connection = null;
+    }
+
+    connect(wsURL) {
+        if (this.#connection) {
+            this.#connection.close();
+            this.#lastTime = 0;
+            this.#connection = null;
         }
-        trace('create', null, {
+        this.trace('create', null, {
             hardwareConcurrency: navigator.hardwareConcurrency,
             userAgentData: navigator.userAgentData,
             deviceMemory: navigator.deviceMemory,
@@ -76,47 +83,55 @@ export function WebSocketTrace(config = {}) {
                 width: window.innerWidth,
                 height: window.innerHeight,
             },
-            reloadCount,
+            reloadCount: this.#reloadCount,
         });
-        connectionStartTime = Date.now();
-        connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
-        connection.addEventListener('error', (e) => {
-            if (config.log) {
-                config.log('rtcstats websocket connection error', e, connection.readyState);
+        this.#connectionStartTime = Date.now();
+        this.#connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
+        this.#connection.addEventListener('error', (e) => {
+            if (this.#config.log) {
+                this.#config.log('rtcstats websocket connection error', e, this.#connection.readyState);
             }
         });
 
-        connection.addEventListener('close', (e) => {
-            if (e.code === 1008 && config.log) {
-                config.log('rtcstats websocket connection closed with error=1008. ' +
+        this.#connection.addEventListener('close', (e) => {
+            if (e.code === 1008 && this.#config.log) {
+                this.#config.log('rtcstats websocket connection closed with error=1008. ' +
                            'Typically this means authorization is required and failed.');
             }
             // reconnect?
         });
 
-        connection.addEventListener('open', () => {
+        this.#connection.addEventListener('open', () => {
             // Note: open is called while the socket is still authenticating.
             // This can lead to messages being send and dropped when the token
             // is not valid.
-            const connectionTime = Date.now() - connectionStartTime;
-            setTimeout(function flush() {
-                if (!buffer.length) {
-                    trace('websocket', null, {
+            const connectionTime = Date.now() - this.#connectionStartTime;
+            const flush = () => {
+                if (!this.#buffer.length) {
+                    this.trace('websocket', null, {
                         connectionTime,
                     });
                     return;
                 }
-                if (connection.readyState !== WebSocket.OPEN) {
+                if (this.#connection.readyState !== WebSocket.OPEN) {
                     return;
                 }
-                connection.send(JSON.stringify(buffer.shift()));
+                this.#connection.send(JSON.stringify(this.#buffer.shift()));
                 setTimeout(flush, 0);
-            }, 0);
+            };
+            setTimeout(flush, 0);
         });
 
-        connection.addEventListener('message', (msg) => {
+        this.#connection.addEventListener('message', (msg) => {
             // no messages from the server defined yet.
         });
-    };
+    }
+}
+
+export function WebSocketTrace(config = {}) {
+    const tracer = new WebSocketTracer(config);
+    const trace = tracer.trace.bind(tracer);
+    trace.close = tracer.close.bind(tracer);
+    trace.connect = tracer.connect.bind(tracer);
     return trace;
 }
