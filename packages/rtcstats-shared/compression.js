@@ -180,18 +180,20 @@ export function statsDecompression(baseStatsInput, delta) {
         const hasOwnTimestamp = newStats[id] !== undefined &&
             newStats[id].timestamp !== undefined;
         if (!newStats[id]) {
-            newStats[id] = baseStats[id];
+            // Copy the report so the timestamp assignment below does not
+            // modify the base stats.
+            newStats[id] = Object.assign({}, baseStats[id]);
         } else {
             const report = baseStats[id];
             Object.keys(report).forEach(name => {
                 if (newStats[id][name] === undefined) {
                     newStats[id][name] = report[name];
-                } else if (typeof(report[name]) === 'object') {
-                    const newObject = newStats[id][name];
-                    newStats[id][name] = report[name];
-                    Object.keys(newObject).forEach(key => {
-                        newStats[id][name][key] = newObject[key];
-                    });
+                } else if (typeof(report[name]) === 'object' &&
+                        !Array.isArray(newStats[id][name])) {
+                    // Merge into a copy so the nested object of the
+                    // base stats is not modified. Arrays are serialized
+                    // wholesale on change and take the new value.
+                    newStats[id][name] = Object.assign({}, report[name], newStats[id][name]);
                 } // Else: take the new value.
             });
         }

@@ -62,8 +62,9 @@ export async function readRTCStatsDump(blob) {
         const time = new Date(lastTime);
 
         if (method === 'getStats') { // delta-compressed stats
+            // statsDecompression does not modify its base stats argument.
             value = statsDecompression(baseStats[connection_id], value);
-            baseStats[connection_id] = JSON.parse(JSON.stringify(value));
+            baseStats[connection_id] = value;
         } else if (method === 'setLocalDescription' && value &&
             // Workaround for Chrome <145 bug: https://source.chromium.org/chromium/chromium/src/+/4a2a384e43ea163127219548087e949fb00fa562
             connection_id !== 'undefined-undefined') {
