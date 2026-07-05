@@ -1,14 +1,7 @@
 /* eslint sort-keys: "error" */
 import SDPUtils from 'sdp';
 
-function pluckStat(statsObject, properties) {
-    if (!statsObject) return;
-    for (const property of properties) {
-        if (statsObject.hasOwnProperty(property)) {
-            return statsObject[property];
-        }
-    }
-}
+import {divideStat, pluckStat} from '../statUtils.js';
 
 function getSelectedCandidatePairStats(report) {
     const transportId = Object.keys(report).find(id => {
@@ -392,7 +385,7 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     if (!(lastStatsEvent && lastCandidatePairStats)) {
         return features;
     }
-    features['averageStunRoundTripTime'] = pluckStat(lastCandidatePairStats, ['totalRoundTripTime']) / pluckStat(lastCandidatePairStats, ['responsesReceived']);
+    features['averageStunRoundTripTime'] = divideStat(lastCandidatePairStats, 'totalRoundTripTime', 'responsesReceived');
     if (firstStatsEvent && firstStatsEvent.timestamp < lastStatsEvent.timestamp) {
         const deltaSeconds = (lastStatsEvent.timestamp - firstStatsEvent.timestamp) / 1000;
         features['averageOutboundBitrate'] = ((pluckStat(lastCandidatePairStats, ['bytesSent']) - pluckStat(firstCandidatePairStats, ['bytesSent'])) * 8) / deltaSeconds;

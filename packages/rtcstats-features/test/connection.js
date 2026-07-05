@@ -552,6 +552,21 @@ describe('extractConnectionFeatures', () => {
         expect(features.averageOutboundBitrate).to.be.undefined;
     });
 
+    it('should not divide by zero when no STUN responses were received', () => {
+        const pcTrace = [
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', totalRoundTripTime: 0, responsesReceived: 0 },
+                },
+                timestamp: 1001,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.averageStunRoundTripTime).to.be.undefined;
+    });
+
     it('should extract average inbound and outbound bitrate', () => {
         const pcTrace = [
             {

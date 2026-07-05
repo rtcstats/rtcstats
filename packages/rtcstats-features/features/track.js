@@ -3,22 +3,7 @@ import SDPUtils from 'sdp';
 
 import {parseTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
-function pluckStat(statsObject, properties) {
-    if (!statsObject) return;
-    for (const property of properties) {
-        if (statsObject.hasOwnProperty(property)) {
-            return statsObject[property];
-        }
-    }
-}
-
-function divideStat(statsObject, nominator, denominator) {
-    if (!statsObject) return;
-    if (!(statsObject.hasOwnProperty(nominator) && statsObject.hasOwnProperty(denominator))) {
-        return undefined;
-    }
-    return statsObject[nominator] / statsObject[denominator];
-}
+import {divideStat, pluckStat} from '../statUtils.js';
 
 function codecFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     for (const traceEvent of peerConnectionTrace) {
