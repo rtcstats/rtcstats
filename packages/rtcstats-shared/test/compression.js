@@ -254,6 +254,21 @@ describe('decompression', () => {
             expect(restored).to.deep.equal(secondStats);
         });
     });
+    it('restores values that changed to falsy values like 0 or false', () => {
+        const baseStats = {id: {
+            framesPerSecond: 30,
+            activeCustom: true,
+            timestamp: 1,
+        }};
+        const secondStats = {id: {
+            framesPerSecond: 0,
+            activeCustom: false,
+            timestamp: 2,
+        }};
+        const delta = statsCompression(baseStats, secondStats, idMap);
+        const restored = statsDecompression(baseStats, delta);
+        expect(restored).to.deep.equal(secondStats);
+    });
     it('handles null values for disappearing objects', () => {
         const baseStats = {
             id1: {

@@ -180,7 +180,7 @@ export function statsDecompression(baseStatsInput, delta) {
         } else {
             const report = baseStats[id];
             Object.keys(report).forEach(name => {
-                if (!newStats[id][name]) {
+                if (newStats[id][name] === undefined) {
                     newStats[id][name] = report[name];
                 } else if (typeof(report[name]) === 'object') {
                     const newObject = newStats[id][name];
