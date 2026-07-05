@@ -336,6 +336,12 @@ describe('method compression', () => {
         expect(decompressMethod('g')).to.equal('getStats');
         expect(decompressMethod(1)).to.equal('getStats');
     });
+    it('only decompresses getDisplayMediaOnFailure but does not compress it (yet)', () => {
+        expect(compressMethod('navigator.mediaDevices.getDisplayMediaOnFailure'))
+            .to.equal('navigator.mediaDevices.getDisplayMediaOnFailure');
+        expect(decompressMethod(68))
+            .to.equal('navigator.mediaDevices.getDisplayMediaOnFailure');
+    });
 });
 
 describe('stats type compression', () => {

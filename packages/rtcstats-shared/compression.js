@@ -371,12 +371,20 @@ const methodTable = {
     // getUserMedia and friends.
     'navigator.mediaDevices.getUserMedia': 60,
     'navigator.mediaDevices.getUserMediaOnSuccess': 61,
-    'navigator.mediaDevices.getUserMediaOnFailure': 62,
+    // 62 is not usable. It was originally assigned to
+    // getUserMediaOnFailure but a copy-paste bug duplicated the
+    // key onto 65, which was intended for getDisplayMediaOnFailure.
+    // The last duplicate key wins in an object literal, so released clients
+    // have always compressed getUserMediaOnFailure to 65.
+    'navigator.mediaDevices.getUserMediaOnFailure': 65,
     'navigator.mediaDevices.getDisplayMedia': 63,
     'navigator.mediaDevices.getDisplayMediaOnSuccess': 64,
-    'navigator.mediaDevices.getUserMediaOnFailure': 65,
     'navigator.mediaDevices.enumerateDevices': 66,
     'navigator.mediaDevices.ondevicechange': 67,
+    // Decompression-only until the next major version bump, see below.
+    // This method is therefore not compressed.
+    // 'navigator.mediaDevices.getDisplayMediaOnFailure': 68,
+    // Next free method id: 69.
     // MediaStreamTrack methods and events.
     'MediaStreamTrack.stop':  70,
     'MediaStreamTrack.applyConstraints':  71,
@@ -390,6 +398,7 @@ const methodTable = {
 // These should be moved to the compression table at major version bumps.
 const methodTableDecompression = {
     1: 'getStats',
+    68: 'navigator.mediaDevices.getDisplayMediaOnFailure',
 };
 const reverseMethodTable = Object.keys(methodTable).reduce((table, method) => {
     table[methodTable[method]] = method;
