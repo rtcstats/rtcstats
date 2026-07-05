@@ -32,7 +32,7 @@ describe('extractClientFeatures', () => {
             getUserMediaErrorCount: 1,
             getUserMediaSuccessCount: 1,
             calledGetDisplayMedia: true,
-            calledGetDisplayMediaAudio: true,
+            calledGetDisplayMediaAudio: false,
             calledGetDisplayMediaVideo: true,
             getDisplayMediaErrorCount: 0,
             getDisplayMediaSuccessCount: 1,
@@ -85,6 +85,26 @@ describe('extractClientFeatures', () => {
         expect(features.calledGetUserMediaCombined).to.be.true;
         expect(features.calledGetUserMediaAudio).to.be.true;
         expect(features.calledGetUserMediaVideo).to.be.true;
+    });
+
+    it('should not count an absent constraint as requested', () => {
+        const clientTrace = [
+            { type: 'create', value: { startTime: 1000 }, timestamp: 1000 },
+            { type: 'navigator.mediaDevices.getUserMedia', value: { video: true }, timestamp: 1001 },
+            { type: 'navigator.mediaDevices.getUserMedia', value: { audio: true }, timestamp: 1002 },
+            { type: 'navigator.mediaDevices.getDisplayMedia', value: { video: true }, timestamp: 1003 },
+            { timestamp: 1004 }
+        ];
+
+        const features = extractClientFeatures(clientTrace);
+
+        // getUserMedia({video: true}) does not request audio; {audio: true} does not request video.
+        expect(features.calledGetUserMediaAudio).to.be.true;
+        expect(features.calledGetUserMediaVideo).to.be.true;
+        expect(features.calledGetUserMediaCombined).to.be.false;
+        // getDisplayMedia audio defaults off, so an absent audio constraint is not a request.
+        expect(features.calledGetDisplayMediaAudio).to.be.false;
+        expect(features.calledGetDisplayMediaVideo).to.be.true;
     });
 
     it('should extract track features (ended and short duration)', () => {
