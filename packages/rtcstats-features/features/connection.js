@@ -76,6 +76,7 @@ function iceFeatures(/* clientTrace */_, peerConnectionTrace) {
         usingIceLite: peerConnectionTrace.find(traceEvent => {
             // Whether ice-lite was used by the peer (i.e. it is a server).
             if (traceEvent.type !== 'setRemoteDescription') return false;
+            if (!traceEvent.value?.sdp) return false;
             return SDPUtils.splitLines(traceEvent.value.sdp).includes('a=ice-lite');
         }) !== undefined,
     };
