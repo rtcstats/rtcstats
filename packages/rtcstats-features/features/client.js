@@ -14,16 +14,16 @@ function getUserMediaFeatures(clientTrace) {
         }) !== undefined,
         calledGetUserMediaAudio: clientTrace.find(traceEvent => {
             // Whether getUserMedia was called requesting audio.
-            return traceEvent.type === 'navigator.mediaDevices.getUserMedia' && traceEvent.value?.audio !== false;
+            return traceEvent.type === 'navigator.mediaDevices.getUserMedia' && !!traceEvent.value?.audio;
         }) !== undefined,
         calledGetUserMediaCombined: clientTrace.find(traceEvent => {
             // Whether getUserMedia was called requesting both audio and video.
             return traceEvent.type === 'navigator.mediaDevices.getUserMedia' &&
-                traceEvent.value?.audio !== false && traceEvent.value?.video !== false;
+                !!traceEvent.value?.audio && !!traceEvent.value?.video;
         }) !== undefined,
         calledGetUserMediaVideo: clientTrace.find(traceEvent => {
             // Whether getUserMedia was called requesting video.
-            return traceEvent.type === 'navigator.mediaDevices.getUserMedia' && traceEvent.value?.video !== false;
+            return traceEvent.type === 'navigator.mediaDevices.getUserMedia' && !!traceEvent.value?.video;
         }) !== undefined,
         getUserMediaError: clientTrace.find(traceEvent => {
             // The first getUserMedia error event, if any.
@@ -49,7 +49,7 @@ function getDisplayMediaFeatures(clientTrace) {
         }) !== undefined,
         calledGetDisplayMediaAudio: clientTrace.find(traceEvent => {
             // Whether getDisplayMedia was called requesting audio.
-            return traceEvent.type === 'navigator.mediaDevices.getDisplayMedia' && traceEvent.value?.audio !== false;
+            return traceEvent.type === 'navigator.mediaDevices.getDisplayMedia' && !!traceEvent.value?.audio;
         }) !== undefined,
         calledGetDisplayMediaVideo: clientTrace.find(traceEvent => {
             return traceEvent.type === 'navigator.mediaDevices.getDisplayMedia' && traceEvent.value?.video !== false;
