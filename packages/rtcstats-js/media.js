@@ -10,7 +10,7 @@ import {compressMethod, dumpTrackWithStreams} from '@rtcstats/rtcstats-shared';
  * @param {string} property - the track whose property (e.g. `enabled`) should be wrapped.
  * @param {function} trace - RTCStats trace callback.
  */
-function wrapTrackProperty(track, property, trace) {
+function wrapTrackProperty(track, property, trace, MediaStreamTrack) {
     const prop = Object.getOwnPropertyDescriptor(
         MediaStreamTrack.prototype, property);
     if (!prop || !prop.get || !prop.set) {
@@ -72,8 +72,8 @@ export function wrapGetUserMedia(trace, {navigator, MediaStreamTrack}) {
                         track.addEventListener('ended', () => {
                             trace('MediaStreamTrack.onended', null, track.id, track.__rtcStatsId);
                         });
-                        wrapTrackProperty(track, 'enabled', trace);
-                        wrapTrackProperty(track, 'contentHint', trace);
+                        wrapTrackProperty(track, 'enabled', trace, MediaStreamTrack);
+                        wrapTrackProperty(track, 'contentHint', trace, MediaStreamTrack);
                     });
                     return stream;
                 }, (err) => {
