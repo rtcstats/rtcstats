@@ -215,16 +215,16 @@ export class RTCStatsServer {
         const blobLocation = await this.storage.put(clientId, destPath);
 
         if (this.rtcstatsUploader) {
-            // Read data and upload to rtcstats.com if configured.
-            const data = await fsPromises.readFile(destPath);
-            data.name = clientId;
-            data.size = data.length;
+            // Upload to rtcstats.com if configured.
             let response;
+            const fileHandle = await fsPromises.open(destPath);
             try {
-                response = await this.rtcstatsUploader(data);
+                response = await this.rtcstatsUploader(fileHandle, clientId);
             } catch (e) {
                 // Should an error prevent deletion?
                 console.error('Uploading to rtcstats.com failed', e);
+            } finally {
+                await fileHandle.close();
             }
             if (response && response.url) {
                 await this.database.setRtcStatsEmbedUrl(dbId, response.url);
