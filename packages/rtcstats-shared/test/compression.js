@@ -177,6 +177,22 @@ describe('decompression', () => {
     });
 
     describe('handles timestamps', () => {
+        it('keeps per-report timestamps carried explicitly in the delta', () => {
+            // remote-inbound-rtp timestamps are the RTCP arrival time and
+            // lag the poll timestamp of the other reports.
+            const baseStats = {
+                id1: {type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
+                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+            };
+            const secondStats = {
+                id1: {type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
+                id2: {type: 'remote-inbound-rtp', timestamp: 1400, roundTripTime: 0.06},
+            };
+            const delta = statsCompression(baseStats, secondStats, idMap);
+            const restored = statsDecompression(baseStats, delta);
+            expect(restored).to.deep.equal(secondStats);
+        });
+
         it('by pulling from the top level', () => {
             const compressed = {
                 [timestampProperty]: 3,

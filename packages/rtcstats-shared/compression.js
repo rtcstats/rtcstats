@@ -175,6 +175,10 @@ export function statsDecompression(baseStatsInput, delta) {
             delete newStats[id];
             return;
         }
+        // A timestamp carried explicitly in the delta differs from the
+        // collapsed top-level one and must not be overwritten below.
+        const hasOwnTimestamp = newStats[id] !== undefined &&
+            newStats[id].timestamp !== undefined;
         if (!newStats[id]) {
             newStats[id] = baseStats[id];
         } else {
@@ -191,7 +195,7 @@ export function statsDecompression(baseStatsInput, delta) {
                 } // Else: take the new value.
             });
         }
-        if (timestamp !== undefined) {
+        if (timestamp !== undefined && !hasOwnTimestamp) {
             newStats[id].timestamp = timestamp;
         }
     });
