@@ -54,8 +54,5 @@ export function createPostgres(config) {
                     set rtcstats_embed_url = ${rtcStatsEmbedUrl}
                     where id = ${id}`;
         },
-        close: () => {
-            return sql.close();
-        },
     };
 }
