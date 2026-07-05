@@ -64,6 +64,15 @@ describe('extractConnectionFeatures', () => {
         expect(features.usingIceLite).to.be.true;
     });
 
+    it('should not throw on setRemoteDescription without sdp (rollback)', () => {
+        const pcTrace = [
+            { type: 'createOffer', timestamp: 1000 },
+            { type: 'setRemoteDescription', value: { type: 'rollback' }, timestamp: 1001 },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.usingIceLite).to.be.false;
+    });
+
     it('should calculate signaling delay', () => {
         const pcTrace = [
             { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, timestamp: 1000 },
