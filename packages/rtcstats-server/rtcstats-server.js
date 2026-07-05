@@ -57,6 +57,8 @@ export class RTCStatsServer {
             // Base is irrelevant; only the path is read.
             const requestUrl = new URL(request.url, 'http://localhost');
             if (requestUrl.pathname !== this.config.server.httpUploadPath) {
+                response.writeHead(404);
+                response.end();
                 return;
             }
             const authData = await this.authorizeRequest(request);
