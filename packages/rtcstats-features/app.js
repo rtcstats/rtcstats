@@ -126,8 +126,8 @@ async function process() {
 
 while (true) {
     await process()
-        .then(async () => new Promise(r => setTimeout(r, 5000)))
         .catch(err => {
             console.error('An error occurred during processing:', err);
-        });
+        })
+        .then(() => new Promise(r => setTimeout(r, 5000)));
 }
