@@ -2,6 +2,9 @@ This is part of the [monorepo](https://github.com/rtcstats/rtcstats) for rtcstat
 (clientside monitoring), server-side dump collection
 dump-importer (supporting rtcstats and webrtc-internals formats).
 
+See the [rtcStats project page](https://rtcstats.github.io/rtcstats/) for an overview of how
+rtcstats-js, rtcstats-server and rtcstats-features fit together.
+
 It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
 an online service for debugging and troubleshooting WebRTC statistics.
 

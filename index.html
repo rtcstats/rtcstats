@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rtcStats — open-source WebRTC observability</title>
+<meta name="description" content="rtcStats is the open-source collection layer for WebRTC observability: a client SDK (rtcstats-js), a dump-collection server (rtcstats-server), and offline feature extraction (rtcstats-features) that share one dump format, one identity token, and one database.">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f5f7fa;
+    --card: #ffffff;
+    --border: #e3e8ef;
+    --fg: #1a2230;
+    --fg-muted: #55627a;
+    --accent: #2f6df6;
+    --accent-fg: #ffffff;
+    --code-bg: #f0f3f8;
+    --code-fg: #1a2230;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1420;
+      --bg-alt: #131b2b;
+      --card: #161f31;
+      --border: #263349;
+      --fg: #e7ecf5;
+      --fg-muted: #9aa8c0;
+      --accent: #5b8bff;
+      --accent-fg: #0e1420;
+      --code-bg: #0b1120;
+      --code-fg: #d5deee;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 17px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+  code {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: .12em .4em;
+    border-radius: 5px;
+    font-size: .88em;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  /* Header */
+  header.site {
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(140%) blur(8px);
+    z-index: 10;
+  }
+  header.site .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { font-weight: 700; font-size: 18px; letter-spacing: -.01em; display: flex; align-items: center; gap: 9px; }
+  .brand .logo { width: 26px; height: 26px; border-radius: 6px; display: block; }
+  .nav a { color: var(--fg-muted); font-size: 15px; margin-left: 20px; }
+  .nav a:hover { color: var(--fg); text-decoration: none; }
+  @media (max-width: 820px) { .nav a:not(.gh) { display: none; } }
+
+  /* Hero */
+  .hero { padding: 76px 0 56px; text-align: center; }
+  .hero h1 { font-size: clamp(32px, 5.4vw, 52px); line-height: 1.1; letter-spacing: -.02em; margin: 0 0 18px; }
+  .hero .lede { font-size: clamp(18px, 2.4vw, 22px); color: var(--fg-muted); max-width: 730px; margin: 0 auto 14px; }
+  .hero .sub { color: var(--fg-muted); max-width: 710px; margin: 0 auto 30px; font-size: 16px; }
+  .cta { display: inline-flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 9px; font-weight: 600; font-size: 15px;
+    border: 1px solid var(--border); background: var(--card); color: var(--fg);
+  }
+  .btn:hover { text-decoration: none; border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+  .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.06); }
+
+  /* Sections */
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  section.alt { background: var(--bg-alt); }
+  h2 { font-size: clamp(24px, 3.4vw, 32px); letter-spacing: -.02em; margin: 0 0 8px; }
+  .section-lede { color: var(--fg-muted); max-width: 730px; margin: 0 0 30px; }
+  .eyebrow { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); margin: 0 0 10px; }
+
+  /* Architecture diagram */
+  .arch pre { font-size: 12.5px; line-height: 1.35; white-space: pre; text-align: left; }
+
+  /* Numbered steps */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+  @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+  .steps li { position: relative; padding-left: 44px; margin-bottom: 20px; }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 0;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-fg);
+    display: grid; place-items: center; font-weight: 700; font-size: 15px;
+  }
+  .steps li strong { display: block; }
+  .steps li span { color: var(--fg-muted); font-size: 15px; }
+
+  /* "How it fits" contract cards */
+  .contracts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 760px) { .contracts { grid-template-columns: 1fr; } }
+  .contract {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .contract h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -.01em; }
+  .contract p { color: var(--fg-muted); font-size: 15px; margin: 0; }
+  .contract .flow { font-size: 13px; font-weight: 600; color: var(--accent); margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .contract .flow span.arrow { color: var(--fg-muted); }
+
+  /* Package sections */
+  .pkg-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .pkg-head h2 code { font-size: .78em; }
+  .pill {
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 4px 11px; border-radius: 999px;
+  }
+  .feature-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; margin: 20px 0 24px; padding: 0; list-style: none; }
+  @media (max-width: 700px) { .feature-list { grid-template-columns: 1fr; } }
+  .feature-list li { position: relative; padding-left: 26px; color: var(--fg-muted); font-size: 15px; }
+  .feature-list li::before {
+    content: ""; position: absolute; left: 4px; top: .62em; width: 8px; height: 8px; border-radius: 2px;
+    background: var(--accent); transform: rotate(45deg);
+  }
+  .feature-list li strong { color: var(--fg); font-weight: 600; }
+
+  h4 { font-size: 16px; margin: 26px 0 10px; letter-spacing: -.01em; }
+
+  /* Table */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; margin: 6px 0 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 520px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-alt); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+
+  .callout {
+    border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    background: var(--card); border-radius: 10px; padding: 16px 18px; margin-top: 22px;
+    font-size: 15px; color: var(--fg-muted);
+  }
+  .callout strong { color: var(--fg); }
+  .more { margin-top: 20px; font-weight: 600; font-size: 15px; }
+
+  footer.site { border-top: 1px solid var(--border); padding: 40px 0; color: var(--fg-muted); font-size: 14px; }
+  footer.site .wrap { display: flex; flex-wrap: wrap; gap: 16px 28px; justify-content: space-between; align-items: center; }
+  footer.site a { color: var(--fg-muted); }
+  footer.site a:hover { color: var(--fg); }
+  .foot-links a { margin-right: 20px; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="brand"><img class="logo" src="https://avatars.githubusercontent.com/u/127842214?s=200&amp;v=4" alt="rtcStats logo"> rtcStats</div>
+    <nav class="nav">
+      <a href="#deployment">Deployment</a>
+      <a href="#fit">How it fits</a>
+      <a href="#js">SDK</a>
+      <a href="#server">Server</a>
+      <a href="#features">Features</a>
+      <a href="#auth">Auth</a>
+      <a href="#tools">Tools</a>
+      <a class="gh" href="https://github.com/rtcstats/rtcstats">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero wrap">
+  <h1>Open-source WebRTC observability</h1>
+  <p class="lede">rtcStats reads a WebRTC dump and tells you what went wrong on the call. AI reads the dump so you don't have to.</p>
+  <p class="sub">A client SDK traces every WebRTC call and streams it to a server, which stores it as a dump. Feature
+    extraction reads that dump into a database you can query. You self-host all of it.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/rtcstats/rtcstats">View on GitHub</a>
+    <a class="btn" href="#quickstart">Quick start</a>
+    <a class="btn" href="https://rtcstats.com">Hosted analysis at rtcstats.com</a>
+  </div>
+</div>
+
+<section id="quickstart">
+  <div class="wrap">
+    <p class="eyebrow">Try it</p>
+    <h2>Quick start</h2>
+    <p class="section-lede">The end-to-end example runs the whole pipeline locally: a minimal server, a browser window
+      running WebRTC API calls, and a dump written to <code>example/upload/</code> that you can import on rtcstats.com or
+      the <a href="https://rtcstats.github.io/rtcstats/dump-importer/">built-in dump importer</a>.</p>
+
+    <pre><code>git clone https://github.com/rtcstats/rtcstats
+cd rtcstats
+npm install
+npm start --workspace=example</code></pre>
+
+    <div class="callout">
+      <strong>Reference:</strong> the
+      <a href="https://rtcstats.com/kb/webrtc-stats-reference-page">WebRTC Stats Reference</a>
+      documents every <code>getStats()</code> metric rtcStats collects, its expected values, and common issues. AI
+      agents such as Claude Code and Cursor can query analyzed sessions over the
+      <a href="https://rtcstats.com/integrations/mcp">MCP server</a> on the Enterprise plan.
+    </div>
+  </div>
+</section>
+
+<section id="deployment" class="alt">
+  <div class="wrap">
+    <p class="eyebrow">The pipeline</p>
+    <h2>A typical deployment</h2>
+    <p class="section-lede">A full rtcStats deployment has a client SDK that collects data, a server that receives it as
+      a dump, and an offline processor that extracts features. Storage and a database sit behind the server; the hosted
+      service at rtcstats.com is an optional additional upload target.</p>
+
+    <div class="grid2">
+      <ol class="steps">
+        <li><strong>rtcstats-js (client-side)</strong><span>Wraps <code>RTCPeerConnection</code> and <code>getUserMedia</code>, traces every API call and event, and streams them to the server over a WebSocket.</span></li>
+        <li><strong>rtcstats-server (1..N)</strong><span>Receives the trace as a dump file, writes it to storage (S3 or compatible), and records metadata in Postgres. Stateless, so it scales horizontally against shared storage. Deploy it centrally; TLS is terminated by a load balancer in front.</span></li>
+        <li><strong>rtcstats-features (1..M)</strong><span>Polls the database for unprocessed dumps and extracts features offline. More CPU/memory intensive than collection, so it runs separately, in cheap regions or off-peak.</span></li>
+        <li><strong>rtcstats.com (optional)</strong><span>Configure the hosted service as an extra upload target to get Observations, an Experience Score, and a plain-English AI summary of what went wrong on the call.</span></li>
+      </ol>
+
+      <div class="arch">
+        <pre><code>       +-----------------+
+       |   rtcstats-js   |
+       |  (client-side)  |
+       +--------+--------+
+                |
+                | Data Collection
+                |
+       +--------v----------+
+       |  rtcstats-server  | (1..N)
+       +-------------------+
+                |
+       +--------+----------+
+       |                   |
++------v-------+    +------v--------+      +------------------+
+|   Database   |    |    Storage    |&lt;-----|  Visualization   |
+|  (Postgres)  |    |   (e.g. S3)   |      |  (rtcstats.com)  |
++------^-------+    +------^--------+      +------------------+
+       |                   |
+       |  Dump Processing  |
+       +--------+----------+
+                |
+       +--------v----------+
+       | rtcstats-features | (1..M)
+       +-------------------+</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fit">
+  <div class="wrap">
+    <p class="eyebrow">How the pieces fit together</p>
+    <h2>What the three packages share</h2>
+    <p class="section-lede">Each stage reads what the previous one wrote. Four shared things make that work.</p>
+
+    <div class="contracts">
+      <div class="contract">
+        <h3>One dump file, three stages</h3>
+        <p>rtcstats-js streams trace events over the WebSocket. rtcstats-server assembles them into a line-oriented
+          JSON dump (the <code>RTCStatsDump</code> header and <code>fileFormat</code> version 3) and stores it;
+          rtcstats-features reads that dump back to extract features. The file format is the contract between the
+          server that writes it and the importers that read it.</p>
+        <div class="flow">SDK streams events <span class="arrow">→</span> server writes the dump <span class="arrow">→</span> features reads it</div>
+      </div>
+
+      <div class="contract">
+        <h3>Identity flows end to end</h3>
+        <p>Your app mints a JWT; rtcstats-js appends it to the WebSocket URL; rtcstats-server validates it and extracts
+          <code>user</code>, <code>session</code>, and <code>conference</code> into the <code>rtcstats-server</code>
+          database row that every extracted feature later hangs off of.</p>
+        <div class="flow">app JWT <span class="arrow">→</span> SDK URL <span class="arrow">→</span> server DB row <span class="arrow">→</span> features</div>
+      </div>
+
+      <div class="contract">
+        <h3>Compression is negotiated across the boundary</h3>
+        <p>The client <em>may</em> apply method, stats-property, and getStats delta compression; importers (the server
+          and features) <em>must</em> support all of it. So the client can send less data and the reader can always
+          decode it.</p>
+        <div class="flow">SDK MAY compress <span class="arrow">·</span> importer MUST decompress</div>
+      </div>
+
+      <div class="contract">
+        <h3>Server and features share config and database</h3>
+        <p>Configuration files in <code>/config</code> are shared between rtcstats-server and rtcstats-features, and
+          features polls the same <code>rtcstats-server</code> table the server writes.</p>
+        <div class="flow">shared <code>/config</code> <span class="arrow">·</span> shared Postgres</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="js" class="alt">
+  <div class="wrap">
+    <div class="pkg-head">
+      <span class="pill">Client SDK</span>
+      <h2><code>rtcstats-js</code></h2>
+    </div>
+    <p class="section-lede">A JavaScript client SDK for monitoring WebRTC. It provides low-level logging of
+      peerconnection API calls and periodic <code>getStats()</code> for analytics and debugging, inspired by Chrome's
+      webrtc-internals and designed to add negligible overhead with minimal integration effort.</p>
+
+    <ul class="feature-list">
+      <li><strong>Transparent integration</strong> by overriding <code>RTCPeerConnection</code> et al. using adapter.js techniques</li>
+      <li><strong>Traces every call and event</strong> on peerconnections and <code>getUserMedia</code>/<code>getDisplayMedia</code></li>
+      <li><strong>Streams over WebSocket</strong> to any rtcstats-server instance</li>
+      <li><strong>Optional JWT auth</strong> via a <code>rtcstats-token</code> query parameter</li>
+      <li><strong>Custom event tracing</strong> so app events land in the same dump</li>
+      <li><strong>Reload counting</strong> to count page reloads during a call</li>
+    </ul>
+
+    <h4>Typical integration</h4>
+    <pre><code>import {wrapRTCStatsWithDefaultOptions} from '@rtcstats/rtcstats-js';
+
+// Instantiate a trace function using the helper with default options.
+const trace = wrapRTCStatsWithDefaultOptions();
+
+// Connect to your rtcstats-server instance.
+trace.connect('ws://localhost:8080' + window.location.pathname);
+
+const pc = new RTCPeerConnection();</code></pre>
+    <p class="section-lede" style="margin:10px 0 0">Under the hood the package exports <code>WebSocketTrace</code> (the
+      WebSocket-backed trace function) plus <code>wrapRTCPeerConnection</code>, <code>wrapGetUserMedia</code>, and
+      <code>wrapEnumerateDevices</code> for fine-grained wrapping.</p>
+
+    <h4>Tracing your own events into the dump</h4>
+    <p class="section-lede" style="margin:0 0 12px">Send app-specific events, such as an end-of-call user rating, so
+      they sit alongside the WebRTC trace in one dump file. Custom method names must start with a colon and should not
+      be compressed; the server does not process them by default, but importers still render them.</p>
+    <pre><code>// method name (must start with ":"), peerconnection or null, data or null
+trace(':userRating', null, {stars: 4});</code></pre>
+
+    <p class="section-lede" style="margin:0 0 0">For authenticating the connection with a JWT, see
+      <a href="#auth">token authentication</a> below, which covers the client and server halves together.</p>
+
+    <p class="more"><a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-js/README.md">Full rtcstats-js README: bundling, reload counting, ending sessions →</a></p>
+  </div>
+</section>
+
+<section id="server">
+  <div class="wrap">
+    <div class="pkg-head">
+      <span class="pill">Collection server</span>
+      <h2><code>rtcstats-server</code></h2>
+    </div>
+    <p class="section-lede">The server listens on a WebSocket and writes the incoming data (the "dump") to a temporary
+      file. If configured, the dump is uploaded to storage (S3 or compatible) and metadata is written to a database
+      (Postgres or compatible). It does not handle TLS itself and assumes a load balancer terminates it.</p>
+
+    <ul class="feature-list">
+      <li><strong>WebSocket endpoint</strong> listening on port 8080 by default</li>
+      <li><strong>node-config configuration</strong> shared with rtcstats-features under <code>/config</code></li>
+      <li><strong>S3-compatible storage</strong> plus Postgres metadata</li>
+      <li><strong>JWT authorization</strong> extracting user, session, and conference</li>
+      <li><strong>Docker-ready</strong> via the top-level Dockerfile and <code>NODE_CONFIG</code></li>
+      <li><strong>Optional rtcstats.com upload</strong> with sampling</li>
+    </ul>
+
+    <h4>Starting the server</h4>
+    <pre><code>npm start   # uses config/default.yaml, listens on :8080</code></pre>
+    <p class="section-lede" style="margin:10px 0 0">Override without editing the defaults: add a gitignored
+      <code>development.yaml</code>, select a <code>production.yaml</code> via <code>NODE_ENV</code>, or merge ad-hoc
+      JSON through the <code>NODE_CONFIG</code> environment variable (the recommended approach inside Docker).</p>
+
+    <h4>Dump file format</h4>
+    <p class="section-lede" style="margin:0 0 0">Dumps are line-oriented JSON: a <code>RTCStatsDump</code> header with a
+      <code>fileFormat</code> integer, then one JSON array per event. See the
+      <a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md#rtcstats-dump-file-format">dump
+      file format spec</a> for the element-by-element description, compression, and PII handling.</p>
+
+    <h4>Forwarding to rtcstats.com</h4>
+    <p class="section-lede" style="margin:0 0 8px">Alongside your own storage (not instead of it), the server can forward
+      each dump to the hosted service for visualization and analysis. Disabled by default; set a token and, optionally,
+      a <code>randomPercentage</code> in <code>[0,1)</code> to sample high-volume traffic.</p>
+
+    <p class="more"><a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md">Full rtcstats-server README: config precedence, Docker, upload settings →</a></p>
+  </div>
+</section>
+
+<section id="features" class="alt">
+  <div class="wrap">
+    <div class="pkg-head">
+      <span class="pill">Feature extraction</span>
+      <h2><code>rtcstats-features</code></h2>
+    </div>
+    <p class="section-lede">Feature extraction for peerconnection API traces and <code>getStats()</code> data. It polls
+      the database for unprocessed dumps, downloads each one, extracts features, and writes them back, waiting five
+      seconds between empty polls. It used to be part of the server; it now runs separately because it is more CPU and
+      memory intensive than collection.</p>
+
+    <h4>Four kinds of features</h4>
+    <ul class="feature-list">
+      <li><strong>Server-side metadata</strong>, such as location</li>
+      <li><strong>Client-wide</strong>, such as <code>getUserMedia</code> calls and errors</li>
+      <li><strong>Per-RTCPeerConnection</strong>, from the API calls on each connection</li>
+      <li><strong>Per-track</strong>, for each inbound/outbound track, mostly from <code>getStats()</code></li>
+    </ul>
+
+    <h4>How the tables relate</h4>
+    <p class="section-lede" style="margin:0 0 12px">Each extracted feature set hangs off the same
+      <code>rtcstats-server</code> row the server wrote. A dump has one <code>features_metadata</code>, which has one
+      <code>features_client</code> and many <code>features_connection</code>; each connection has many
+      <code>features_track</code>.</p>
+    <div class="arch">
+      <pre><code>  +-------------------+
+  | rtcstats-server   |
+  |-------------------|
++-+ id (PK)           |
+| +-------------------+
+| (1-to-1)
+| +-------------------+
+| | features_metadata |
+| |-------------------|
+| | id (PK)           +-+----------------------------------+
++-+ dump_id (FK)      | |                                  |
+  +-------------------+ | (1-to-1)             (1-to-many) |
+                        |                                  |
+  +-------------------+ |          +---------------------+ |
+  | features_client   | |          | features_connection | |
+  |-------------------| |          |---------------------| |
+  | id (PK)           | |        +-+ id (PK)             | |
+  | dump_id (FK)      +-+        | | dump_id (FK)        +-+
+  +-------------------+          | +---------------------+
+                                 | +---------------------+
+                                 | | features_track      |
+                                 | |---------------------|
+                                 | | id (PK)             |
+                                 +-+ connection_id (FK)  |
+                                   +---------------------+</code></pre>
+    </div>
+
+    <h4>Querying a dump's features</h4>
+    <pre><code>select * from "rtcstats-server" as server
+    join features_metadata on features_metadata.dump_id = server.id
+    join features_client on features_client.dump_id = features_metadata.id
+    join features_connection on features_connection.dump_id = features_metadata.id
+    join features_track on features_track.connection_id = features_connection.id
+    where server.id = ${id}</code></pre>
+
+    <p class="more"><a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-features/README.md">Full rtcstats-features README →</a></p>
+  </div>
+</section>
+
+<section id="auth">
+  <div class="wrap">
+    <p class="eyebrow">Client and server, together</p>
+    <h2>Token authentication, end to end</h2>
+    <p class="section-lede">The client half and the server half of JWT auth only make sense together, and neither README
+      can show the whole loop because each owns one end. A single shared secret ties your app, rtcstats-js, and
+      rtcstats-server together, and the token carries the identifiers that end up on every dump.</p>
+
+    <ol class="steps">
+      <li><strong>Your app signs a token</strong><span>Your app or signaling server signs a JWT with the shared secret and puts the identifiers under an <code>rtcStats</code> claim. For testing, <code>bin/generate-token.js</code> mints one from the configured secret.</span></li>
+      <li><strong>The SDK sends it</strong><span>rtcstats-js appends the token to the WebSocket URL as <code>rtcstats-token</code> when it connects. Nothing else on the client changes.</span></li>
+      <li><strong>The server verifies it</strong><span>rtcstats-server, configured with the same <code>authorization.jwtSecret</code>, verifies the token. A missing, invalid, or expired token closes the socket with a <code>policy-violation</code> (code 1008), which the client sees through its log callback.</span></li>
+      <li><strong>The identity lands on the dump</strong><span>On success the server reads <code>rtcStats.user</code>, <code>rtcStats.session</code>, and <code>rtcStats.conference</code> into the <code>rtcstats_user</code>, <code>rtcstats_session</code>, and <code>rtcstats_conference</code> columns of the dump's row, which is what features and analysis group and search by.</span></li>
+    </ol>
+
+    <pre><code>// 1. App / signaling server: sign with the shared secret.
+//    The rtcStats claim carries the identifiers the server will store.
+const token = jwt.sign({
+  rtcStats: {
+    user:       'user-123',    // long-lived user id     -> rtcstats_user
+    session:    'session-abc', // short-lived session id -> rtcstats_session
+    conference: 'room-42',     // groups a call's dumps  -> rtcstats_conference
+  },
+}, sharedSecret, {expiresIn: 600});
+
+// 2. Browser (rtcstats-js): pass it on the WebSocket URL.
+const trace = new WebSocketTrace({log: console.warn.bind(console)});
+trace.connect('wss://example.com/?rtcstats-token=' + token);
+
+// 3. Server (rtcstats-server config): the same secret validates it.
+//    authorization:
+//      jwtSecret: &lt;sharedSecret&gt;</code></pre>
+
+    <p class="section-lede" style="margin:0 0 12px">No app wired up yet? Mint a token from the command line with the
+      configured secret:</p>
+    <pre><code>node bin/generate-token.js --lifetime 600
+node bin/generate-token.js --url wss://example.com   # prints a full ws URL</code></pre>
+
+    <div class="callout">
+      <strong>The shared secret is the seam.</strong> <code>authorization.jwtSecret</code> on the server has to match
+      whatever mints the tokens. That single value is why two packages, documented separately, actually interlock.
+    </div>
+
+    <h4>Rotating identity mid-page</h4>
+    <p class="section-lede" style="margin:0 0 12px">There is one dump per WebSocket connection. To start a fresh session
+      (a new <code>session</code> id, and a new dump row on the server) without reloading, close the connection and
+      reconnect with a new token:</p>
+    <pre><code>trace.close();
+trace.connect('wss://example.com/?rtcstats-token=' + nextToken);</code></pre>
+  </div>
+</section>
+
+<section id="tools" class="alt">
+  <div class="wrap">
+    <p class="eyebrow">No cloud required</p>
+    <h2>Inspect and anonymize dumps in the browser</h2>
+    <p class="section-lede">If you are not using the hosted service at rtcstats.com, these browser-based tools work on
+      dumps directly. Everything runs client-side, so nothing leaves your machine.</p>
+    <div class="contracts">
+      <div class="contract">
+        <h3><a href="https://rtcstats.github.io/rtcstats/dump-importer/">Dump importer</a></h3>
+        <p>Open a Chrome webrtc-internals export or an rtcstats-js dump and explore it with zoomable graphs. Handy when
+          you cannot use rtcstats.com.</p>
+      </div>
+      <div class="contract">
+        <h3><a href="https://rtcstats.github.io/rtcstats/dump-importer/anonymize">Dump anonymizer</a></h3>
+        <p>Strip IP addresses from a webrtc-internals or rtcstats dump before sharing it, so you can hand a dump to
+          someone else without leaking network information.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="https://github.com/rtcstats/rtcstats">GitHub</a>
+      <a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-js/README.md">rtcstats-js</a>
+      <a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md">rtcstats-server</a>
+      <a href="https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-features/README.md">rtcstats-features</a>
+      <a href="https://rtcstats.com">rtcstats.com</a>
+    </div>
+    <div>Open-source collection layer of rtcStats.</div>
+  </div>
+</footer>
+
+</body>
+</html>

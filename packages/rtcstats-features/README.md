@@ -1,3 +1,13 @@
+This is part of the [monorepo](https://github.com/rtcstats/rtcstats) for rtcstats-js
+(clientside monitoring), rtcstats-server (serverside dump collection) and the
+dump-importer (supporting rtcstats and webrtc-internals formats).
+
+See the [rtcStats project page](https://rtcstats.github.io/rtcstats/) for an overview of how
+rtcstats-js, rtcstats-server and rtcstats-features fit together.
+
+It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
+an online service for debugging and troubleshooting WebRTC statistics.
+
 # Feature extraction
 This package contains [feature extraction](https://en.wikipedia.org/wiki/Feature_extraction)
 for peerconnection API traces and getStats data. There are four types of features:
