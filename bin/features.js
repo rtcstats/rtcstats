@@ -1,3 +1,24 @@
+// CLI that runs the rtcstats feature extractors over a single dump file and prints
+// the extracted features as JSON. Usage:
+//
+//     node bin/features.js <dump-file>
+//
+// The output is a single JSON object shaped as:
+//
+//     {
+//       ...clientFeatures,          // client features spread at the top level
+//       peerConnections: [
+//         {
+//           ...connectionFeatures,   // connection features spread inline
+//           tracks: [ { ...trackFeatures }, ... ]
+//         },
+//         ...
+//       ]
+//     }
+//
+// This mirrors the client -> connection -> track hierarchy of a dump. For a
+// description of every field in each of the three feature groups, see
+// ../packages/rtcstats-features/features.md.
 import fsPromises from 'node:fs/promises';
 
 import {extractTracks, readDump} from '@rtcstats/rtcstats-shared';
@@ -11,27 +32,42 @@ function cleanFeatures(features) {
 }
 
 async function extract(dump) {
-    // Client information is gathered on the client.
+    // Client information lives on the synthetic `null` peer connection (events not
+    // scoped to a real RTCPeerConnection: getUserMedia, enumerateDevices, ...).
+    // See "Client features" in features.md.
     const clientTrace = dump.peerConnections['null'];
-    const clientFeatures = extractClientFeatures(clientTrace);
-    console.log(cleanFeatures(clientFeatures));
+    // Client features live at the top level alongside `peerConnections`; no client
+    // feature is named `peerConnections`, so there is no collision.
+    const result = {
+        ...cleanFeatures(extractClientFeatures(clientTrace)),
+        peerConnections: [],
+    };
 
-    // Extract connection features, ignoring the `null` connection which provides client information.
+    // One entry per real RTCPeerConnection, skipping the `null` client connection above.
+    // See "Connection features" in features.md.
     for (const peerConnectionId of Object.keys(dump.peerConnections)) {
         if (peerConnectionId === 'null') {
             continue;
         }
         const peerConnectionTrace = dump.peerConnections[peerConnectionId];
-        const connectionFeatures = extractConnectionFeatures(clientTrace, peerConnectionTrace);
-        console.log(cleanFeatures(connectionFeatures));
+        // Connection features spread inline alongside `tracks`; no connection feature
+        // is named `tracks`, so there is no collision.
+        const connection = {
+            ...cleanFeatures(extractConnectionFeatures(clientTrace, peerConnectionTrace)),
+            tracks: [],
+        };
 
-        // Extract track features. Each connection can have multiple tracks.
+        // One entry per inbound/outbound media track on this connection. Each track
+        // carries its own `trackIdentifier`. See "Track features" in features.md.
         const tracks = await extractTracks(peerConnectionTrace);
         for (const trackInformation of tracks) {
-            const trackFeatures = extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation);
-            console.log(cleanFeatures(trackFeatures));
+            connection.tracks.push(
+                cleanFeatures(extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation)));
         }
+        result.peerConnections.push(connection);
     }
+
+    console.log(JSON.stringify(result, null, 2));
 }
 
 fsPromises.readFile(process.argv[2])
