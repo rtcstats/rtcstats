@@ -395,6 +395,20 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     return features;
 }
 
+function numberOfNegotiations(/* clientTrace*/_, peerConnectionTrace) {
+    return peerConnectionTrace.filter(traceEvent => traceEvent.type === 'onsignalingstatechange' &&
+        traceEvent.value === 'stable').length;
+}
+
+function pendingNegotiationAtEnd(/* clientTrace*/_, peerConnectionTrace) {
+    const states = peerConnectionTrace.filter(traceEvent => traceEvent.type === 'onsignalingstatechange' &&
+        traceEvent.value !== 'closed');
+    if (states.length === 0) {
+        return;
+    }
+    return states[states.length - 1].value !== 'stable';
+}
+
 function setLocalDescriptionFeatures(/* clientTrace*/_, peerConnectionTrace) {
     let first;
     let second;
@@ -492,6 +506,8 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
         numberOfEventsNotGetStats: peerConnectionTrace.filter(traceEvent => traceEvent.type !== 'getStats').length,
+        numberOfNegotiations: numberOfNegotiations(undefined, peerConnectionTrace),
+        pendingNegotiationAtEnd: pendingNegotiationAtEnd(undefined, peerConnectionTrace),
         ... setLocalDescriptionFeatures(undefined, peerConnectionTrace),
         ... setRemoteDescriptionFeatures(undefined, peerConnectionTrace),
         signalingDelay: signalingDelay(undefined, peerConnectionTrace),

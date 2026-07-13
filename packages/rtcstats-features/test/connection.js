@@ -31,6 +31,7 @@ describe('extractConnectionFeatures', () => {
             iceRestartFollowedBySetRemoteDescription: false,
             numberOfEvents: 3,
             numberOfEventsNotGetStats: 2,
+            numberOfNegotiations: 0,
             startTime: 1000,
             usingIceLite: false,
         });
@@ -642,5 +643,75 @@ describe('extractConnectionFeatures', () => {
         const features = extractConnectionFeatures([], pcTrace);
         expect(features.iceRestart).to.equal(true);
         expect(features.iceRestartFollowedBySetRemoteDescription).to.equal(true);
+    });
+
+    describe('numberOfNegotiations', () => {
+        it('counts a completed negotiation on the offering side', () => {
+            const pcTrace = [
+                { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, timestamp: 1000 },
+                { type: 'onsignalingstatechange', value: 'have-local-offer', timestamp: 1001 },
+                { type: 'setRemoteDescription', value: {type: 'answer', sdp: ''}, timestamp: 1002 },
+                { type: 'onsignalingstatechange', value: 'stable', timestamp: 1003 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.numberOfNegotiations).to.equal(1);
+            expect(features.pendingNegotiationAtEnd).to.equal(false);
+        });
+
+        it('counts a completed negotiation on the answering side', () => {
+            const pcTrace = [
+                { type: 'setRemoteDescription', value: {type: 'offer', sdp: ''}, timestamp: 1000 },
+                { type: 'onsignalingstatechange', value: 'have-remote-offer', timestamp: 1001 },
+                { type: 'setLocalDescription', value: {type: 'answer', sdp: ''}, timestamp: 1002 },
+                { type: 'onsignalingstatechange', value: 'stable', timestamp: 1003 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.numberOfNegotiations).to.equal(1);
+            expect(features.pendingNegotiationAtEnd).to.equal(false);
+        });
+
+        it('counts renegotiations', () => {
+            const pcTrace = [
+                { type: 'onsignalingstatechange', value: 'have-local-offer', timestamp: 1000 },
+                { type: 'onsignalingstatechange', value: 'stable', timestamp: 1001 },
+                { type: 'onsignalingstatechange', value: 'have-remote-offer', timestamp: 1002 },
+                { type: 'onsignalingstatechange', value: 'stable', timestamp: 1003 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.numberOfNegotiations).to.equal(2);
+        });
+
+        it('counts a rolled back negotiation', () => {
+            const pcTrace = [
+                { type: 'setRemoteDescription', value: {type: 'offer', sdp: ''}, timestamp: 1000 },
+                { type: 'onsignalingstatechange', value: 'have-remote-offer', timestamp: 1001 },
+                { type: 'setRemoteDescription', value: {type: 'rollback'}, timestamp: 1002 },
+                { type: 'onsignalingstatechange', value: 'stable', timestamp: 1003 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.numberOfNegotiations).to.equal(1);
+            expect(features.pendingNegotiationAtEnd).to.equal(false);
+        });
+
+        it('flags an unanswered offer at the end', () => {
+            const pcTrace = [
+                { type: 'setLocalDescription', value: {type: 'offer', sdp: ''}, timestamp: 1000 },
+                { type: 'onsignalingstatechange', value: 'have-local-offer', timestamp: 1001 },
+                { type: 'close', timestamp: 1002 },
+                { type: 'onsignalingstatechange', value: 'closed', timestamp: 1003 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.numberOfNegotiations).to.equal(0);
+            expect(features.pendingNegotiationAtEnd).to.equal(true);
+        });
+
+        it('is 0 without a pending negotiation when nothing was negotiated', () => {
+            const pcTrace = [
+                { type: 'create', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.numberOfNegotiations).to.equal(0);
+            expect(features.pendingNegotiationAtEnd).to.equal(undefined);
+        });
     });
 });
