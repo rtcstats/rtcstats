@@ -152,6 +152,8 @@ handful come from periodic [`getStats`](https://w3c.github.io/webrtc-pc/#dom-rtc
 | `closed` | boolean | last event | Whether `pc.close()` was called (the last event's type is `close`). |
 | `numberOfEvents` | number | trace length | Total number of events in the peer connection trace. |
 | `numberOfEventsNotGetStats` | number | count | Number of events excluding periodic `getStats`. |
+| `numberOfNegotiations` | number | count | Number of signaling state changes to `stable`, i.e. completed negotiations including rollbacks. |
+| `pendingNegotiationAtEnd` | boolean | last signaling state | Whether the connection ended mid-negotiation, i.e. the last signaling state before closing was not `stable`. |
 | `signalingDelay` | number | time delta | First offer/answer round-trip time, from `setLocalDescription({type:'offer'})` to the first subsequent `setRemoteDescription({type:'answer'})`. |
 
 ### API failures
