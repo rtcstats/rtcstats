@@ -229,6 +229,9 @@ export class RTCStatsServer {
             if (response && response.url) {
                 await this.database.setRtcStatsEmbedUrl(dbId, response.url);
             }
+            if (response && response.data) {
+                await this.database.insertRtcStatsAnalysis(dbId, response);
+            }
         }
         // blobLocation should be set if this was uploaded somewhere.
         if (blobLocation && this.config.server.deleteAfterUpload) {
