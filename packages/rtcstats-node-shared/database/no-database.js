@@ -8,5 +8,8 @@ export function createNoDatabase() {
         update: (id, stopTime, blobUrl) => {
             console.log('Not updating database', id, stopTime, blobUrl);
         },
+        insertRtcStatsAnalysis: (dumpId, response) => {
+            console.log('Not inserting rtcstats analysis', dumpId, response && response.rtcstatsId);
+        },
     };
 }
