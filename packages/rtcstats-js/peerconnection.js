@@ -92,8 +92,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     let lastComputePressureRecord;
     if (window.PressureObserver && getStatsInterval) {
         const observer = new window.PressureObserver((records) => {
-            const lastRecord = records[records.length - 1]; // Usually only one record.
-            lastComputePressureRecord = [Date.now(), lastRecord];
+            lastComputePressureRecord = records[records.length - 1]; // Usually only one record.
         });
         observer.observe('cpu', {sampleInterval: getStatsInterval});
     }
@@ -199,10 +198,10 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
                 return;
             }
             if (lastComputePressureRecord) {
-                const [timestamp, record] = lastComputePressureRecord;
+                const record = lastComputePressureRecord;
                 stats['rtcStatsComputePressure'] = {
                     type: 'compute-pressure',
-                    timestamp,
+                    timestamp: window.performance.timeOrigin + record.time,
                     cpuState: computePressureTable[record.state] || record.state,
                 };
             }
