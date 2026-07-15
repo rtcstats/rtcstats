@@ -168,6 +168,54 @@ describe('extractConnectionFeatures', () => {
         expect(features.srtpCipher).to.equal('null cipher');
     });
 
+    describe('clockSkew', () => {
+        it('measures skew between the first getStats call time and its stats timestamp', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'PC_1': { type: 'peer-connection', timestamp: 1000 },
+                }, timestamp: 1800 },
+                { type: 'getStats', value: {
+                    'PC_1': { type: 'peer-connection', timestamp: 2000 },
+                }, timestamp: 2800 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.clockSkew).to.equal(800);
+        });
+
+        it('rounds a fractional stats timestamp', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'PC_1': { type: 'peer-connection', timestamp: 1783996514030.638 },
+                }, timestamp: 1784028103815 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.clockSkew).to.equal(31589784);
+        });
+
+        it('uses the first report that has a peer-connection entry', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'T_1': { type: 'transport', timestamp: 500 },
+                }, timestamp: 900 },
+                { type: 'getStats', value: {
+                    'PC_1': { type: 'peer-connection', timestamp: 1000 },
+                }, timestamp: 1800 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.clockSkew).to.equal(800);
+        });
+
+        it('is undefined when no getStats report has a peer-connection entry', () => {
+            const pcTrace = [
+                { type: 'getStats', value: {
+                    'T_1': { type: 'transport', timestamp: 500 },
+                }, timestamp: 900 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.clockSkew).to.be.undefined;
+        });
+    });
+
     describe('API failure', () => {
         it('should extract addIceCandidateFailure', () => {
             const pcTrace = [
