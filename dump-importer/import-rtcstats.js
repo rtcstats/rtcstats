@@ -105,6 +105,7 @@ export class RTCStatsDumpImporter extends EventTarget {
         // while the actual calculations take place later, e.g. when a graph is opened.
         // Create timeseries data from individual getStats data.
         const timeSeries = createRtcStatsTimeSeries(peerConnectionTrace);
+        this._reanchorTimeSeriesToWallClock(peerConnectionTrace, timeSeries);
         this.graphs[connectionId] = {};
         for (const statsId in timeSeries) {
             const result = createGraphAndContainer(statsId, timeSeries[statsId]);
@@ -170,6 +171,47 @@ export class RTCStatsDumpImporter extends EventTarget {
         this.metadata = metadata;
 
         this.dispatchEvent(new Event('processed-metadata'));
+    }
+
+    _reanchorTimeSeriesToWallClock(peerConnectionTrace, timeSeries) {
+        // getStats report timestamps are performance.timeOrigin + performance.now(), a clock
+        // that does not advance while the machine is suspended. The getStats call itself is
+        // recorded on the wall clock (traceEvent.timestamp). If the page was open across an OS
+        // suspend the two diverge by the suspend duration, so shift each stats timestamp to the
+        // wall-clock time of its getStats call to keep the charts aligned with the event log.
+        // Stats that already carry a wall clock (e.g. compute-pressure) keep their timestamp.
+        const wallClockByStatsTimestamp = new Map();
+        for (const traceEvent of peerConnectionTrace) {
+            if (traceEvent.type !== 'getStats' || !traceEvent.value) {
+                continue;
+            }
+            const report = traceEvent.value;
+            const peerConnectionId = Object.keys(report).find(id => report[id].type === 'peer-connection');
+            if (peerConnectionId === undefined) {
+                continue;
+            }
+            const statsTimestamp = report[peerConnectionId].timestamp;
+            if (typeof statsTimestamp === 'number') {
+                wallClockByStatsTimestamp.set(statsTimestamp, traceEvent.timestamp);
+            }
+        }
+        if (wallClockByStatsTimestamp.size === 0) {
+            return;
+        }
+        for (const statsId in timeSeries) {
+            for (const statsProperty in timeSeries[statsId]) {
+                const series = timeSeries[statsId][statsProperty];
+                if (!Array.isArray(series)) {
+                    continue;
+                }
+                for (const point of series) {
+                    const wallClock = wallClockByStatsTimestamp.get(point[0]);
+                    if (wallClock !== undefined) {
+                        point[0] = wallClock;
+                    }
+                }
+            }
+        }
     }
 
     _showCandidateGrid(connectionId) {
