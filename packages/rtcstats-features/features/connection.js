@@ -124,6 +124,22 @@ function connectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
         }
     })();
     return {
+        clockSkew: (() => {
+            // Skew (in milliseconds) between the wall-clock time of the first getStats call
+            // (the trace event timestamp, Date.now()) and the peer-connection stats timestamp
+            // in that report (performance.timeOrigin + performance.now()). The latter clock does
+            // not advance while the machine is suspended, so a large positive value means the
+            // page was open across an OS suspend.
+            for (const traceEvent of peerConnectionTrace) {
+                if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+                const report = traceEvent.value;
+                const peerConnectionId = Object.keys(report).find(id => report[id].type === 'peer-connection');
+                if (peerConnectionId === undefined) continue;
+                const statsTimestamp = report[peerConnectionId].timestamp;
+                if (typeof statsTimestamp !== 'number') continue;
+                return Math.round(traceEvent.timestamp - statsTimestamp);
+            }
+        })(),
         connected: peerConnectionTrace.find(traceEvent => {
             // Whether the connection was established.
             return traceEvent.type === 'onconnectionstatechange' && traceEvent.value === 'connected';
