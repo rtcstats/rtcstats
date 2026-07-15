@@ -371,6 +371,19 @@ describe('RTCPeerConnection', () => {
             expect(transceivers).to.have.length(1);
             expect(transceivers[0].__rtcStatsId).to.equal(pc.__rtcStatsId);
         });
+
+        it('sets ids on senders when ontrack does not fire (recvonly offer)', async () => {
+            pc = new RTCPeerConnection();
+            await pc.setRemoteDescription({type: 'offer', sdp: sdp.replace('a=sendonly', 'a=recvonly')});
+
+            const events = testSink.reset();
+            expect(events.find(e => e[0] === 'ontrack')).to.equal(undefined);
+
+            const transceiver = pc.getTransceivers()[0];
+            expect(transceiver.__rtcStatsId).to.equal(pc.__rtcStatsId);
+            expect(transceiver.sender.__rtcStatsId).to.equal(pc.__rtcStatsId);
+            expect(transceiver.sender.__rtcStatsSenderId).to.equal(transceiver.receiver.track.id);
+        });
     });
 
     describe('addTrack', () => {
