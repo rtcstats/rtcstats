@@ -148,11 +148,6 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
             e.track.addEventListener('mute', () => {
                 trace('MediaStreamTrack.onmute', pcId, e.track.id);
             });
-            if (e.transceiver) {
-                e.transceiver.__rtcStatsId = pcId;
-                e.transceiver.sender.__rtcStatsId = pcId;
-                e.transceiver.sender.__rtcStatsSenderId = e.track.id;
-            }
             if (e.track.kind === 'video' && window.document?.querySelectorAll) {
                 setTimeout(() => {
                     window.document.querySelectorAll('video').forEach(el => {
@@ -376,6 +371,11 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
 
             return nativeMethod.apply(this, [description, ...args])
                 .then(() => {
+                    this.getTransceivers().forEach((transceiver) => {
+                        transceiver.__rtcStatsId = this.__rtcStatsId;
+                        transceiver.sender.__rtcStatsId = this.__rtcStatsId;
+                        transceiver.sender.__rtcStatsSenderId = transceiver.receiver.track.id;
+                    });
                     trace(method + 'OnSuccess', this.__rtcStatsId, undefined,
                         trackingId);
                 }, (err) => {
