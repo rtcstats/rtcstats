@@ -86,7 +86,7 @@ function webSocketFeatures(clientTrace) {
 }
 
 // Client features related to the track (in case it is never added to a connection).
-function trackFeatures(clientTrace, kind) {
+function trackFeatures(clientTrace) {
     const features = {};
     const allTracks = {};
     for (const traceEvent of clientTrace) {

@@ -119,6 +119,15 @@ export async function handleFileupload(clientId, request, response, writeStream)
         return;
     }
 
+    if (extractor.numberOfMessages === 0) {
+        response.writeHead(422, { 'Content-Type': 'text/plain' });
+        response.end('Unprocessable Entity: the uploaded dump contained no messages');
+        return {
+            numberOfMessages: 0,
+            metadata: extractor.metadata,
+        };
+    }
+
     response.writeHead(200, { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ message: 'Upload successful', clientId }));
     return {

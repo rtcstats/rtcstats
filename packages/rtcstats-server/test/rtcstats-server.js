@@ -133,6 +133,27 @@ describe('RTCStatsServer', () => {
             expect(result.status).to.equal(400);
             await server.close();
         });
+        it('rejects a http upload without any messages', async() => {
+            const conf = structuredClone(baseConfig);
+            conf.authorization = {};
+            conf.server.httpUploadPath = '/upload';
+            server = new RTCStatsServer(conf);
+            await server.listen();
+
+            const emptyBlob = new Blob([
+                'RTCStatsDump\n' +
+                '{"fileFormat":3}\n'
+            ], {type: 'application/jsonl'});
+            const formData = new FormData();
+            formData.append('dump', emptyBlob, 'test.jsonl');
+            const result = await fetch('http://localhost:' + conf.server.httpPort + '/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            expect(result.ok).to.be.false;
+            expect(result.status).to.equal(422);
+            await server.close();
+        });
         it('accepts a valid http upload', async () => {
             const conf = structuredClone(baseConfig);
             conf.authorization = {};
