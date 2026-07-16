@@ -554,6 +554,9 @@ function createGraphOptions(statsId, statsType, stats, referenceTime) {
         chart: {
             zoomType: 'x',
         },
+        time: {
+            useUTC: false,
+        },
         plotOptions: {
             series: {connectNulls: false},
         },

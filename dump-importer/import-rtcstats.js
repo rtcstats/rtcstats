@@ -158,6 +158,9 @@ export class RTCStatsDumpImporter extends EventTarget {
                 type: 'scatter',
                 zoomType: 'x',
             },
+            time: {
+                useUTC: false,
+            },
             tooltip: {
                 formatter: function format() {
                     return `${this.y} -- ${this.method}`;
