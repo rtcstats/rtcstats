@@ -9,6 +9,26 @@ an Experience Score, and a plain-English AI summary of what went wrong on the ca
 For a complete reference of every getStats() metric rtcstats collects and analyzes, see
 the [WebRTC Stats Reference](https://rtcstats.com/kb/webrtc-stats-reference-page).
 
+## Why rtcStats is built this way
+
+rtcStats keeps collecting session data, storing it, and analyzing it separate. The
+first two are open source and run in your stack. The third is optional and yours to
+trigger.
+
+- **Collection is a client SDK you control.** `rtcstats-js` runs in your client and
+  streams a dump of what WebRTC is doing to a server you run.
+- **Storage runs on your infrastructure.** `rtcstats-server` receives the stream and
+  writes each dump to your own storage. Session data lands and lives in your stack.
+- **Analysis is the layer you opt into.** You choose which stored dumps to send to
+  rtcstats.com: a random sample, per-user, per-region, a single dump when one call
+  goes bad, or none at all. rtcstats.com returns Observations, an Experience Score,
+  and a plain-English summary of what went wrong. It is the layer above
+  `webrtc-internals`, not a replacement for it.
+
+Send what you want, keep the rest.
+
+Start at https://rtcstats.com
+
 # rtcstats-js: A Javascript client SDK for monitoring WebRTC
 
 The Javascript SDK provides low-level logging on peerconnection API calls and periodic getStats calls for analytics/debugging purposes.
