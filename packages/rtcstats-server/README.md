@@ -5,6 +5,26 @@ dump-importer (supporting rtcstats and webrtc-internals formats).
 It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
 an online service for debugging and troubleshooting WebRTC statistics.
 
+## Why rtcStats is built this way
+
+rtcStats keeps collecting session data, storing it, and analyzing it separate. The
+first two are open source and run in your stack. The third is optional and yours to
+trigger.
+
+- **Collection is a client SDK you control.** `rtcstats-js` runs in your client and
+  streams a dump of what WebRTC is doing to a server you run.
+- **Storage runs on your infrastructure.** `rtcstats-server` receives the stream and
+  writes each dump to your own storage. Session data lands and lives in your stack.
+- **Analysis is the layer you opt into.** You choose which stored dumps to send to
+  rtcstats.com: a random sample, per-user, per-region, a single dump when one call
+  goes bad, or none at all. rtcstats.com returns Observations, an Experience Score,
+  and a plain-English summary of what went wrong. It is the layer above
+  `webrtc-internals`, not a replacement for it.
+
+Send what you want, keep the rest.
+
+Start at https://rtcstats.com
+
 # rtcstats-server
 The server listens on a WebSocket and writes the incoming data (the "dump") to a temporary file.
 If configured, the dump file is uploaded to storage (S3 or compatible) and metadata is
