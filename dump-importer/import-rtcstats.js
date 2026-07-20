@@ -269,7 +269,7 @@ export class RTCStatsDumpImporter extends EventTarget {
         row.appendChild(el);
 
         el = document.createElement('td');
-        if (traceEvent.value) {
+        if (traceEvent.value !== undefined && traceEvent.value !== null) {
             const details = document.createElement('details');
             /*
             details.addEventListener('toggle', (event) => {
