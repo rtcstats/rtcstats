@@ -11,6 +11,9 @@ document.getElementById('import').onchange = async (evt) => {
 
     const files = evt.target.files;
     const file = files[0];
+    const status = document.getElementById('status');
+    status.textContent = file.name;
+    status.classList.add('visible');
     let stream;
     if (['application/gzip', 'application/x-gzip'].includes(file.type)) {
         stream = file.stream().pipeThrough(new DecompressionStream('gzip'));
