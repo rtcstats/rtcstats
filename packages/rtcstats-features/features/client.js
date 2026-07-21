@@ -1,4 +1,5 @@
 /* eslint sort-keys: "error" */
+import {extractCustomClientFeatures} from './custom.js';
 
 /* Client features are features that describe the client, independent of a particular peerconnection.
  * They are calculated based on the clientTrace, i.e. the events that are not associated with a
@@ -125,6 +126,7 @@ export function extractClientFeatures(clientTrace) {
         startTime: clientTrace[0].timestamp,
         ...trackFeatures(clientTrace),
         ...webSocketFeatures(clientTrace),
+        ...extractCustomClientFeatures(clientTrace),
     };
 }
 
