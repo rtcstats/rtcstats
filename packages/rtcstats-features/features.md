@@ -6,6 +6,10 @@ This document describes the features extracted by the three feature extractors i
 * [`connection.js`](./features/connection.js): `extractConnectionFeatures(clientTrace, peerConnectionTrace)`
 * [`track.js`](./features/track.js): `extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation)`
 
+Deployment-specific features go into [`custom.js`](./features/custom.js), which each of the three
+extractors calls and merges into its result. Custom feature names must start with `custom` and the
+matching database columns are the responsibility of the deployment, see the file for details.
+
 ## Relationship between client, connection and track features
 
 A single rtcstats dump consists of a `clientTrace` (events not associated with any peer connection,

@@ -2,6 +2,7 @@
 import SDPUtils from 'sdp';
 
 import {divideStat, pluckStat} from '../statUtils.js';
+import {extractCustomConnectionFeatures} from './custom.js';
 
 function getSelectedTransportStats(report) {
     const transportId = Object.keys(report).find(id => {
@@ -572,7 +573,7 @@ function statsTruncated(/* clientTrace*/_, peerConnectionTrace) {
         firstSeen[id] - peerConnectionTrace[0].timestamp > 60000);
 }
 
-export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
+export function extractConnectionFeatures(clientTrace, peerConnectionTrace) {
     // A trace will always have at least one event.
     return {
         ... apiFailures(undefined, peerConnectionTrace),
@@ -598,5 +599,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
         statsTruncated: statsTruncated(undefined, peerConnectionTrace),
+        ... extractCustomConnectionFeatures(clientTrace, peerConnectionTrace),
     };
 }
