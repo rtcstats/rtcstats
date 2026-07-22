@@ -3,11 +3,12 @@ import postgres from 'postgres';
 
 export function createPostgres(config) {
     // TODO: add pool size from config.
+    const ssl = {sslmode: config.ssl.mode};
+    if (config.ssl.capath) {
+        ssl.ca = fs.readFileSync(config.ssl.capath).toString();
+    }
     const sql = postgres(config.connectionString, {
-        ssl: {
-            ca: fs.readFileSync(config.ssl.capath).toString(),
-            sslmode: config.ssl.mode
-        },
+        ssl,
         transform: {
             undefined: null,
             column: {
