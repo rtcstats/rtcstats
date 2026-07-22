@@ -226,8 +226,8 @@ export class RTCStatsServer {
             } finally {
                 await fileHandle.close();
             }
-            if (response && response.url) {
-                await this.database.setRtcStatsEmbedUrl(dbId, response.url);
+            if (response && response.embedUrl) {
+                await this.database.setRtcStatsEmbedUrl(dbId, response.embedUrl);
             }
         }
         // blobLocation should be set if this was uploaded somewhere.
