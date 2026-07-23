@@ -2,6 +2,7 @@
 import SDPUtils from 'sdp';
 
 import {divideStat, pluckStat} from '../statUtils.js';
+import {extractCustomConnectionFeatures} from './custom.js';
 
 function getSelectedCandidatePairStats(report) {
     const transportId = Object.keys(report).find(id => {
@@ -504,7 +505,7 @@ function signalingDelay(/* clientTrace*/_, peerConnectionTrace) {
     return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
 }
 
-export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
+export function extractConnectionFeatures(clientTrace, peerConnectionTrace) {
     // A trace will always have at least one event.
     return {
         ... apiFailures(undefined, peerConnectionTrace),
@@ -529,5 +530,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         signalingDelay: signalingDelay(undefined, peerConnectionTrace),
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
+        ... extractCustomConnectionFeatures(clientTrace, peerConnectionTrace),
     };
 }

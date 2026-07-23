@@ -4,6 +4,7 @@ import SDPUtils from 'sdp';
 import {parseTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
 import {divideStat, pluckStat} from '../statUtils.js';
+import {extractCustomTrackFeatures} from './custom.js';
 
 function codecFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     for (const traceEvent of peerConnectionTrace) {
@@ -205,7 +206,7 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
     return features;
 }
 
-export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
+export function extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation) {
     // Track stats can be extracted by iterating over peerConnectionTrace and looking at
     // getStats events which are associated with trackInformation.statsId.
     const features = {
@@ -222,5 +223,6 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         ...resolutionFeatures(undefined, peerConnectionTrace, trackInformation),
         ...audioJitterBufferFeatures(undefined, peerConnectionTrace, trackInformation),
         ...lastStatsFeatures(undefined, peerConnectionTrace, trackInformation),
+        ...extractCustomTrackFeatures(clientTrace, peerConnectionTrace, trackInformation),
     };
 }
