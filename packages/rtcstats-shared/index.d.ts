@@ -17,6 +17,9 @@ export function decompressStatsType(typeKey: string | number): string;
 export function compressStatsProperty(property: string): string | number;
 export function decompressStatsProperty(property: string | number): string;
 
+export function truncateStatsValue(property: string, value: any): any;
+export function truncateStatsReport(rtcStats: object): object;
+
 export function createInternalsTimeSeries(connection: any): object;
 export function createRtcStatsTimeSeries(trace: any[]): object;
 export function insertNullForGapsIntoTimeSeries(timeSeries: any[], gapSizeMs?: number): any[];
