@@ -82,6 +82,7 @@ There are no `getStats` reports in the `clientTrace`; everything is derived from
 | `userAgentData` | object | create event | UA / UA-CH information captured at dump start. |
 | `hardwareConcurrency` | number | create event | `navigator.hardwareConcurrency`. |
 | `deviceMemory` | number | create event | `navigator.deviceMemory`. |
+| `cpuPerformance` | number | create event | `navigator.cpuPerformance` performance tier. |
 | `screen` | object | create event | Screen metadata (e.g. resolution). |
 | `window` | object | create event | Window metadata (e.g. inner size). |
 | `reloadCount` | number | create event | Number of times the page has been reloaded, if reported. |

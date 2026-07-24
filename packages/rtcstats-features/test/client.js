@@ -3,7 +3,7 @@ import {extractClientFeatures} from '../features.js';
 describe('extractClientFeatures', () => {
     it('should extract basic client features correctly', () => {
         const clientTrace = [
-            { type: 'create', value: { startTime: 1000, duration: 500, userAgentData: 'ua', hardwareConcurrency: 4, deviceMemory: 8, screen: 'screen', window: 'window', reloadCount: 3 }, timestamp: 1000 },
+            { type: 'create', value: { startTime: 1000, duration: 500, userAgentData: 'ua', hardwareConcurrency: 4, deviceMemory: 8, cpuPerformance: 3, screen: 'screen', window: 'window', reloadCount: 3 }, timestamp: 1000 },
             { type: 'navigator.mediaDevices.getUserMedia', value: { audio: true, video: false }, timestamp: 1001 },
             { type: 'navigator.mediaDevices.getUserMediaOnSuccess', value: [], timestamp: 1002 },
             { type: 'navigator.mediaDevices.getDisplayMedia', value: { video: true }, timestamp: 1003 },
@@ -20,6 +20,7 @@ describe('extractClientFeatures', () => {
             userAgentData: 'ua',
             hardwareConcurrency: 4,
             deviceMemory: 8,
+            cpuPerformance: 3,
             screen: 'screen',
             window: 'window',
             reloadCount: 3,
