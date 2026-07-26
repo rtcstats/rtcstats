@@ -80,6 +80,7 @@ There are no `getStats` reports in the `clientTrace`; everything is derived from
 | `startTime` | number | first event | Timestamp (ms) at which the rtcstats dump was started. The first trace event's timestamp. |
 | `duration` | number | time delta | Lifetime of the client in milliseconds (last event timestamp minus first). |
 | `userAgentData` | object | create event | UA / UA-CH information captured at dump start. |
+| `operatingSystem` | string | create event | Normalized OS family from `userAgentData.platform` (e.g. `Windows`, `macOS`, `Linux`, `Chrome OS`, `Android`, `iOS`); null for non-Chromium browsers. |
 | `hardwareConcurrency` | number | create event | `navigator.hardwareConcurrency`. |
 | `deviceMemory` | number | create event | `navigator.deviceMemory`. |
 | `screen` | object | create event | Screen metadata (e.g. resolution). |

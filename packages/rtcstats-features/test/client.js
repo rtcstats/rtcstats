@@ -23,6 +23,7 @@ describe('extractClientFeatures', () => {
             screen: 'screen',
             window: 'window',
             reloadCount: 3,
+            operatingSystem: undefined,
             webSocketConnectionTime: undefined,
             calledGetUserMedia: true,
             calledGetUserMediaAudio: true,
@@ -56,6 +57,7 @@ describe('extractClientFeatures', () => {
             deviceMemory: 8,
             screen: 'screen',
             window: 'window',
+            operatingSystem: undefined,
             webSocketConnectionTime: undefined,
             calledGetUserMedia: false,
             calledGetUserMediaAudio: false,
@@ -136,5 +138,25 @@ describe('extractClientFeatures', () => {
         expect(features.audioShortDuration).to.be.true;
         expect(features.videoEnded).to.be.true;
         expect(features.videoShortDuration).to.be.undefined;
+    });
+
+    describe('operatingSystem', () => {
+        it('should derive the OS family from userAgentData.platform', () => {
+            const clientTrace = [
+                { type: 'create', value: { startTime: 1000, userAgentData: { platform: 'Windows' } }, timestamp: 1000 },
+                { timestamp: 1001 }
+            ];
+
+            expect(extractClientFeatures(clientTrace).operatingSystem).to.equal('Windows');
+        });
+
+        it('should be undefined when userAgentData is absent (non-Chromium)', () => {
+            const clientTrace = [
+                { type: 'create', value: { startTime: 1000 }, timestamp: 1000 },
+                { timestamp: 1001 }
+            ];
+
+            expect(extractClientFeatures(clientTrace).operatingSystem).to.be.undefined;
+        });
     });
 });

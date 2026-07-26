@@ -118,6 +118,8 @@ export function extractClientFeatures(clientTrace) {
         ...create,
         // The lifetime of the client in milliseconds.
         duration: clientTrace[clientTrace.length - 1].timestamp - clientTrace[0].timestamp,
+        // Normalized OS family from navigator.userAgentData.platform; undefined for non-Chromium browsers.
+        operatingSystem: create.userAgentData?.platform,
         ...enumerateDevicesFeatures(clientTrace),
         ...getDisplayMediaFeatures(clientTrace),
         ...getUserMediaFeatures(clientTrace),
