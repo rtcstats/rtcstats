@@ -43,6 +43,16 @@ describe('RTCStats dump', () => {
             });
         });
 
+        it('lists the client-level connection first', async () => {
+            const blob = new Blob(['RTCStatsDump\n' +
+                JSON.stringify({fileFormat: 3}) + '\n' +
+                JSON.stringify(['create', 'PC_0', {}, 1]) + '\n' +
+                JSON.stringify(['navigator.mediaDevices.getUserMedia', null, {audio: true}, 1]) + '\n'
+            ]);
+            const result = await readRTCStatsDump(blob);
+            expect(Object.keys(result.peerConnections)).to.deep.equal(['null', 'PC_0']);
+        });
+
         it('ignores other formats', async () => {
             const blob = new Blob(['Not an RTCStatsDump\n']);
             const result = await readRTCStatsDump(blob);

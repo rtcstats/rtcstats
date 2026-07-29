@@ -36,7 +36,8 @@ export async function readRTCStatsDump(blob) {
         console.error('Second line must be an object');
         return;
     }
-    data.peerConnections = {};
+    // Ensure the client-level connection is listed before the peer connections.
+    data.peerConnections = {null: []};
     data.eventSizes = {};
 
     const baseStats = {};
@@ -115,6 +116,9 @@ export async function readRTCStatsDump(blob) {
             y: line.length,
             method,
         });
+    }
+    if (!data.peerConnections['null'].length) {
+        delete data.peerConnections['null'];
     }
     return data;
 }
