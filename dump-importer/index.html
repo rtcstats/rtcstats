@@ -66,7 +66,7 @@ table details.srflx summary:after {
             <div class="upload-area" id="upload-area">
                 <label for="import">Drop a file here, or click to select</label>
                 <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
-                <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
+                <button type="button" class="upload-button" id="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
                 <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .jsonl, .txt, .gz)</div>
                 <div class="checkbox-container">
                     <input type="checkbox" id="useReferenceTime">
