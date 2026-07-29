@@ -5,6 +5,7 @@ import {detectRTCStatsDump, detectWebRTCInternalsDump} from '@rtcstats/rtcstats-
 const container = document.getElementById('tables');
 document.getElementById('import').onchange = async (evt) => {
     evt.target.disabled = 'disabled';
+    document.getElementById('upload-button').disabled = true;
     document.getElementById('useReferenceTime').disabled = true;
 
     const useReferenceTime = document.getElementById('useReferenceTime').checked;

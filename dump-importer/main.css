@@ -68,8 +68,13 @@ h1 {
     transition: background 0.15s;
 }
 
-.upload-button:hover {
+.upload-button:hover:not(:disabled) {
     background: #333;
+}
+
+.upload-button:disabled {
+    background: #999;
+    cursor: default;
 }
 
 .upload-hint {
