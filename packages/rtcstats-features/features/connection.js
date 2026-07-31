@@ -3,7 +3,7 @@ import SDPUtils from 'sdp';
 
 import {divideStat, pluckStat} from '../statUtils.js';
 
-function getSelectedCandidatePairStats(report) {
+function getSelectedTransportStats(report) {
     const transportId = Object.keys(report).find(id => {
         const stats = report[id];
         // Spec.
@@ -13,9 +13,13 @@ function getSelectedCandidatePairStats(report) {
         return report.type === 'candidate-pair' && report.selected === true;
         */
     });
-    if (transportId) {
-        const {selectedCandidatePairId} = report[transportId];
-        return report[selectedCandidatePairId];
+    return transportId ? report[transportId] : undefined;
+}
+
+function getSelectedCandidatePairStats(report) {
+    const transportStats = getSelectedTransportStats(report);
+    if (transportStats) {
+        return report[transportStats.selectedCandidatePairId];
     }
     return undefined;
 }
@@ -383,30 +387,42 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const features = {};
     let lastStatsEvent;
     let lastCandidatePairStats;
+    let lastTransportStats;
     let firstStatsEvent;
-    let firstCandidatePairStats;
+    let firstTransportStats;
+    const selectedCandidatePairs = new Map();
     for (let i = 0; i < peerConnectionTrace.length; i++) {
         const traceEvent = peerConnectionTrace[i];
         if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
-        const candidatePairStats = getSelectedCandidatePairStats(traceEvent.value);
+        const transportStats = getSelectedTransportStats(traceEvent.value);
+        if (!transportStats) continue;
+        const candidatePairStats = traceEvent.value[transportStats.selectedCandidatePairId];
         if (!candidatePairStats) continue;
         lastStatsEvent = traceEvent;
         lastCandidatePairStats = candidatePairStats;
+        lastTransportStats = transportStats;
+        selectedCandidatePairs.set(transportStats.selectedCandidatePairId, candidatePairStats);
+        // Byte counters come from the transport, not the candidate-pair which changes after an ice restart.
         if (!firstStatsEvent &&
-            pluckStat(candidatePairStats, ['bytesSent']) > 0 &&
-            pluckStat(candidatePairStats, ['bytesReceived']) > 0) {
+            pluckStat(transportStats, ['bytesSent']) > 0 &&
+            pluckStat(transportStats, ['bytesReceived']) > 0) {
             firstStatsEvent = traceEvent;
-            firstCandidatePairStats = candidatePairStats;
+            firstTransportStats = transportStats;
         }
     }
     if (!(lastStatsEvent && lastCandidatePairStats)) {
         return features;
     }
-    features['averageStunRoundTripTime'] = divideStat(lastCandidatePairStats, 'totalRoundTripTime', 'responsesReceived');
+    const roundTripTimeTotals = {responsesReceived: 0, totalRoundTripTime: 0};
+    for (const candidatePairStats of selectedCandidatePairs.values()) {
+        roundTripTimeTotals.responsesReceived += pluckStat(candidatePairStats, ['responsesReceived']) || 0;
+        roundTripTimeTotals.totalRoundTripTime += pluckStat(candidatePairStats, ['totalRoundTripTime']) || 0;
+    }
+    features['averageStunRoundTripTime'] = divideStat(roundTripTimeTotals, 'totalRoundTripTime', 'responsesReceived');
     if (firstStatsEvent && firstStatsEvent.timestamp < lastStatsEvent.timestamp) {
         const deltaSeconds = (lastStatsEvent.timestamp - firstStatsEvent.timestamp) / 1000;
-        features['averageOutboundBitrate'] = ((pluckStat(lastCandidatePairStats, ['bytesSent']) - pluckStat(firstCandidatePairStats, ['bytesSent'])) * 8) / deltaSeconds;
-        features['averageInboundBitrate'] = ((pluckStat(lastCandidatePairStats, ['bytesReceived']) - pluckStat(firstCandidatePairStats, ['bytesReceived'])) * 8) / deltaSeconds;
+        features['averageOutboundBitrate'] = ((pluckStat(lastTransportStats, ['bytesSent']) - pluckStat(firstTransportStats, ['bytesSent'])) * 8) / deltaSeconds;
+        features['averageInboundBitrate'] = ((pluckStat(lastTransportStats, ['bytesReceived']) - pluckStat(firstTransportStats, ['bytesReceived'])) * 8) / deltaSeconds;
     }
     return features;
 }

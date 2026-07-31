@@ -610,6 +610,30 @@ describe('extractConnectionFeatures', () => {
         expect(features.averageOutboundBitrate).to.be.undefined;
     });
 
+    it('should extract the stun round trip time across a change of the selected candidate pair', () => {
+        const pcTrace = [
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    2: { type: 'candidate-pair', totalRoundTripTime: 100, responsesReceived: 2 },
+                },
+                timestamp: 1001,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '3' },
+                    2: { type: 'candidate-pair', totalRoundTripTime: 100, responsesReceived: 2 },
+                    3: { type: 'candidate-pair', totalRoundTripTime: 20, responsesReceived: 2 },
+                },
+                timestamp: 2001,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.averageStunRoundTripTime).to.equal(30);
+    });
+
     it('should not divide by zero when no STUN responses were received', () => {
         const pcTrace = [
             {
@@ -630,24 +654,24 @@ describe('extractConnectionFeatures', () => {
             {
                 type: 'getStats',
                 value: {
-                    1: { type: 'transport', selectedCandidatePairId: '2' },
-                    2: { type: 'candidate-pair', bytesSent: 0, bytesReceived: 0 },
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 0, bytesReceived: 0 },
+                    2: { type: 'candidate-pair' },
                 },
                 timestamp: 1000,
             },
             {
                 type: 'getStats',
                 value: {
-                    1: { type: 'transport', selectedCandidatePairId: '2' },
-                    2: { type: 'candidate-pair', bytesSent: 1000, bytesReceived: 2000 },
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 1000, bytesReceived: 2000 },
+                    2: { type: 'candidate-pair' },
                 },
                 timestamp: 5000,
             },
             {
                 type: 'getStats',
                 value: {
-                    1: { type: 'transport', selectedCandidatePairId: '2' },
-                    2: { type: 'candidate-pair', bytesSent: 5000, bytesReceived: 10000 },
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 5000, bytesReceived: 10000 },
+                    2: { type: 'candidate-pair' },
                 },
                 timestamp: 9000,
             },
@@ -658,21 +682,80 @@ describe('extractConnectionFeatures', () => {
         expect(features.averageInboundBitrate).to.equal((10000 - 2000) * 8 / 4);
     });
 
-    it('should not extract bitrate when there is only one non-zero stats event', () => {
+    it('should extract average bitrate across a change of the selected candidate pair', () => {
         const pcTrace = [
             {
                 type: 'getStats',
                 value: {
-                    1: { type: 'transport', selectedCandidatePairId: '2' },
-                    2: { type: 'candidate-pair', bytesSent: 0, bytesReceived: 0 },
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 1000, bytesReceived: 2000 },
+                    2: { type: 'candidate-pair', bytesSent: 1000, bytesReceived: 2000 },
                 },
                 timestamp: 1000,
             },
             {
                 type: 'getStats',
                 value: {
-                    1: { type: 'transport', selectedCandidatePairId: '2' },
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 5000, bytesReceived: 10000 },
+                    2: { type: 'candidate-pair', bytesSent: 5000, bytesReceived: 10000 },
+                },
+                timestamp: 5000,
+            },
+            {
+                // The ice restart selects a new pair whose own counters start at zero.
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '3', bytesSent: 9000, bytesReceived: 18000 },
+                    2: { type: 'candidate-pair', bytesSent: 5000, bytesReceived: 10000 },
+                    3: { type: 'candidate-pair', bytesSent: 4000, bytesReceived: 8000 },
+                },
+                timestamp: 9000,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.averageOutboundBitrate).to.equal((9000 - 1000) * 8 / 8);
+        expect(features.averageInboundBitrate).to.equal((18000 - 2000) * 8 / 8);
+    });
+
+    it('should extract a positive bitrate when the new candidate pair sends nothing', () => {
+        const pcTrace = [
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 1000, bytesReceived: 2000 },
                     2: { type: 'candidate-pair', bytesSent: 1000, bytesReceived: 2000 },
+                },
+                timestamp: 1000,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '3', bytesSent: 5000, bytesReceived: 10000 },
+                    2: { type: 'candidate-pair', bytesSent: 5000, bytesReceived: 10000 },
+                    3: { type: 'candidate-pair', bytesSent: 0, bytesReceived: 0 },
+                },
+                timestamp: 5000,
+            },
+        ];
+        const features = extractConnectionFeatures([], pcTrace);
+        expect(features.averageOutboundBitrate).to.equal((5000 - 1000) * 8 / 4);
+        expect(features.averageInboundBitrate).to.equal((10000 - 2000) * 8 / 4);
+    });
+
+    it('should not extract bitrate when there is only one non-zero stats event', () => {
+        const pcTrace = [
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 0, bytesReceived: 0 },
+                    2: { type: 'candidate-pair' },
+                },
+                timestamp: 1000,
+            },
+            {
+                type: 'getStats',
+                value: {
+                    1: { type: 'transport', selectedCandidatePairId: '2', bytesSent: 1000, bytesReceived: 2000 },
+                    2: { type: 'candidate-pair' },
                 },
                 timestamp: 5000,
             },
