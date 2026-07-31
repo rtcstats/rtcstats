@@ -191,6 +191,47 @@ describe('RTCStats dump', () => {
                 }]},
             });
         });
+
+        // Chrome's own rtcstats writer JSON-encodes state-change values.
+        // Frames taken from a real dump, connection 18-4.
+        describe('state changes written by Chrome', () => {
+            const chromeDump = ['RTCStatsDump\n' +
+                JSON.stringify({fileFormat: 3}) + '\n' +
+                '["onsignalingstatechange","18-4","\\"have-local-offer\\"",1]\n' +
+                '["onicegatheringstatechange","18-4","\\"gathering\\"",1]\n' +
+                '["oniceconnectionstatechange","18-4","\\"checking\\"",1]\n' +
+                '["onconnectionstatechange","18-4","\\"connecting\\"",1]\n' +
+                '["oniceconnectionstatechange","18-4","\\"connected\\"",1]\n' +
+                '["onconnectionstatechange","18-4","\\"connected\\"",1]\n'
+            ];
+
+            it('unwraps the JSON-encoded state', async () => {
+                const result = await readRTCStatsDump(new Blob(chromeDump));
+                expect(result.peerConnections['18-4'].map(e => e.value)).to.deep.equal([
+                    'have-local-offer', 'gathering', 'checking', 'connecting', 'connected', 'connected',
+                ]);
+            });
+
+            it('leaves bare state values written by rtcstats-js alone', async () => {
+                const blob = new Blob(['RTCStatsDump\n' +
+                    JSON.stringify({fileFormat: 3}) + '\n' +
+                    JSON.stringify(['oniceconnectionstatechange', 'PC_0', 'checking', 1]) + '\n' +
+                    JSON.stringify(['onconnectionstatechange', 'PC_0', 'connected', 1]) + '\n'
+                ]);
+                const result = await readRTCStatsDump(blob);
+                expect(result.peerConnections['PC_0'].map(e => e.value))
+                    .to.deep.equal(['checking', 'connected']);
+            });
+
+            it('leaves quoted values that are not state names alone', async () => {
+                const blob = new Blob(['RTCStatsDump\n' +
+                    JSON.stringify({fileFormat: 3}) + '\n' +
+                    JSON.stringify(['createOfferOnFailure', 'PC_0', '"NotSupportedError"', 1]) + '\n'
+                ]);
+                const result = await readRTCStatsDump(blob);
+                expect(result.peerConnections['PC_0'][0].value).to.equal('"NotSupportedError"');
+            });
+        });
     });
 
     describe('extractTracks', () => {
