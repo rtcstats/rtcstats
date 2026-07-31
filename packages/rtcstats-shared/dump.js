@@ -6,6 +6,41 @@ import {
 import {createInternalsTimeSeries} from './timeseries.js';
 import {parseTrackWithStreams} from './utils.js';
 
+// Chrome JSON-encodes the state in these events, rtcstats-js writes it bare.
+// https://chromium-review.googlesource.com/c/chromium/src/+/6917903
+const STATE_VALUES = {
+    onsignalingstatechange: {
+        '"stable"': 'stable',
+        '"have-local-offer"': 'have-local-offer',
+        '"have-remote-offer"': 'have-remote-offer',
+        '"have-local-pranswer"': 'have-local-pranswer',
+        '"have-remote-pranswer"': 'have-remote-pranswer',
+        '"closed"': 'closed',
+    },
+    oniceconnectionstatechange: {
+        '"new"': 'new',
+        '"checking"': 'checking',
+        '"connected"': 'connected',
+        '"completed"': 'completed',
+        '"failed"': 'failed',
+        '"disconnected"': 'disconnected',
+        '"closed"': 'closed',
+    },
+    onconnectionstatechange: {
+        '"new"': 'new',
+        '"connecting"': 'connecting',
+        '"connected"': 'connected',
+        '"disconnected"': 'disconnected',
+        '"failed"': 'failed',
+        '"closed"': 'closed',
+    },
+    onicegatheringstatechange: {
+        '"new"': 'new',
+        '"gathering"': 'gathering',
+        '"complete"': 'complete',
+    },
+};
+
 export async function detectRTCStatsDump(blob) {
     const magic = await blob.slice(0, 13).text();
     return magic.startsWith('RTCStatsDump\n');
@@ -61,6 +96,8 @@ export async function readRTCStatsDump(blob) {
 
         lastTime = extra.pop() + lastTime;
         const time = new Date(lastTime);
+
+        value = STATE_VALUES[method]?.[value] || value;
 
         if (method === 'getStats') { // delta-compressed stats
             // statsDecompression does not modify its base stats argument.
