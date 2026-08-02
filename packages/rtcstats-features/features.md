@@ -251,13 +251,13 @@ All fields below come from the first `getStats` report taken after `onconnection
 
 ### Last-stats averages
 
-Computed from the selected [`RTCIceCandidatePairStats`](https://w3c.github.io/webrtc-stats/#candidatepair-dict*).
+Averages over the connection's lifetime.
 
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
-| `averageStunRoundTripTime` | number | last getStats ratio | Average STUN RTT over the connection's lifetime ([`totalRoundTripTime`](https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-totalroundtriptime) / [`responsesReceived`](https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-responsesreceived) on the selected candidate pair). |
-| `averageOutboundBitrate` | number | last getStats ratio | Average outbound bitrate (bits/s) over the connection's lifetime: `(last.bytesSent - first.bytesSent) * 8 / (last.timestamp - first.timestamp)` on the selected candidate pair, where `first` is the earliest `getStats` report whose selected pair has non-zero `bytesSent` and `bytesReceived`. |
-| `averageInboundBitrate` | number | last getStats ratio | Average inbound bitrate (bits/s) over the connection's lifetime: `(last.bytesReceived - first.bytesReceived) * 8 / (last.timestamp - first.timestamp)` on the selected candidate pair, with `first` defined as for `averageOutboundBitrate`. |
+| `averageStunRoundTripTime` | number | last getStats ratio | Average STUN RTT, summing [`totalRoundTripTime`](https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-totalroundtriptime) and [`responsesReceived`](https://w3c.github.io/webrtc-stats/#dom-rtcicecandidatepairstats-responsesreceived) per selected [candidate pair](https://w3c.github.io/webrtc-stats/#candidatepair-dict*) since those counters restart when the selected pair changes. |
+| `averageOutboundBitrate` | number | last getStats ratio | Average outbound bitrate from the [transport's](https://w3c.github.io/webrtc-stats/#transportstats-dict*) [`bytesSent`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-bytessent), between the first `getStats` report with non-zero bytes and the last. |
+| `averageInboundBitrate` | number | last getStats ratio | Average inbound bitrate from the transport's [`bytesReceived`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-bytesreceived), over the same interval. |
 
 ### Geolocation
 
