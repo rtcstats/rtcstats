@@ -5,7 +5,7 @@ describe('extractClientFeatures', () => {
         const clientTrace = [
             { type: 'create', value: { startTime: 1000, duration: 500, userAgentData: 'ua', hardwareConcurrency: 4, deviceMemory: 8, cpuPerformance: 3, screen: 'screen', window: 'window', reloadCount: 3 }, timestamp: 1000 },
             { type: 'navigator.mediaDevices.getUserMedia', value: { audio: true, video: false }, timestamp: 1001 },
-            { type: 'navigator.mediaDevices.getUserMediaOnSuccess', value: [], timestamp: 1002 },
+            { type: 'navigator.mediaDevices.getUserMediaOnSuccess', value: [['audio', 'audio-id', 'ACME mic (0000:0000)', 'stream-id']], timestamp: 1002 },
             { type: 'navigator.mediaDevices.getDisplayMedia', value: { video: true }, timestamp: 1003 },
             { type: 'navigator.mediaDevices.getDisplayMediaOnSuccess', value: [], timestamp: 1004 },
             { type: 'navigator.mediaDevices.enumerateDevices', timestamp: 1005 },
@@ -26,6 +26,8 @@ describe('extractClientFeatures', () => {
             reloadCount: 3,
             operatingSystem: undefined,
             webSocketConnectionTime: undefined,
+            audioDeviceUsbId: '0000:0000',
+            videoDeviceUsbId: undefined,
             calledGetUserMedia: true,
             calledGetUserMediaAudio: true,
             calledGetUserMediaCombined: false,
@@ -60,6 +62,8 @@ describe('extractClientFeatures', () => {
             window: 'window',
             operatingSystem: undefined,
             webSocketConnectionTime: undefined,
+            audioDeviceUsbId: undefined,
+            videoDeviceUsbId: undefined,
             calledGetUserMedia: false,
             calledGetUserMediaAudio: false,
             calledGetUserMediaCombined: false,
@@ -139,6 +143,56 @@ describe('extractClientFeatures', () => {
         expect(features.audioShortDuration).to.be.true;
         expect(features.videoEnded).to.be.true;
         expect(features.videoShortDuration).to.be.undefined;
+    });
+
+    describe('device usb ids', () => {
+        const traceWithLabels = (...labels) => [
+            { type: 'create', value: { startTime: 1000 }, timestamp: 1000 },
+            {
+                type: 'navigator.mediaDevices.getUserMediaOnSuccess',
+                value: labels.map(([kind, label]) => [kind, kind + '-id', label, 'stream-id']),
+                timestamp: 1100
+            }
+        ];
+
+        it('should extract the usb id of the audio and video device', () => {
+            const features = extractClientFeatures(traceWithLabels(
+                ['audio', 'ACME mic (0000:0000)'],
+                ['video', 'ACME cam (0000:0000)']
+            ));
+
+            expect(features.audioDeviceUsbId).to.equal('0000:0000');
+            expect(features.videoDeviceUsbId).to.equal('0000:0000');
+        });
+
+        it('should be undefined for devices without a usb id', () => {
+            const features = extractClientFeatures(traceWithLabels(
+                ['audio', 'Default'],
+                ['video', 'fake_device_0']
+            ));
+
+            expect(features.audioDeviceUsbId).to.be.undefined;
+            expect(features.videoDeviceUsbId).to.be.undefined;
+        });
+
+        it('should not treat other parenthesized suffixes as a usb id', () => {
+            const features = extractClientFeatures(traceWithLabels(['audio', 'MacBook Pro Microphone (Built-in)']));
+
+            expect(features.audioDeviceUsbId).to.be.undefined;
+        });
+
+        it('should use the first device of that kind', () => {
+            const clientTrace = [
+                ...traceWithLabels(['audio', 'ACME mic (0000:0000)']),
+                {
+                    type: 'navigator.mediaDevices.getUserMediaOnSuccess',
+                    value: [['audio', 'audio-id-2', 'ACME other mic (1111:1111)', 'stream-id']],
+                    timestamp: 1200
+                }
+            ];
+
+            expect(extractClientFeatures(clientTrace).audioDeviceUsbId).to.equal('0000:0000');
+        });
     });
 
     describe('operatingSystem', () => {

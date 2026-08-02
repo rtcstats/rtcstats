@@ -101,6 +101,8 @@ Any other fields present on the `create` event's `value` are also spread into th
 | `getUserMediaError` | string | first event | Error name/value of the first failed `getUserMedia`. |
 | `getUserMediaErrorCount` | number | count | Number of failed `getUserMedia` calls. |
 | `getUserMediaSuccessCount` | number | count | Number of successful `getUserMedia` calls. |
+| `audioDeviceUsbId` | string | first event | USB `vendor:product` id of the first audio device acquired via `getUserMedia`. |
+| `videoDeviceUsbId` | string | first event | USB `vendor:product` id of the first video device acquired via `getUserMedia`. |
 
 ### `getDisplayMedia`
 

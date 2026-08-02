@@ -5,9 +5,30 @@
  * connection such as getUserMedia or enumerateDevices.
  */
 
+// The USB id of the first device of that kind acquired via getUserMedia.
+// Labels of USB devices end with the vendor:product id, e.g. "Logitech BRIO (046d:085e)".
+function deviceUsbId(clientTrace, kind) {
+    for (const traceEvent of clientTrace) {
+        if (traceEvent.type !== 'navigator.mediaDevices.getUserMediaOnSuccess') {
+            continue;
+        }
+        for (const track of traceEvent.value) {
+            const label = track[2] || '';
+            if (track[0] !== kind || !label.endsWith(')')) {
+                continue;
+            }
+            const usbId = label.slice(-10, -1);
+            if (usbId[4] === ':') {
+                return usbId;
+            }
+        }
+    }
+}
+
 // Client features related to getUserMedia.
 function getUserMediaFeatures(clientTrace) {
     return {
+        audioDeviceUsbId: deviceUsbId(clientTrace, 'audio'),
         calledGetUserMedia: clientTrace.find(traceEvent => {
             // Whether getUserMedia was called at least once.
             return traceEvent.type === 'navigator.mediaDevices.getUserMedia';
@@ -37,6 +58,7 @@ function getUserMediaFeatures(clientTrace) {
             // The number of successful getUserMedia calls.
             return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnSuccess';
         }).length,
+        videoDeviceUsbId: deviceUsbId(clientTrace, 'video'),
     };
 }
 
