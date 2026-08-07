@@ -277,7 +277,10 @@ export async function extractTracks(peerConnectionTrace) {
             const trackInformation = parseTrackWithStreams(traceEvent.value);
             trackInformation.startTime = traceEvent.timestamp;
             trackInformation.direction = 'inbound';
-            tracks.push(trackInformation);
+            if (tracks.find(info => info.direction === 'inbound' &&
+                    info.id === trackInformation.id) === undefined) {
+                tracks.push(trackInformation);
+            }
         } else if (traceEvent.type === 'addTransceiver') {
             if (typeof traceEvent.value[0] === 'string') {
                 // TODO: if we pass a kind here, how do we determine the track id?
@@ -348,7 +351,9 @@ export async function extractTracks(peerConnectionTrace) {
                     label: value.receiver.track,
                     streams: value.receiver.streams,
                 };
-                tracks.push(trackInformation);
+                if (tracks.find(info => info.id === trackInformation.id) === undefined) {
+                    tracks.push(trackInformation);
+                }
             }
         }
     }
