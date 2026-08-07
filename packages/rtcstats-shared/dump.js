@@ -355,6 +355,24 @@ export async function extractTracks(peerConnectionTrace) {
                     tracks.push(trackInformation);
                 }
             }
+        } else if (traceEvent.type === 'transceiverModified') {
+            // A transceiver created locally only starts receiving once the
+            // negotiation is done, which is the only signal for inbound tracks
+            // in dumps from Chrome versions without the ontrack event.
+            const {value} = traceEvent;
+            if (value.currentDirection?.includes('recv') && value.receiver?.track) {
+                const trackInformation = {
+                    startTime: traceEvent.timestamp,
+                    direction: 'inbound',
+                    kind: value.kind,
+                    id: value.receiver.track,
+                    label: value.receiver.track,
+                    streams: value.receiver.streams,
+                };
+                if (tracks.find(info => info.id === trackInformation.id) === undefined) {
+                    tracks.push(trackInformation);
+                }
+            }
         }
     }
     return tracks;
