@@ -409,6 +409,131 @@ describe('RTCStats dump', () => {
                 streams: [ 'streamId' ],
             }]);
         });
+        it('extracts from chromes transceiverModified once it receives', async () => {
+            const blob = new Blob(['RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['transceiverAdded','1',{
+                    reason: 'addTrack',
+                    kind: 'audio',
+                    sender: {
+                        track: 'localTrackId',
+                        streams: [],
+                    },
+                    receiver: {
+                        track: 'trackId',
+                        streams: [],
+                    },
+                    currentDirection: null,
+                },1]) + '\n',
+                JSON.stringify(['transceiverModified','1',{
+                    reason: 'setRemoteDescription',
+                    kind: 'audio',
+                    receiver: {
+                        track: 'trackId',
+                        streams: ['streamId'],
+                    },
+                    currentDirection: 'sendrecv',
+                },2]) + '\n',
+                JSON.stringify(['transceiverModified','1',{
+                    reason: 'setLocalDescription',
+                    kind: 'audio',
+                    receiver: {
+                        track: 'trackId',
+                        streams: ['streamId'],
+                    },
+                    currentDirection: 'sendrecv',
+                },3]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'inbound-rtp', trackIdentifier: 'trackId'},
+                },4]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo.filter(info => info.direction === 'inbound')).to.deep.equal([{
+                direction: 'inbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackId',
+                startTime: 3,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
+        it('ignores chromes transceiverModified while it does not receive', async () => {
+            const blob = new Blob(['RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['transceiverModified','1',{
+                    reason: 'setRemoteDescription',
+                    kind: 'audio',
+                    receiver: {
+                        track: 'trackId',
+                        streams: [],
+                    },
+                    currentDirection: 'sendonly',
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([]);
+        });
+        it('deduplicates transceiverAdded after ontrack', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['ontrack','1',['audio','trackId','remote audio','streamId'],1]) + '\n',
+                JSON.stringify(['transceiverAdded','1',{
+                    reason: 'setRemoteDescription',
+                    kind: 'audio',
+                    receiver: {
+                        track: 'trackId',
+                        streams: ['streamId'],
+                    },
+                },1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'inbound-rtp', trackIdentifier: 'trackId'},
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'inbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'remote audio',
+                startTime: 1,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
+        it('deduplicates ontrack after transceiverAdded', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['transceiverAdded','1',{
+                    reason: 'setRemoteDescription',
+                    kind: 'audio',
+                    receiver: {
+                        track: 'trackId',
+                        streams: ['streamId'],
+                    },
+                },1]) + '\n',
+                JSON.stringify(['ontrack','1',['audio','trackId','remote audio','streamId'],1]) + '\n',
+                JSON.stringify(['getStats','1',{
+                    7: {type:'inbound-rtp', trackIdentifier: 'trackId'},
+                },1]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'inbound',
+                id: 'trackId',
+                kind: 'audio',
+                label: 'trackId',
+                startTime: 1,
+                statsId: '7',
+                streams: [ 'streamId' ],
+            }]);
+        });
     });
 });
 
