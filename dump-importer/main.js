@@ -1,6 +1,6 @@
 import {RTCStatsDumpImporter} from './import-rtcstats.js';
 import {WebRTCInternalsDumpImporter} from './import-internals.js';
-import {detectRTCStatsDump, detectWebRTCInternalsDump} from '@rtcstats/rtcstats-shared';
+import {detectRTCStatsDump, detectWebRTCInternalsDump, maybeUncompressDump} from '@rtcstats/rtcstats-shared';
 
 const container = document.getElementById('tables');
 document.getElementById('import').onchange = async (evt) => {
@@ -15,13 +15,7 @@ document.getElementById('import').onchange = async (evt) => {
     const status = document.getElementById('status');
     status.textContent = file.name;
     status.classList.add('visible');
-    let stream;
-    if (['application/gzip', 'application/x-gzip'].includes(file.type)) {
-        stream = file.stream().pipeThrough(new DecompressionStream('gzip'));
-    } else {
-        stream = file.stream();
-    }
-    const blob = await (new Response(stream)).blob();
+    const blob = await maybeUncompressDump(file);
     if (await detectRTCStatsDump(blob)) {
         window.importer = new RTCStatsDumpImporter(container);
         importer.process(blob);

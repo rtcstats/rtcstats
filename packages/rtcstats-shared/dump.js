@@ -41,13 +41,22 @@ const STATE_VALUES = {
     },
 };
 
+// Call before format detection, dumps are frequently stored gzipped.
+export async function maybeUncompressDump(blob) {
+    const magic = new Uint8Array(await blob.slice(0, 2).arrayBuffer());
+    if (magic[0] !== 0x1f || magic[1] !== 0x8b) {
+        return blob;
+    }
+    return new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
+}
+
 export async function detectRTCStatsDump(blob) {
     const magic = await blob.slice(0, 13).text();
     return magic.startsWith('RTCStatsDump\n');
 }
 
 export async function detectWebRTCInternalsDump(blob) {
-    return (await blob.text()).startsWith('{');
+    return (await blob.slice(0, 1).text()) === '{';
 }
 
 export async function readRTCStatsDump(blob) {
@@ -257,12 +266,16 @@ export function internalsToRtcstats(data) {
     return {peerConnections, eventSizes: {}};
 }
 
-// Auto-detect the dump format and dispatch.
+// Uncompress if needed, auto-detect the dump format and dispatch.
 export async function readDump(blob) {
-    if (await detectRTCStatsDump(blob)) {
-        return readRTCStatsDump(blob);
+    const dump = await maybeUncompressDump(blob);
+    if (await detectRTCStatsDump(dump)) {
+        return readRTCStatsDump(dump);
     }
-    return internalsToRtcstats(await readWebRTCInternalsDump(blob));
+    if (!await detectWebRTCInternalsDump(dump)) {
+        throw new Error('Unrecognized dump format');
+    }
+    return internalsToRtcstats(await readWebRTCInternalsDump(dump));
 }
 
 export async function extractTracks(peerConnectionTrace) {

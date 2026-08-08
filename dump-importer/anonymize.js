@@ -1,4 +1,5 @@
 import {anonymizeBlob} from '../packages/rtcstats-shared/anonymize.js';
+import {maybeUncompressDump} from '@rtcstats/rtcstats-shared';
 
 const area = document.getElementById('upload-area');
 const fileInput = document.getElementById('import');
@@ -32,13 +33,7 @@ document.getElementById('import').onchange = async (evt) => {
 
     const files = evt.target.files;
     const file = files[0];
-    let stream;
-    if (['application/gzip', 'application/x-gzip'].includes(file.type)) {
-        stream = file.stream().pipeThrough(new DecompressionStream('gzip'));
-    } else {
-        stream = file.stream();
-    }
-    const blob = await (new Response(stream)).blob();
+    const blob = await maybeUncompressDump(file);
     const newBlob = await anonymizeBlob(await blob.text());
     if (newBlob) {
         const anchor = document.getElementById('download');

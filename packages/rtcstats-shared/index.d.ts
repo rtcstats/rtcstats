@@ -1,5 +1,6 @@
 // Type definitions for @rtcstats/rtcstats-shared
 
+export async function maybeUncompressDump(blob: Blob): Promise<Blob>;
 export async function detectWebRTCInternalsDump(blob: Blob): Promise<boolean>;
 export async function readWebRTCInternalsDump(blob: Blob): Promise<object>;
 export async function detectRTCStatsDump(blob: Blob): Promise<boolean>;
