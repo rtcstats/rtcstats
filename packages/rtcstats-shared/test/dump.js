@@ -2,6 +2,7 @@ import {
     detectRTCStatsDump,
     detectWebRTCInternalsDump,
     internalsToRtcstats,
+    maybeUncompressDump,
     readDump,
     readRTCStatsDump,
     readWebRTCInternalsDump,
@@ -510,6 +511,40 @@ describe('webrtc-internals dump', () => {
             expect(Object.keys(result.peerConnections)).to.have.members(['null', '23-3']);
             expect(result.peerConnections['23-3'][0].type).to.equal('create');
             expect(result.peerConnections['23-3'][0].timestamp).to.equal(1778229287516);
+        });
+
+        it('reads a gzipped dump', async () => {
+            const blob = new Blob(['RTCStatsDump\n' +
+                JSON.stringify({fileFormat: 3}) + '\n' +
+                JSON.stringify(['close', null, 1001, 1]) + '\n']);
+            const gzipped = await new Response(blob.stream()
+                .pipeThrough(new CompressionStream('gzip'))).blob();
+            const result = await readDump(gzipped);
+            expect(result.fileFormat).to.equal(3);
+            expect(result.peerConnections['null'][0].type).to.equal('close');
+        });
+
+        it('rejects an unrecognized format', async () => {
+            let error;
+            try {
+                await readDump(new Blob(['not a dump']));
+            } catch (err) {
+                error = err;
+            }
+            expect(error).to.be.an('error');
+        });
+    });
+
+    describe('maybeUncompressDump', () => {
+        it('returns an uncompressed blob unchanged', async () => {
+            const blob = new Blob(['RTCStatsDump\n']);
+            expect(await maybeUncompressDump(blob)).to.equal(blob);
+        });
+
+        it('uncompresses a gzipped blob', async () => {
+            const gzipped = await new Response(new Blob(['RTCStatsDump\n']).stream()
+                .pipeThrough(new CompressionStream('gzip'))).blob();
+            expect(await (await maybeUncompressDump(gzipped)).text()).to.equal('RTCStatsDump\n');
         });
     });
 });
