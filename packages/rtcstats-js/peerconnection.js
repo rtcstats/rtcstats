@@ -70,6 +70,36 @@ function wrapRTCRtpSender(trace, window) {
             return nativeMethod.apply(this, [track, ...args]);
         };
     });
+    ['createEncodedStreams'].forEach(method => {
+        const nativeMethod = window.RTCRtpSender.prototype[method];
+        if (!nativeMethod) return;
+        window.RTCRtpSender.prototype[method] = function(...args) {
+            trace(method, this.__rtcStatsId, undefined, this.__rtcStatsSenderId);
+            return nativeMethod.apply(this, args);
+        };
+    });
+}
+
+/**
+ * Wraps a RTCRtpReceiver for RTCStats. Currently applied to these methods:
+ * * createEncodedStreams
+ *
+ * @protected
+ * @param {function} trace - RTCStats trace callback
+ * @param {object} window - window object from which to take the RTCRtpReceiver prototype.
+ */
+function wrapRTCRtpReceiver(trace, window) {
+    if (!window.RTCRtpReceiver) {
+        return;
+    }
+    ['createEncodedStreams'].forEach(method => {
+        const nativeMethod = window.RTCRtpReceiver.prototype[method];
+        if (!nativeMethod) return;
+        window.RTCRtpReceiver.prototype[method] = function(...args) {
+            trace(method, this.__rtcStatsId, undefined, this.__rtcStatsReceiverId);
+            return nativeMethod.apply(this, args);
+        };
+    });
 }
 
 /**
@@ -98,6 +128,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     }
     wrapRTCRtpTransceiver(trace, window);
     wrapRTCRtpSender(trace, window);
+    wrapRTCRtpReceiver(trace, window);
     const OrigPeerConnection = window.RTCPeerConnection;
     let peerconnectioncounter = 0;
     // Counters for event correlation.
@@ -252,6 +283,8 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
             if (transceiver) {
                 transceiver.__rtcStatsId = this.__rtcStatsId;
                 sender.__rtcStatsSenderId = transceiver.receiver.track.id;
+                transceiver.receiver.__rtcStatsId = this.__rtcStatsId;
+                transceiver.receiver.__rtcStatsReceiverId = transceiver.receiver.track.id;
                 trace(method + 'OnSuccess', this.__rtcStatsId, null, transceiver.receiver.track.id);
             }
             return sender;
@@ -276,6 +309,8 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
             transceiver.__rtcStatsId = this.__rtcStatsId;
             transceiver.sender.__rtcStatsId = this.__rtcStatsId;
             transceiver.sender.__rtcStatsSenderId = transceiver.receiver.track.id;
+            transceiver.receiver.__rtcStatsId = this.__rtcStatsId;
+            transceiver.receiver.__rtcStatsReceiverId = transceiver.receiver.track.id;
             trace(method + 'OnSuccess', this.__rtcStatsId, null, transceiver.receiver.track.id);
             return transceiver;
         };
@@ -374,6 +409,8 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
                         transceiver.__rtcStatsId = this.__rtcStatsId;
                         transceiver.sender.__rtcStatsId = this.__rtcStatsId;
                         transceiver.sender.__rtcStatsSenderId = transceiver.receiver.track.id;
+                        transceiver.receiver.__rtcStatsId = this.__rtcStatsId;
+                        transceiver.receiver.__rtcStatsReceiverId = transceiver.receiver.track.id;
                     });
                     trace(method + 'OnSuccess', this.__rtcStatsId, undefined,
                         trackingId);
