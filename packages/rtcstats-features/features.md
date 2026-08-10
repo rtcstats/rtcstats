@@ -296,6 +296,7 @@ Track features describe a single inbound or outbound media track. The extractor 
 | `trackIdentifier` | string | trackInformation | The track's `id`. |
 | `startTime` | number | trackInformation | Timestamp at which the track was added to the connection. |
 | `hasNullVideoDecoder` | boolean | aggregated getStats | Whether the null video decoder was used at any point (`decoderImplementation === 'NullVideoDecoder'`). Inbound video only; otherwise `undefined`. |
+| `timeToFirstFrame` | number | time delta | Milliseconds between the `ontrack` event and the track's first `unmute` event. Inbound only. |
 
 ### Codec
 
