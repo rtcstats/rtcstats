@@ -36,6 +36,19 @@ function hasNullVideoDecoder(peerConnectionTrace, trackInformation) {
     return false;
 }
 
+function timeToFirstFrame(peerConnectionTrace, trackInformation) {
+    if (trackInformation.direction !== 'inbound') {
+        return undefined;
+    }
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'MediaStreamTrack.onunmute') continue;
+        if (traceEvent.value !== trackInformation.id) continue;
+        const delta = Math.floor(traceEvent.timestamp - trackInformation.startTime);
+        return delta >= 0 ? delta : undefined;
+    }
+    return undefined;
+}
+
 function resolutionFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     if (trackInformation.kind === 'audio') return {};
     const widths = {};
@@ -210,11 +223,12 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
     // getStats events which are associated with trackInformation.statsId.
     const features = {
         direction: trackInformation.direction,
+        hasNullVideoDecoder: hasNullVideoDecoder(peerConnectionTrace, trackInformation),
         kind: trackInformation.kind,
         startTime: trackInformation.startTime,
+        timeToFirstFrame: timeToFirstFrame(peerConnectionTrace, trackInformation),
         trackIdentifier: trackInformation.id,
     };
-    features.hasNullVideoDecoder = hasNullVideoDecoder(peerConnectionTrace, trackInformation);
 
     return {
         ...codecFeatures(undefined, peerConnectionTrace, trackInformation),

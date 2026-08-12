@@ -475,4 +475,69 @@ describe('extractTrackFeatures', () => {
             expect(features.hasPeriodicJitterBufferFlushes).to.equal(false);
         });
     });
+
+    describe('timeToFirstFrame', () => {
+        const trackInfo = {
+            direction: 'inbound',
+            id: 'track1',
+            kind: 'video',
+            startTime: 1000,
+            statsId: 'track1_stats',
+        };
+
+        it('should extract the delta between ontrack and the unmute event', () => {
+            const pcTrace = [
+                {timestamp: 2200, type: 'MediaStreamTrack.onunmute', value: 'track1'},
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.timeToFirstFrame).to.equal(1200);
+        });
+
+        it('should return undefined if there is no unmute event', () => {
+            const features = extractTrackFeatures([], [], trackInfo);
+            expect(features.timeToFirstFrame).to.be.undefined;
+        });
+
+        it('should return undefined for outbound tracks', () => {
+            const outboundTrackInfo = {
+                direction: 'outbound',
+                id: 'track1',
+                kind: 'video',
+                startTime: 1000,
+                statsId: 'track1_stats',
+            };
+            const pcTrace = [
+                {timestamp: 2200, type: 'MediaStreamTrack.onunmute', value: 'track1'},
+            ];
+            const features = extractTrackFeatures([], pcTrace, outboundTrackInfo);
+            expect(features.timeToFirstFrame).to.be.undefined;
+        });
+
+        it('should ignore unmute events for other tracks', () => {
+            const pcTrace = [
+                {timestamp: 2200, type: 'MediaStreamTrack.onunmute', value: 'track2'},
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.timeToFirstFrame).to.be.undefined;
+        });
+
+        it('should use the first unmute event when the track mutes and unmutes again', () => {
+            const pcTrace = [
+                {timestamp: 2200, type: 'MediaStreamTrack.onunmute', value: 'track1'},
+                {timestamp: 3000, type: 'MediaStreamTrack.onmute', value: 'track1'},
+                {timestamp: 4000, type: 'MediaStreamTrack.onunmute', value: 'track1'},
+                {timestamp: 5000, type: 'MediaStreamTrack.onmute', value: 'track1'},
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.timeToFirstFrame).to.equal(1200);
+        });
+
+        it('should return undefined if the unmute event predates the track', () => {
+            const pcTrace = [
+                {timestamp: 900, type: 'MediaStreamTrack.onunmute', value: 'track1'},
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.timeToFirstFrame).to.be.undefined;
+        });
+    });
 });
