@@ -104,23 +104,6 @@ export function createContainers(connid, url, containers) {
     const summary = document.createElement('summary');
     summary.innerText = 'Connection:' + connid + ' URL: ' + url;
     container.appendChild(summary);
-    if (url) {
-        const parsedUrl = new URL(url);
-        if (parsedUrl && parsedUrl.searchParams.has('rtcstats-token')) { // Parse JWT by hand.
-            const parts = parsedUrl.searchParams.get('rtcstats-token').split('.');
-            if (parts[1]) {
-                const rawJwt = atob(parts[1]);
-                if (rawJwt) {
-                    const parsedJwt = JSON.parse(rawJwt);
-                    if (parsedJwt.rtcStats) {
-                        const rtcstatsToken = document.createElement('div');
-                        rtcstatsToken.innerText = 'Decoded RTCStats token: ' + JSON.stringify(parsedJwt.rtcStats, null, ' ');
-                        container.appendChild(rtcstatsToken);
-                    }
-                }
-            }
-        }
-    }
 
     const configuration = document.createElement('div');
     container.appendChild(configuration);
