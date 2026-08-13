@@ -102,8 +102,9 @@ async function process() {
     while (true) {
         const result = await sql`update ${sql(config.database.postgres.tableName)}
             set features_processing_start = now()
-            where CTID IN (select CTID from ${sql(config.database.postgres.tableName)}
-                where blob_url is not null and features_processing_start is null order by created_at asc limit 1)
+            where id IN (select id from ${sql(config.database.postgres.tableName)}
+                where blob_url is not null and features_processing_start is null order by created_at asc limit 1
+                for update skip locked)
             returning id, blob_url`;
         if (!result.length) {
             break;
