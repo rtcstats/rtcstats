@@ -1,8 +1,13 @@
 import {obfuscateIpOrAddress} from '@rtcstats/rtcstats-shared/address-obfuscator.js';
 
 export async function extractMetadata(upgradeRequest, options = {}) {
-    // The url the client is coming from
-    const url = upgradeRequest.url;
+    // The url the client is coming from. rtcstats-token has already
+    // been validated if present and is removed.
+    const requestUrl = new URL(upgradeRequest.url, 'http://localhost');
+    if (requestUrl.searchParams.has('rtcstats-token')) {
+        requestUrl.searchParams.set('rtcstats-token', 'obfuscated');
+    }
+    const url = requestUrl.pathname + requestUrl.search;
     // TODO: check origin against known/valid urls?
     const {origin} = upgradeRequest.headers;
 
