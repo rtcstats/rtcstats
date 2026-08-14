@@ -520,6 +520,26 @@ function signalingDelay(/* clientTrace*/_, peerConnectionTrace) {
     return peerConnectionTrace[second].timestamp - peerConnectionTrace[first].timestamp;
 }
 
+function statsTruncated(/* clientTrace*/_, peerConnectionTrace) {
+    // chrome://webrtc-internals only keeps the last 1000 samples per stats property.
+    const firstSeen = {};
+    const samples = {};
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) {
+            continue;
+        }
+        Object.keys(traceEvent.value).forEach(id => {
+            if (samples[id] === undefined) {
+                firstSeen[id] = traceEvent.timestamp;
+                samples[id] = 0;
+            }
+            samples[id]++;
+        });
+    }
+    return Object.keys(samples).some(id => samples[id] === 1000 &&
+        firstSeen[id] - peerConnectionTrace[0].timestamp > 60000);
+}
+
 export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
     // A trace will always have at least one event.
     return {
@@ -545,5 +565,6 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         signalingDelay: signalingDelay(undefined, peerConnectionTrace),
         // The timestamp at which the peer connection was created.
         startTime: peerConnectionTrace[0].timestamp,
+        statsTruncated: statsTruncated(undefined, peerConnectionTrace),
     };
 }
