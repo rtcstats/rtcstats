@@ -201,11 +201,11 @@ export function internalsToRtcstats(data) {
             const tracks = [];
             if (gum.audio_track_info) {
                 const t = JSON.parse(gum.audio_track_info);
-                tracks.push(['audio', t.id, t.label, gum.stream_id]);
+                if (t) tracks.push(['audio', t.id, t.label, gum.stream_id]);
             }
             if (gum.video_track_info) {
                 const t = JSON.parse(gum.video_track_info);
-                tracks.push(['video', t.id, t.label, gum.stream_id]);
+                if (t) tracks.push(['video', t.id, t.label, gum.stream_id]);
             }
             clientTrace.push({type: baseType + 'OnSuccess', value: tracks, timestamp: gum.timestamp, extra: []});
         } else if (gum.audio !== undefined || gum.video !== undefined) {
