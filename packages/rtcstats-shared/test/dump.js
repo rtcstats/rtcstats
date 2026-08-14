@@ -603,6 +603,22 @@ describe('webrtc-internals dump', () => {
             expect(sld.value).to.deep.equal({type: 'offer', sdp: 'v=0\r\n'});
         });
 
+        it('ignores track_info of tracks that were not requested', () => {
+            const {peerConnections} = internalsToRtcstats({...sample, getUserMedia: [{
+                request_type: 'getUserMedia',
+                audio_track_info: '{"id":"8effbd5a","label":"Standard - Line"}',
+                video_track_info: 'null',
+                stream_id: '553922f8',
+                timestamp: 1778229253217.358,
+            }]});
+            expect(peerConnections['null'][0]).to.deep.equal({
+                type: 'navigator.mediaDevices.getUserMediaOnSuccess',
+                value: [['audio', '8effbd5a', 'Standard - Line', '553922f8']],
+                timestamp: 1778229253217.358,
+                extra: [],
+            });
+        });
+
         it('reconstructs per-tick getStats events from the stats timeseries', () => {
             const {peerConnections} = internalsToRtcstats(sample);
             const getStats = peerConnections['23-3'].filter(e => e.type === 'getStats');
