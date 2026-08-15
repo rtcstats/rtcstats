@@ -110,7 +110,7 @@ async function process() {
             break;
         }
         const url = result[0].blob_url;
-        const filename = url.split('/').slice(3)[0];
+        const filename = new URL(url).pathname.split('/').pop();
         console.log('processing', url);
         const blob = await new Response(await storage.get(filename)).blob();
         const dump = await readRTCStatsDump(blob);
