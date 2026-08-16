@@ -33,6 +33,7 @@ describe('extractConnectionFeatures', () => {
             numberOfEventsNotGetStats: 2,
             numberOfNegotiations: 0,
             startTime: 1000,
+            statsTruncated: false,
             usingIceLite: false,
         });
     });
@@ -843,6 +844,51 @@ describe('extractConnectionFeatures', () => {
             const features = extractConnectionFeatures([], pcTrace);
             expect(features.numberOfNegotiations).to.equal(0);
             expect(features.pendingNegotiationAtEnd).to.equal(undefined);
+        });
+    });
+
+    describe('statsTruncated', () => {
+        function getStatsEvents(count, startTime) {
+            return new Array(count).fill().map((_, index) => ({
+                type: 'getStats',
+                value: {OT1: {id: 'OT1', type: 'outbound-rtp'}},
+                timestamp: startTime + index * 1000,
+            }));
+        }
+
+        it('is true when a stat sits at the 1000 sample cap long after the connection was created', () => {
+            const pcTrace = [
+                { type: 'create', timestamp: 1000 },
+                ...getStatsEvents(1000, 600000),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.statsTruncated).to.equal(true);
+        });
+
+        it('is false when a stat sits at the 1000 sample cap since the connection was created', () => {
+            const pcTrace = [
+                { type: 'create', timestamp: 1000 },
+                ...getStatsEvents(1000, 2000),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.statsTruncated).to.equal(false);
+        });
+
+        it('is false below the 1000 sample cap', () => {
+            const pcTrace = [
+                { type: 'create', timestamp: 1000 },
+                ...getStatsEvents(999, 600000),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.statsTruncated).to.equal(false);
+        });
+
+        it('is false without getStats', () => {
+            const pcTrace = [
+                { type: 'create', timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.statsTruncated).to.equal(false);
         });
     });
 });
