@@ -236,6 +236,18 @@ All fields are derived from the [`RTCConfiguration`](https://w3c.github.io/webrt
 | `gatheredSrflxCandidate` | boolean | presence | A `srflx` candidate was gathered locally. |
 | `gatheredTurnCandidate` | boolean | presence | A `relay` candidate was gathered locally. |
 
+### TURN gathering times
+
+Time between [`icegatheringstatechange`](https://w3c.github.io/webrtc-pc/#event-icegatheringstatechange) becoming `gathering` and the first local `relay` candidate allocated over the respective TURN transport. The transport comes from [`relayProtocol`](https://w3c.github.io/webrtc-pc/#dom-rtcicecandidate-relayprotocol) which `rtcstats-js` serializes on the `onicecandidate` event. Only the first gathering phase is measured: the window opens on `gathering` and ends for good on `complete`, so candidates gathered after an ICE restart do not contribute.
+
+Note that a missing value does not necessarily mean the TURN server was unreachable: gathering stops once the connection is established, so a call that connects on a host pair within a few milliseconds completes gathering before any relay candidate is allocated.
+
+| Feature | Type | Source | Description |
+| --- | --- | --- | --- |
+| `gatheringTimeTurnUdp` | number | time delta | Milliseconds until the first candidate relayed over TURN/UDP. |
+| `gatheringTimeTurnTcp` | number | time delta | Milliseconds until the first candidate relayed over TURN/TCP. |
+| `gatheringTimeTurnTls` | number | time delta | Milliseconds until the first candidate relayed over TURN/TLS. |
+
 ### First selected candidate pair
 
 All fields below come from the first `getStats` report taken after `onconnectionstatechange='connected'` whose [`transport`](https://w3c.github.io/webrtc-stats/#transportstats-dict*) has a [`selectedCandidatePairId`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-selectedcandidatepairid). Local and remote [`RTCIceCandidateStats`](https://w3c.github.io/webrtc-stats/#icecandidate-dict*) are looked up by id from the same report. Absent if no such report exists.

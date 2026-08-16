@@ -891,4 +891,94 @@ describe('extractConnectionFeatures', () => {
             expect(features.statsTruncated).to.equal(false);
         });
     });
+
+    describe('TURN gathering times', () => {
+        function relayCandidate(relayProtocol, timestamp) {
+            return {
+                type: 'onicecandidate',
+                value: {
+                    candidate: 'candidate:1 1 udp 41885439 1.2.3.4 9000 typ relay raddr 0.0.0.0 rport 0',
+                    relayProtocol,
+                },
+                timestamp,
+            };
+        }
+
+        it('measures the time from gathering to the first candidate per relay protocol', () => {
+            const pcTrace = [
+                { type: 'create', timestamp: 1000 },
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 1100 },
+                relayCandidate('udp', 1150),
+                relayCandidate('tcp', 1300),
+                relayCandidate('tls', 1600),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnUdp).to.equal(50);
+            expect(features.gatheringTimeTurnTcp).to.equal(200);
+            expect(features.gatheringTimeTurnTls).to.equal(500);
+        });
+
+        it('uses the first candidate of each relay protocol', () => {
+            const pcTrace = [
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 1000 },
+                relayCandidate('udp', 1100),
+                relayCandidate('udp', 1200),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnUdp).to.equal(100);
+        });
+
+        it('only measures the first gathering phase', () => {
+            const pcTrace = [
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 1000 },
+                relayCandidate('udp', 1100),
+                { type: 'onicegatheringstatechange', value: 'complete', timestamp: 1200 },
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 2000 },
+                relayCandidate('tcp', 2100),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnUdp).to.equal(100);
+            expect(features.gatheringTimeTurnTcp).to.be.undefined;
+        });
+
+        it('is undefined for relay protocols that were not gathered', () => {
+            const pcTrace = [
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 1000 },
+                relayCandidate('udp', 1100),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnTcp).to.be.undefined;
+            expect(features.gatheringTimeTurnTls).to.be.undefined;
+        });
+
+        it('ignores candidates after gathering completed', () => {
+            const pcTrace = [
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 1000 },
+                { type: 'onicegatheringstatechange', value: 'complete', timestamp: 1050 },
+                relayCandidate('udp', 5000),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnUdp).to.be.undefined;
+        });
+
+        it('is undefined without a gathering state change', () => {
+            const pcTrace = [
+                relayCandidate('udp', 1100),
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnUdp).to.be.undefined;
+        });
+
+        it('is undefined for candidates without a relay protocol', () => {
+            const pcTrace = [
+                { type: 'onicegatheringstatechange', value: 'gathering', timestamp: 1000 },
+                { type: 'onicecandidate', value: { candidate: 'candidate:1 1 udp 2122260223 192.168.1.2 9000 typ host' }, timestamp: 1100 },
+                { type: 'onicecandidate', value: null, timestamp: 1200 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.gatheringTimeTurnUdp).to.be.undefined;
+            expect(features.gatheringTimeTurnTcp).to.be.undefined;
+            expect(features.gatheringTimeTurnTls).to.be.undefined;
+        });
+    });
 });
