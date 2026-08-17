@@ -25,7 +25,39 @@ function getSelectedCandidatePairStats(report) {
 }
 
 function iceFeatures(/* clientTrace */_, peerConnectionTrace) {
+    const turnGatheringTimes = (() => {
+        // Time (in milliseconds) between icegatheringstate becoming 'gathering' and the first
+        // relay candidate gathered from a TURN server using the respective transport.
+        // Requires the relayProtocol serialized by rtcstats-js.
+        // Only the first gathering phase is measured.
+        const featureNames = {
+            tcp: 'gatheringTimeTurnTcp',
+            tls: 'gatheringTimeTurnTls',
+            udp: 'gatheringTimeTurnUdp',
+        };
+        const times = {};
+        let gatheringStart = 0;
+        for (const traceEvent of peerConnectionTrace) {
+            if (traceEvent.type === 'onicegatheringstatechange') {
+                if (traceEvent.value === 'gathering') {
+                    gatheringStart = traceEvent.timestamp;
+                    continue;
+                } else if (traceEvent.value === 'complete') {
+                    // Gathering stops once the connection is established, which shows up as
+                    // 'complete', so the window ends there.
+                    break;
+                }
+            }
+            if (!gatheringStart || traceEvent.type !== 'onicecandidate') continue;
+            const name = featureNames[traceEvent.value?.relayProtocol];
+            if (name && times[name] === undefined) {
+                times[name] = traceEvent.timestamp - gatheringStart;
+            }
+        }
+        return times;
+    })();
     return {
+        ...turnGatheringTimes,
         iceConnected: peerConnectionTrace.find(traceEvent => {
             // Whether the ice connection was established.
             return traceEvent.type === 'oniceconnectionstatechange' && traceEvent.value === 'connected';
