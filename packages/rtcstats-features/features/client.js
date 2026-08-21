@@ -5,6 +5,10 @@
  * connection such as getUserMedia or enumerateDevices.
  */
 
+function countEvents(trace, ...types) {
+    return trace.reduce((count, traceEvent) => types.includes(traceEvent.type) ? count + 1 : count, 0);
+}
+
 // The USB id of the first device of that kind acquired via getUserMedia.
 // Labels of USB devices end with the vendor:product id, e.g. "Logitech BRIO (046d:085e)".
 function deviceUsbId(clientTrace, kind) {
@@ -50,14 +54,10 @@ function getUserMediaFeatures(clientTrace) {
             // The first getUserMedia error event, if any.
             return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnFailure';
         })?.value,
-        getUserMediaErrorCount: clientTrace.filter(traceEvent => {
-            // The number of failed getUserMedia calls.
-            return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnFailure';
-        }).length,
-        getUserMediaSuccessCount: clientTrace.filter(traceEvent => {
-            // The number of successful getUserMedia calls.
-            return traceEvent.type === 'navigator.mediaDevices.getUserMediaOnSuccess';
-        }).length,
+        // The number of failed getUserMedia calls.
+        getUserMediaErrorCount: countEvents(clientTrace, 'navigator.mediaDevices.getUserMediaOnFailure'),
+        // The number of successful getUserMedia calls.
+        getUserMediaSuccessCount: countEvents(clientTrace, 'navigator.mediaDevices.getUserMediaOnSuccess'),
         videoDeviceUsbId: deviceUsbId(clientTrace, 'video'),
     };
 }
@@ -76,24 +76,18 @@ function getDisplayMediaFeatures(clientTrace) {
         calledGetDisplayMediaVideo: clientTrace.find(traceEvent => {
             return traceEvent.type === 'navigator.mediaDevices.getDisplayMedia' && traceEvent.value?.video !== false;
         }) !== undefined,
-        getDisplayMediaErrorCount: clientTrace.filter(traceEvent => {
-            // The number of failed getDisplayMedia calls.
-            return traceEvent.type === 'navigator.mediaDevices.getDisplayMediaOnFailure';
-        }).length,
-        getDisplayMediaSuccessCount: clientTrace.filter(traceEvent => {
-            // The number of successful getDisplayMedia calls.
-            return traceEvent.type === 'navigator.mediaDevices.getDisplayMediaOnSuccess';
-        }).length,
+        // The number of failed getDisplayMedia calls.
+        getDisplayMediaErrorCount: countEvents(clientTrace, 'navigator.mediaDevices.getDisplayMediaOnFailure'),
+        // The number of successful getDisplayMedia calls.
+        getDisplayMediaSuccessCount: countEvents(clientTrace, 'navigator.mediaDevices.getDisplayMediaOnSuccess'),
     };
 }
 
 // Client features related to enumerateDevices.
 function enumerateDevicesFeatures(clientTrace) {
     return {
-        enumerateDevicesCount: clientTrace.filter(traceEvent => {
-            // How often enumerateDevices was called.
-            return traceEvent.type === 'navigator.mediaDevices.enumerateDevices';
-        }).length,
+        // How often enumerateDevices was called.
+        enumerateDevicesCount: countEvents(clientTrace, 'navigator.mediaDevices.enumerateDevices'),
     };
 }
 
