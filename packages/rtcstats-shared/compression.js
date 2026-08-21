@@ -145,6 +145,8 @@ export function statsCompression(baseStatsInput, newStatsInput, statsIdMap) {
  */
 export function statsDecompression(baseStatsInput, delta) {
     const baseStats = map2obj(baseStatsInput);
+    // TODO: replace the JSON round-trip and the rename loop below with a hand-rolled
+    // deep copy that decompresses property names while copying, roughly 2x faster.
     const newStats = JSON.parse(JSON.stringify(map2obj(delta)));
 
     // Decompress property names using a static table.
