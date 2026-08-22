@@ -218,6 +218,15 @@ All fields are derived from the [`RTCConfiguration`](https://w3c.github.io/webrt
 | `configuredIceServersTurnUdp` | boolean | create event | At least one `turn:...?transport=udp` URL was configured. |
 | `configuredIceServersTurnTcp` | boolean | create event | At least one `turn:...?transport=tcp` URL was configured. |
 
+### Configuration
+
+Derived from other [`RTCConfiguration`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration) members captured in the `create` event. Absent if the member was not set.
+
+| Feature | Type | Source | Description |
+| --- | --- | --- | --- |
+| `configuredBundlePolicy` | string | create event | The configured [`bundlePolicy`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-bundlepolicy) (`balanced`, `max-compat` or `max-bundle`). |
+| `configuredAlwaysNegotiateDataChannels` | boolean | create event | The configured [`alwaysNegotiateDataChannels`](https://w3c.github.io/webrtc-extensions/#dom-rtcconfiguration-alwaysnegotiatedatachannels) (WebRTC extensions). |
+
 ### Added / gathered candidates
 
 `added*` look at `addIceCandidate` calls (remote candidates given to us). `gathered*` look at

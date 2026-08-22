@@ -469,6 +469,42 @@ describe('extractConnectionFeatures', () => {
         });
     });
 
+    describe('configuration', () => {
+        it('should extract bundlePolicy and alwaysNegotiateDataChannels', () => {
+            const pcTrace = [
+                {
+                    type: 'create',
+                    value: {
+                        alwaysNegotiateDataChannels: true,
+                        bundlePolicy: 'max-bundle',
+                    },
+                    timestamp: 1000
+                },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.configuredBundlePolicy).to.equal('max-bundle');
+            expect(features.configuredAlwaysNegotiateDataChannels).to.be.true;
+        });
+
+        it('should be undefined when not configured', () => {
+            const pcTrace = [
+                { type: 'create', value: { iceServers: [] }, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.configuredBundlePolicy).to.be.undefined;
+            expect(features.configuredAlwaysNegotiateDataChannels).to.be.undefined;
+        });
+
+        it('should be undefined without a configuration', () => {
+            const pcTrace = [
+                { type: 'create', value: undefined, timestamp: 1000 },
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.configuredBundlePolicy).to.be.undefined;
+            expect(features.configuredAlwaysNegotiateDataChannels).to.be.undefined;
+        });
+    });
+
     it('should extract first candidate pair stats', () => {
         const pcTrace = [
             {
