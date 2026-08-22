@@ -32,58 +32,60 @@ async function extract(id, dump) {
         metadata.locationCountry = locations[0].country?.names['en'];
         metadata.locationCity = locations[0].city?.names['en'];
     }
-    const metadataToInsert = {
-        dumpId: id,
-        numberPeerconnections: Object.keys(dump.peerConnections).length - 1,
-        startTime: metadata.startTime,
-        url: metadata.url,
-        origin: metadata.origin,
-        useragent: metadata.userAgent,
-        clientProtocol: metadata.clientProtocol,
-        fileFormat: metadata.fileFormat,
-        locationCountry: metadata.locationCountry,
-        locationContinent: metadata.locationContinent,
-        locationCity: metadata.locationCity,
-    };
-    result = await sql`insert into ${sql('features_metadata')} ${sql(metadataToInsert)} returning id`;
-    const dumpId = result[0].id;
-
-    // Client information is gathered on the client.
-    const clientTrace = dump.peerConnections['null'];
-    const clientFeatures = extractClientFeatures(clientTrace);
-    const clientData = {
-        dumpId,
-        ...clientFeatures
-    };
-    await sql`insert into ${sql('features_client')} ${sql(clientData)}`;
-
-    // Extract connection features, ignoring the `null` connection which provides client information.
-    for (const peerConnectionId of Object.keys(dump.peerConnections)) {
-        if (peerConnectionId === 'null') {
-            continue;
-        }
-        const peerConnectionTrace = dump.peerConnections[peerConnectionId];
-        const connectionFeatures = extractConnectionFeatures(clientTrace, peerConnectionTrace);
-        const connectionData = {
-            dumpId,
-            connectionIdentifier: peerConnectionId,
-            ...connectionFeatures
+    await sql.begin(async sql => {
+        const metadataToInsert = {
+            dumpId: id,
+            numberPeerconnections: Object.keys(dump.peerConnections).length - 1,
+            startTime: metadata.startTime,
+            url: metadata.url,
+            origin: metadata.origin,
+            useragent: metadata.userAgent,
+            clientProtocol: metadata.clientProtocol,
+            fileFormat: metadata.fileFormat,
+            locationCountry: metadata.locationCountry,
+            locationContinent: metadata.locationContinent,
+            locationCity: metadata.locationCity,
         };
-        result = await sql`insert into ${sql('features_connection')} ${sql(connectionData)} returning id`;
-        const connectionId = result[0].id;
+        result = await sql`insert into ${sql('features_metadata')} ${sql(metadataToInsert)} returning id`;
+        const dumpId = result[0].id;
 
-        // Extract track features. Each connection can have multiple tracks.
-        const tracks = await extractTracks(peerConnectionTrace);
-        for (const trackInformation of tracks) {
-            const trackFeatures = extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation);
-            const trackData = {
-                connectionId,
-                ...trackFeatures
+        // Client information is gathered on the client.
+        const clientTrace = dump.peerConnections['null'];
+        const clientFeatures = extractClientFeatures(clientTrace);
+        const clientData = {
+            dumpId,
+            ...clientFeatures
+        };
+        await sql`insert into ${sql('features_client')} ${sql(clientData)}`;
+
+        // Extract connection features, ignoring the `null` connection which provides client information.
+        for (const peerConnectionId of Object.keys(dump.peerConnections)) {
+            if (peerConnectionId === 'null') {
+                continue;
+            }
+            const peerConnectionTrace = dump.peerConnections[peerConnectionId];
+            const connectionFeatures = extractConnectionFeatures(clientTrace, peerConnectionTrace);
+            const connectionData = {
+                dumpId,
+                connectionIdentifier: peerConnectionId,
+                ...connectionFeatures
             };
-            await sql`insert into ${sql('features_track')} ${sql(trackData)}`;
+            result = await sql`insert into ${sql('features_connection')} ${sql(connectionData)} returning id`;
+            const connectionId = result[0].id;
+
+            // Extract track features. Each connection can have multiple tracks.
+            const tracks = await extractTracks(peerConnectionTrace);
+            for (const trackInformation of tracks) {
+                const trackFeatures = extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation);
+                const trackData = {
+                    connectionId,
+                    ...trackFeatures
+                };
+                await sql`insert into ${sql('features_track')} ${sql(trackData)}`;
+            }
+            // TODO: do we want datachannel features?
         }
-        // TODO: do we want datachannel features?
-    }
+    });
     // Note: the query below will be empty if the dump had no peerconnections.
     /*
     result = await sql`select * from "rtcstats-server" as server
