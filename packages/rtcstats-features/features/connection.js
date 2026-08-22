@@ -204,6 +204,14 @@ function connectionFeatures(/* clientTrace*/_, peerConnectionTrace) {
     };
 }
 
+function configurationFeatures(/* clientTrace*/_, peerConnectionTrace) {
+    const configuration = peerConnectionTrace.find(traceEvent => traceEvent.type === 'create')?.value;
+    return {
+        configuredAlwaysNegotiateDataChannels: configuration?.alwaysNegotiateDataChannels,
+        configuredBundlePolicy: configuration?.bundlePolicy,
+    };
+}
+
 function iceServerFeatures(/* clientTrace*/_, peerConnectionTrace) {
     const configuration = peerConnectionTrace.find(traceEvent => traceEvent.type === 'create')?.value;
     if (!configuration?.iceServers) return {};
@@ -583,6 +591,7 @@ export function extractConnectionFeatures(/* clientTrace*/_, peerConnectionTrace
         duration: peerConnectionTrace[peerConnectionTrace.length - 1].timestamp - peerConnectionTrace[0].timestamp,
         ... iceFeatures(undefined, peerConnectionTrace),
         ... iceServerFeatures(undefined, peerConnectionTrace),
+        ... configurationFeatures(undefined, peerConnectionTrace),
         ... candidateFeatures(undefined, peerConnectionTrace),
         ... lastStatsFeatures(undefined, peerConnectionTrace),
         ... location(undefined, peerConnectionTrace),
