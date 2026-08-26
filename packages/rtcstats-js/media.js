@@ -132,3 +132,30 @@ export function wrapEnumerateDevices(trace, {navigator}) {
     }
 }
 
+/**
+ * Wraps HTMLMediaElement.setSinkId for RTCStats.
+ *
+ * @param {function} trace - RTCStats trace callback.
+ * @param {object} window - window object with HTMLMediaElement.
+ */
+export function wrapSetSinkId(trace, {HTMLMediaElement}) {
+    if (!(HTMLMediaElement && HTMLMediaElement.prototype.setSinkId)) {
+        return;
+    }
+    if (HTMLMediaElement.prototype.setSinkId.__rtcStats) {
+        // Prevent double-wrapping.
+        return;
+    }
+    const origMethod = HTMLMediaElement.prototype.setSinkId;
+    const wrappedMethod = function(...args) {
+        trace('HTMLMediaElement.setSinkId', null, args[0]);
+        return origMethod.apply(this, args)
+            .then((result) => result, (err) => {
+                trace('HTMLMediaElement.setSinkIdOnFailure', null, err.toString(), args[0]);
+                return Promise.reject(err);
+            });
+    };
+    wrappedMethod.__rtcStats = true;
+    HTMLMediaElement.prototype.setSinkId = wrappedMethod;
+}
+

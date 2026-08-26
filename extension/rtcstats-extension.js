@@ -1,9 +1,10 @@
 // npx webpack-cli ./rtcstats-extension.js
-import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices, WebSocketTrace } from '../packages/rtcstats-js';
+import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId, WebSocketTrace } from '../packages/rtcstats-js';
 
 const trace = new WebSocketTrace({log: console.log, countReloads: true});
 
 wrapRTCPeerConnection(trace, window, {getStatsInterval: 1000});
 wrapGetUserMedia(trace, window);
 wrapEnumerateDevices(trace, window);
+wrapSetSinkId(trace, window);
 trace.connect('ws://localhost:8080' + window.location.pathname);
