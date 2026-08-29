@@ -124,6 +124,9 @@ The initial table schema is defined in `20251103140656_initial-setup.sql` and lo
 ```
 Database migrations can be deployed using `supabase db push`.
 
+Migrations named `..._READ_BEFORE_APPLYING.sql` need a manual step on a database
+that already holds rows. Read the comment at the top of the file before applying.
+
 Note: while using supabase, the migrations are plain SQL and can be applied without relying on supabase.
 # Previous versions
 
