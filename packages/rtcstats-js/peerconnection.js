@@ -5,6 +5,7 @@ import {
     computePressureTable,
 } from '@rtcstats/rtcstats-shared';
 import {map2obj, dumpTrackWithStreams, copyAndSanitizeConfig} from '@rtcstats/rtcstats-shared';
+import {truncateStatsReport} from '@rtcstats/rtcstats-shared';
 
 /**
  * Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:
@@ -200,6 +201,16 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
                     cpuState: computePressureTable[record.state] || record.state,
                 };
             }
+            // Round floating point values to a per-property precision before
+            // snapshotting and delta-compressing. This shortens serialized
+            // values and lets values that only jitter below the precision
+            // threshold drop out of the delta entirely. Applied before the
+            // base snapshot so prevStats and stats stay consistent.
+            Object.keys(stats).forEach((id) => {
+                if (stats[id] && typeof stats[id] === 'object') {
+                    truncateStatsReport(stats[id]);
+                }
+            });
             const baseStats = JSON.parse(JSON.stringify(stats)); // our new prevStats.
             const compressedStats = statsCompression(prevStats, stats, statsIdMap);
             if (reason) {
