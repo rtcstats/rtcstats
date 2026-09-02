@@ -117,6 +117,37 @@ function audioJitterBufferFeatures(/* clientTrace*/_, peerConnectionTrace, track
     return {hasPeriodicJitterBufferFlushes};
 }
 
+// The value AEC3 reports when the ERLE estimator has no estimate, i.e. no echo path was
+// present: Log2TodB(FastApproxLog2f(config.erle.min + kEpsilon)) with erle.min 1.0 and
+// kEpsilon 1e-3. Almost all of it is the fitted 126.942695f bias offset in FastApproxLog2f
+// rather than the log itself, so it is a fixed literal and does not drift between builds.
+const ERLE_FLOOR_DB = 0.17551203072071075;
+
+function echoCancellationFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
+    if (trackInformation.kind !== 'audio' || trackInformation.direction !== 'outbound') {
+        return {};
+    }
+    let total = 0;
+    const measured = [];
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        const report = traceEvent.value;
+        const mediaSourceId = report[trackInformation.statsId]?.mediaSourceId;
+        if (!mediaSourceId) continue;
+        const erle = report[mediaSourceId]?.echoReturnLossEnhancement;
+        if (erle === undefined) continue;
+        total++;
+        if (erle > ERLE_FLOOR_DB + 1e-6) measured.push(erle);
+    }
+    if (!total) return {};
+    if (!measured.length) return {echoReturnLossEnhancementCoverage: 0};
+    measured.sort((a, b) => a - b);
+    return {
+        echoReturnLossEnhancement: measured[Math.floor(measured.length / 2)],
+        echoReturnLossEnhancementCoverage: measured.length / total,
+    };
+}
+
 function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     const features = {
         duration: 0,
@@ -235,6 +266,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         ...features,
         ...resolutionFeatures(undefined, peerConnectionTrace, trackInformation),
         ...audioJitterBufferFeatures(undefined, peerConnectionTrace, trackInformation),
+        ...echoCancellationFeatures(undefined, peerConnectionTrace, trackInformation),
         ...lastStatsFeatures(undefined, peerConnectionTrace, trackInformation),
     };
 }
