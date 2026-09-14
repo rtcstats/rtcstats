@@ -110,6 +110,10 @@ export async function readRTCStatsDump(blob) {
 
         if (method === 'getStats') { // delta-compressed stats
             // statsDecompression does not modify its base stats argument.
+            if (!baseStats[connection_id]) {
+                console.error('stats without baseline');
+                return;
+            }
             value = statsDecompression(baseStats[connection_id], value);
             baseStats[connection_id] = value;
         } else if (method === 'setLocalDescription' && value &&

@@ -32,6 +32,10 @@ function cleanFeatures(features) {
 }
 
 async function extract(dump) {
+    if (!dump) {
+        console.error('Could not read dump');
+        return;
+    }
     // Client information lives on the synthetic `null` peer connection (events not
     // scoped to a real RTCPeerConnection: getUserMedia, enumerateDevices, ...).
     // See "Client features" in features.md.
