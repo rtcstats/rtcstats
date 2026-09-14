@@ -342,6 +342,16 @@ describe('method compression', () => {
         expect(decompressMethod(68))
             .to.equal('navigator.mediaDevices.getDisplayMediaOnFailure');
     });
+    it('only decompresses setSinkId but does not compress it (yet)', () => {
+        expect(compressMethod('HTMLMediaElement.setSinkId'))
+            .to.equal('HTMLMediaElement.setSinkId');
+        expect(decompressMethod(81))
+            .to.equal('HTMLMediaElement.setSinkId');
+        expect(compressMethod('HTMLMediaElement.setSinkIdOnFailure'))
+            .to.equal('HTMLMediaElement.setSinkIdOnFailure');
+        expect(decompressMethod(82))
+            .to.equal('HTMLMediaElement.setSinkIdOnFailure');
+    });
 });
 
 describe('stats type compression', () => {

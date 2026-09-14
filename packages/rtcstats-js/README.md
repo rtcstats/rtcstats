@@ -48,6 +48,7 @@ The main rtcstats.js exports a number of methods that facilitate this:
   object and generates traces using the supplied `trace` method.
 * `wrapGetUserMedia` and `wrapEnumerateDevices` do the same for the `getUserMedia`/`getDisplayMedia`,
   `enumerateDevices` and related APIs such as MediaStreamTracks and HTMLVideoElement.
+* `wrapSetSinkId` does the same for HTMLMediaElement's `setSinkId` method which changes the audio output device.
 
 Typical usage looks like this:
 ```

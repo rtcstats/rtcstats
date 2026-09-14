@@ -1,6 +1,6 @@
 import { expect } from '@esm-bundle/chai';
 
-import {wrapGetUserMedia, wrapEnumerateDevices} from '../../media.js';
+import {wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId} from '../../media.js';
 import {createTestSink} from '../sink.js';
 import {dumpTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
@@ -12,6 +12,7 @@ before(() => {
         // Wrap with empty navigator for coverage.
         wrapGetUserMedia(testSink.trace, {});
         wrapEnumerateDevices(testSink.trace, {});
+        wrapSetSinkId(testSink.trace, {});
         // Wrap with empty navigator.mediaDevices for coverage.
         wrapGetUserMedia(testSink.trace, {navigator: {mediaDevices: {}}});
         wrapEnumerateDevices(testSink.trace, {navigator: {mediaDevices: {}}});
@@ -19,6 +20,7 @@ before(() => {
         // Actually wrap.
         wrapGetUserMedia(testSink.trace, window);
         wrapEnumerateDevices(testSink.trace, window);
+        wrapSetSinkId(testSink.trace, window);
     });
     beforeEach(() => {
         testSink.reset();
@@ -220,5 +222,48 @@ describe('mediaDevices', () => {
         expect(events[0][0]).to.equal('navigator.mediaDevices.ondevicechange');
         expect(events[0][1]).to.equal(null);
         expect(events[0][2]).to.equal(null);
+    });
+});
+
+describe('setSinkId', () => {
+    it('prevents double-wrapping', async () => {
+        wrapSetSinkId(testSink.trace, window);
+
+        const el = document.createElement('audio');
+        await el.setSinkId('');
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(1);
+    });
+
+    it('serializes setSinkId', async () => {
+        const el = document.createElement('audio');
+        await el.setSinkId('');
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(1);
+        expect(events[0][0]).to.equal('HTMLMediaElement.setSinkId');
+        expect(events[0][1]).to.equal(null);
+        expect(events[0][2]).to.equal('');
+    });
+
+    it('serializes setSinkIdOnFailure', async () => {
+        const el = document.createElement('audio');
+        let err;
+        try {
+            await el.setSinkId('nonexistent-device-id');
+        } catch(e) { err = e; }
+        expect(err).not.to.equal(undefined);
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(2);
+        expect(events[0][0]).to.equal('HTMLMediaElement.setSinkId');
+        expect(events[0][1]).to.equal(null);
+        expect(events[0][2]).to.equal('nonexistent-device-id');
+
+        expect(events[1][0]).to.equal('HTMLMediaElement.setSinkIdOnFailure');
+        expect(events[1][1]).to.equal(null);
+        expect(events[1][2]).to.equal(err.toString());
+        expect(events[1][3]).to.equal('nonexistent-device-id');
     });
 });

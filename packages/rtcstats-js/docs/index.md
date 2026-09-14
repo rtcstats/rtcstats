@@ -20,6 +20,9 @@ and <code>contentHint</code>.</li>
 <dt><a href="#wrapEnumerateDevices">wrapEnumerateDevices(trace, window)</a></dt>
 <dd><p>Wraps enumerateDevices and the devicechange event for RTCStats.</p>
 </dd>
+<dt><a href="#wrapSetSinkId">wrapSetSinkId(trace, window)</a></dt>
+<dd><p>Wraps HTMLMediaElement.setSinkId for RTCStats.</p>
+</dd>
 <dt><a href="#wrapRTCRtpTransceiver">wrapRTCRtpTransceiver(trace, window)</a></dt>
 <dd><p>Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:</p>
 <ul>
@@ -28,7 +31,7 @@ and <code>contentHint</code>.</li>
 </ul>
 </dd>
 <dt><a href="#wrapRTCRtpSender">wrapRTCRtpSender(trace, window)</a></dt>
-<dd><p>Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:</p>
+<dd><p>Wraps a RTCRtpSender for RTCStats. Currently applied to these methods:</p>
 <ul>
 <li>setParameters</li>
 <li>replaceTrack</li>
@@ -161,6 +164,18 @@ Wraps enumerateDevices and the devicechange event for RTCStats.
 | trace | <code>function</code> | RTCStats trace callback. |
 | window | <code>object</code> | window object with navigator. |
 
+<a name="wrapSetSinkId"></a>
+
+## wrapSetSinkId(trace, window)
+Wraps HTMLMediaElement.setSinkId for RTCStats.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback. |
+| window | <code>object</code> | window object with HTMLMediaElement. |
+
 <a name="wrapRTCRtpTransceiver"></a>
 
 ## wrapRTCRtpTransceiver(trace, window)
@@ -174,12 +189,12 @@ Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:
 | Param | Type | Description |
 | --- | --- | --- |
 | trace | <code>function</code> | RTCStats trace callback |
-| window | <code>object</code> | window object from which to take the RTCRtpTransceiver protoype. |
+| window | <code>object</code> | window object from which to take the RTCRtpTransceiver prototype. |
 
 <a name="wrapRTCRtpSender"></a>
 
 ## wrapRTCRtpSender(trace, window)
-Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:
+Wraps a RTCRtpSender for RTCStats. Currently applied to these methods:
 * setParameters
 * replaceTrack
 
@@ -189,7 +204,7 @@ Wraps a RTCRtpSenderfor RTCStats. Currently applied to these methods:
 | Param | Type | Description |
 | --- | --- | --- |
 | trace | <code>function</code> | RTCStats trace callback |
-| window | <code>object</code> | window object from which to take the RTCRtpSender protoype. |
+| window | <code>object</code> | window object from which to take the RTCRtpSender prototype. |
 
 <a name="wrapRTCPeerConnection"></a>
 
@@ -202,7 +217,7 @@ Legacy methods and events are not wrapped.
 | Param | Type | Description |
 | --- | --- | --- |
 | trace | <code>function</code> | RTCStats trace callback |
-| window | <code>object</code> | window object from which to take the RTCPeerConnection protoype. |
+| window | <code>object</code> | window object from which to take the RTCPeerConnection prototype. |
 | configuration | <code>object</code> | various configurable properties. Currently: * getStatsInterval {number} - interval at which getStats will be polled. |
 
 <a name="wrapRTCStatsWithDefaultOptions"></a>
