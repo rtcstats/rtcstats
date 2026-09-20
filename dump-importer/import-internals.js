@@ -1,4 +1,5 @@
 import {
+    collapseSignalingStateTransitions,
     createContainers,
     processGetUserMedia,
     createCandidateTable,
@@ -155,29 +156,29 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
     _showStateChanges(connectionId) {
         // update state displays
         const peerConnectionTrace = this.data.PeerConnections[connectionId];
-        let hadEvent = false;
+        const states = {
+            iceConnectionState: [],
+            connectionState: [],
+            signalingState: [],
+        };
         for (const traceEvent of peerConnectionTrace.updateLog) {
-            try {
-                JSON.parse(traceEvent.value);
-            } catch (e) {
-                // console.error("FAILED", traceEvent.type, traceEvent.value, e);
-            }
             // FIXME: would be cool if a click on this would jump to the table row
             if (traceEvent.type === 'iceconnectionstatechange') {
-                this.containers[connectionId].iceConnectionState.textContent += ' => ' + traceEvent.value;
-                hadEvent = true;
+                states.iceConnectionState.push(traceEvent.value);
             } else if (traceEvent.type === 'connectionstatechange') {
-                this.containers[connectionId].connectionState.textContent += ' => ' + traceEvent.value;
-                hadEvent = true;
+                states.connectionState.push(traceEvent.value);
             } else if (traceEvent.type === 'signalingstatechange') {
-                this.containers[connectionId].signalingState.textContent += ' => ' + traceEvent.value;
-                hadEvent = true;
+                states.signalingState.push(traceEvent.value);
             }
         }
-        if (!hadEvent) {
-            this.containers[connectionId].iceConnectionState.style.display = 'none';
-            this.containers[connectionId].connectionState.style.display = 'none';
-            this.containers[connectionId].signalingState.style.display = 'none';
+        const hadEvent = Object.values(states).some(values => values.length > 0);
+        for (const [name, values] of Object.entries(states)) {
+            if (!hadEvent) {
+                this.containers[connectionId][name].style.display = 'none';
+                continue;
+            }
+            const segments = name === 'signalingState' ? collapseSignalingStateTransitions(values) : values;
+            this.containers[connectionId][name].textContent += segments.map(segment => ' => ' + segment).join('');
         }
     }
 
