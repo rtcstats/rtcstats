@@ -540,4 +540,153 @@ describe('extractTrackFeatures', () => {
             expect(features.timeToFirstFrame).to.be.undefined;
         });
     });
+
+    describe('echo cancellation features', () => {
+        const ERLE_FLOOR = 0.17551203072071075;
+        const trackInfo = {
+            direction: 'outbound',
+            id: 'track1',
+            kind: 'audio',
+            startTime: 1000,
+            statsId: 'track1_stats',
+        };
+        const traceFromErle = (values) => values.map((erle, index) => ({
+            timestamp: 1000 + index * 1000,
+            type: 'getStats',
+            value: {
+                'track1_source': {echoReturnLossEnhancement: erle, type: 'media-source'},
+                'track1_stats': {mediaSourceId: 'track1_source', type: 'outbound-rtp'},
+            },
+        }));
+
+        it('reports zero coverage and no median when the estimator never left the floor', () => {
+            const features = extractTrackFeatures([], traceFromErle(new Array(20).fill(ERLE_FLOOR)), trackInfo);
+            expect(features.echoReturnLossEnhancementCoverage).to.equal(0);
+            expect(features.echoReturnLossEnhancement).to.be.undefined;
+        });
+
+        it('takes the median of the above-floor samples only', () => {
+            const features = extractTrackFeatures([], traceFromErle([
+                ERLE_FLOOR, 12, ERLE_FLOOR, 18, 20, ERLE_FLOOR,
+            ]), trackInfo);
+            expect(features.echoReturnLossEnhancement).to.equal(18);
+            expect(features.echoReturnLossEnhancementCoverage).to.equal(0.5);
+        });
+
+        it('takes the upper of the two middle samples for an even count', () => {
+            const features = extractTrackFeatures([], traceFromErle([12, 18, 20, 24]), trackInfo);
+            expect(features.echoReturnLossEnhancement).to.equal(20);
+            expect(features.echoReturnLossEnhancementCoverage).to.equal(1);
+        });
+
+        it('should return no features when there is no media-source entry', () => {
+            const pcTrace = [
+                {timestamp: 2000, type: 'getStats', value: {'track1_stats': {mediaSourceId: 'track1_source', type: 'outbound-rtp'}}},
+            ];
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.echoReturnLossEnhancement).to.be.undefined;
+            expect(features.echoReturnLossEnhancementCoverage).to.be.undefined;
+        });
+
+        it('should return no features for inbound audio', () => {
+            const inboundTrackInfo = {...trackInfo, direction: 'inbound'};
+            const features = extractTrackFeatures([], traceFromErle([12, 18, 20]), inboundTrackInfo);
+            expect(features.echoReturnLossEnhancement).to.be.undefined;
+            expect(features.echoReturnLossEnhancementCoverage).to.be.undefined;
+        });
+
+        it('should return no features for outbound video', () => {
+            const videoTrackInfo = {...trackInfo, kind: 'video'};
+            const features = extractTrackFeatures([], traceFromErle([12, 18, 20]), videoTrackInfo);
+            expect(features.echoReturnLossEnhancement).to.be.undefined;
+            expect(features.echoReturnLossEnhancementCoverage).to.be.undefined;
+        });
+
+        it('keeps two outbound audio tracks apart', () => {
+            const report = (erleA, erleB) => ({
+                'trackA_source': {echoReturnLossEnhancement: erleA, type: 'media-source'},
+                'trackA_stats': {mediaSourceId: 'trackA_source', type: 'outbound-rtp'},
+                'trackB_source': {echoReturnLossEnhancement: erleB, type: 'media-source'},
+                'trackB_stats': {mediaSourceId: 'trackB_source', type: 'outbound-rtp'},
+            });
+            const pcTrace = [
+                {timestamp: 2000, type: 'getStats', value: report(20, ERLE_FLOOR)},
+                {timestamp: 3000, type: 'getStats', value: report(22, ERLE_FLOOR)},
+                {timestamp: 4000, type: 'getStats', value: report(24, ERLE_FLOOR)},
+            ];
+            const track = (id) => ({direction: 'outbound', id, kind: 'audio', startTime: 1000, statsId: id + '_stats'});
+            const a = extractTrackFeatures([], pcTrace, track('trackA'));
+            const b = extractTrackFeatures([], pcTrace, track('trackB'));
+            expect(a.echoReturnLossEnhancement).to.equal(22);
+            expect(a.echoReturnLossEnhancementCoverage).to.equal(1);
+            expect(b.echoReturnLossEnhancement).to.be.undefined;
+            expect(b.echoReturnLossEnhancementCoverage).to.equal(0);
+        });
+
+        it('excludes the -30 sentinel from the echo return loss median', () => {
+            const traceFromErl = (values) => values.map((erl, index) => ({
+                timestamp: 1000 + index * 1000,
+                type: 'getStats',
+                value: {
+                    'track1_source': {echoReturnLoss: erl, echoReturnLossEnhancement: 18, type: 'media-source'},
+                    'track1_stats': {mediaSourceId: 'track1_source', type: 'outbound-rtp'},
+                },
+            }));
+            const features = extractTrackFeatures([], traceFromErl([-30, 8, -30, 12, 16, -30]), trackInfo);
+            expect(features.echoReturnLoss).to.equal(12);
+            expect(features.echoReturnLossCoverage).to.equal(0.5);
+        });
+
+        it('reports zero echo return loss coverage when the estimator never converged', () => {
+            const pcTrace = new Array(10).fill(0).map((_, index) => ({
+                timestamp: 1000 + index * 1000,
+                type: 'getStats',
+                value: {
+                    'track1_source': {echoReturnLoss: -30, echoReturnLossEnhancement: ERLE_FLOOR, type: 'media-source'},
+                    'track1_stats': {mediaSourceId: 'track1_source', type: 'outbound-rtp'},
+                },
+            }));
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.echoReturnLoss).to.be.undefined;
+            expect(features.echoReturnLossCoverage).to.equal(0);
+            expect(features.echoReturnLossEnhancementCoverage).to.equal(0);
+        });
+
+        it('keeps the +20 clamp in the median, where it reads as a lower bound', () => {
+            const pcTrace = [18, 20, 20, 20].map((erl, index) => ({
+                timestamp: 1000 + index * 1000,
+                type: 'getStats',
+                value: {
+                    'track1_source': {echoReturnLoss: erl, echoReturnLossEnhancement: 18, type: 'media-source'},
+                    'track1_stats': {mediaSourceId: 'track1_source', type: 'outbound-rtp'},
+                },
+            }));
+            const features = extractTrackFeatures([], pcTrace, trackInfo);
+            expect(features.echoReturnLoss).to.equal(20);
+            expect(features.echoReturnLossCoverage).to.equal(1);
+        });
+
+        it('omits echo return loss when the stat is absent', () => {
+            const features = extractTrackFeatures([], traceFromErle([12, 18, 20]), trackInfo);
+            expect(features.echoReturnLoss).to.be.undefined;
+            expect(features.echoReturnLossCoverage).to.equal(0);
+            expect(features.echoReturnLossEnhancement).to.equal(18);
+        });
+
+        it('is invariant to the polling rate', () => {
+            // A plateau with two estimator resets and their re-convergence ramps, the shape
+            // a real ERLE series has. A mean would move with the stride, the median does not.
+            const series = [];
+            for (let i = 0; i < 150; i++) {
+                if (i === 40 || i === 95) {
+                    series.push(ERLE_FLOOR, 4.5, 9.5, 14);
+                } else {
+                    series.push(17.5 + (i % 7) * 0.25);
+                }
+            }
+            const full = extractTrackFeatures([], traceFromErle(series), trackInfo);
+            const decimated = extractTrackFeatures([], traceFromErle(series.filter((_, i) => i % 5 === 0)), trackInfo);
+            expect(Math.abs(full.echoReturnLossEnhancement - decimated.echoReturnLossEnhancement)).to.be.below(0.5);
+        });
+    });
 });
