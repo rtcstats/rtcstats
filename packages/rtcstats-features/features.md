@@ -48,6 +48,7 @@ Most features map directly onto W3C-defined APIs and stats. The two relevant spe
   * [`RTCOutboundRtpStreamStats`](https://w3c.github.io/webrtc-stats/#outboundrtpstats-dict*) (outbound track stats).
   * [`RTCRemoteInboundRtpStreamStats`](https://w3c.github.io/webrtc-stats/#remoteinboundrtpstats-dict*) (L4S remote-side fields).
   * [`RTCCodecStats`](https://w3c.github.io/webrtc-stats/#codec-dict*) (codec MIME / fmtp).
+  * [`RTCAudioSourceStats`](https://w3c.github.io/webrtc-stats/#dom-rtcaudiosourcestats) (captured audio source, echo cancellation).
 
 ## Source tags
 
@@ -377,6 +378,21 @@ All fields below are read from the last `getStats` report containing the track's
 | `packetsReceivedWithEct1` | number | last getStats | L4S: cumulative packets received with ECT(1) (from the linked `remote-inbound-rtp`). |
 | `packetsReceivedWithCe` | number | last getStats | L4S: cumulative packets received with the CE (congestion-experienced) marking (from the linked `remote-inbound-rtp`). |
 | `packetsWithBleachedEct1Marking` | number | last getStats | L4S: cumulative packets whose ECT(1) marking was cleared in transit (from the linked `remote-inbound-rtp`). |
+
+### Echo cancellation (outbound audio only)
+
+Read from the [`media-source`](https://w3c.github.io/webrtc-stats/#dom-rtcaudiosourcestats) entry referenced by the track's `outbound-rtp` entry via `mediaSourceId`, aggregated across every `getStats` report that has one. Each track resolves its own source, so two outbound audio tracks on one connection are scored separately.
+
+The median is used instead of the mean because the series is a plateau with re-convergence ramps rather than noise around a constant, which makes a mean a function of the `getStats` polling rate. Note that ERLE is measured on the linear filter, before the spectral suppressor, so it understates total cancellation.
+
+Both stats carry a sentinel for "no estimate": about `0.176` dB for ERLE and `-30` dB for ERL, the latter because AEC3 initializes its ERL estimate to the clamp it reports as `-30` and holds it there until a filter converges. Those samples are excluded from the medians and counted in the coverage fields instead. ERL is additionally clamped at `+20` dB, so a median of exactly `20` reads as "at least 20 dB" rather than as a point estimate.
+
+| Feature | Type | Source | Description |
+| --- | --- | --- | --- |
+| `echoReturnLossEnhancement` | number | aggregated getStats | Median [echo return loss enhancement](https://w3c.github.io/webrtc-stats/#dom-rtcaudiosourcestats-echoreturnlossenhancement) in dB over the reports in which the AEC had an estimate. Absent if it never did. |
+| `echoReturnLossEnhancementCoverage` | number | aggregated getStats | Fraction of `media-source` reports in which the AEC had an ERLE estimate. `0` means no echo path was ever detected, which is not the same as poor cancellation. |
+| `echoReturnLoss` | number | aggregated getStats | Median [echo return loss](https://w3c.github.io/webrtc-stats/#dom-rtcaudiosourcestats-echoreturnloss) in dB over the reports in which the AEC had an estimate, i.e. how much quieter the echo arrives than the signal that was played out. Absent if it never did. |
+| `echoReturnLossCoverage` | number | aggregated getStats | Fraction of `media-source` reports in which the AEC had an ERL estimate. |
 
 ### Inbound-only
 

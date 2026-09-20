@@ -117,6 +117,55 @@ function audioJitterBufferFeatures(/* clientTrace*/_, peerConnectionTrace, track
     return {hasPeriodicJitterBufferFlushes};
 }
 
+// The value AEC3 reports when the ERLE estimator has no estimate, i.e. no echo path was
+// present: Log2TodB(FastApproxLog2f(config.erle.min + kEpsilon)) with erle.min 1.0 and
+// kEpsilon 1e-3. Almost all of it is the fitted 126.942695f bias offset in FastApproxLog2f
+// rather than the log itself, so it is a fixed literal and does not drift between builds.
+const ERLE_FLOOR_DB = 0.17551203072071075;
+
+// AEC3 clamps its ERL estimate to [kMinErl, kMaxErl] = [0.01, 1000] and reports the
+// reciprocal in dB, so the series is censored at both ends. kMaxErl is also the value the
+// estimator is initialized to and holds while no filter has converged, which makes -30 the
+// "no estimate" sentinel rather than a measurement of a very loud echo.
+const ERL_SENTINEL_DB = -30;
+
+function median(sorted) {
+    return sorted[Math.floor(sorted.length / 2)];
+}
+
+function echoCancellationFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
+    if (trackInformation.kind !== 'audio' || trackInformation.direction !== 'outbound') {
+        return {};
+    }
+    let total = 0;
+    const measuredErle = [];
+    const measuredErl = [];
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        const report = traceEvent.value;
+        const mediaSourceId = report[trackInformation.statsId]?.mediaSourceId;
+        if (!mediaSourceId) continue;
+        const erle = report[mediaSourceId]?.echoReturnLossEnhancement;
+        if (erle === undefined) continue;
+        total++;
+        if (erle > ERLE_FLOOR_DB + 1e-6) measuredErle.push(erle);
+        const erl = report[mediaSourceId]?.echoReturnLoss;
+        if (erl !== undefined && erl > ERL_SENTINEL_DB) measuredErl.push(erl);
+    }
+    if (!total) return {};
+    const features = {echoReturnLossEnhancementCoverage: measuredErle.length / total};
+    if (measuredErle.length) {
+        measuredErle.sort((a, b) => a - b);
+        features.echoReturnLossEnhancement = median(measuredErle);
+    }
+    features.echoReturnLossCoverage = measuredErl.length / total;
+    if (measuredErl.length) {
+        measuredErl.sort((a, b) => a - b);
+        features.echoReturnLoss = median(measuredErl);
+    }
+    return features;
+}
+
 function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     const features = {
         duration: 0,
@@ -235,6 +284,7 @@ export function extractTrackFeatures(/* clientTrace*/_, peerConnectionTrace, tra
         ...features,
         ...resolutionFeatures(undefined, peerConnectionTrace, trackInformation),
         ...audioJitterBufferFeatures(undefined, peerConnectionTrace, trackInformation),
+        ...echoCancellationFeatures(undefined, peerConnectionTrace, trackInformation),
         ...lastStatsFeatures(undefined, peerConnectionTrace, trackInformation),
     };
 }
