@@ -22,6 +22,37 @@ function filterStatsGraphs(event, container) {
     });
 }
 
+// Collapses repeated cycles like stable => have-local-offer => stable => have-local-offer into "(...) xN".
+export function collapseSignalingStateTransitions(states, maxCycleLength = 3) {
+    const segments = [];
+    let position = 0;
+    while (position < states.length) {
+        let bestLength = 0;
+        let bestRepeats = 1;
+        for (let length = 1; length <= maxCycleLength && position + length <= states.length; length++) {
+            let repeats = 1;
+            while (position + (repeats + 1) * length <= states.length &&
+                states.slice(position, position + length)
+                    .every((state, i) => state === states[position + repeats * length + i])) {
+                repeats++;
+            }
+            if (repeats > 1 && repeats * length > bestRepeats * bestLength) {
+                bestLength = length;
+                bestRepeats = repeats;
+            }
+        }
+        if (bestLength) {
+            segments.push('(' + states.slice(position, position + bestLength).join(' => ') +
+                ') x' + bestRepeats);
+            position += bestLength * bestRepeats;
+        } else {
+            segments.push(states[position]);
+            position++;
+        }
+    }
+    return segments;
+}
+
 export function processDescriptionEvent(container, eventType, description, last_sections, remote_sections) {
     const {type, sdp} = description;
     const sections = SDPUtils.splitSections(sdp);
