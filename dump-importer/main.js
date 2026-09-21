@@ -1,21 +1,16 @@
 import {RTCStatsDumpImporter} from './import-rtcstats.js';
 import {WebRTCInternalsDumpImporter} from './import-internals.js';
-import {detectRTCStatsDump, detectWebRTCInternalsDump, maybeUncompressDump} from '@rtcstats/rtcstats-shared';
+import {detectRTCStatsDump, detectWebRTCInternalsDump} from '@rtcstats/rtcstats-shared';
+import {onDump, setStatus} from './upload.js';
 
 const container = document.getElementById('tables');
-document.getElementById('import').onchange = async (evt) => {
-    evt.target.disabled = 'disabled';
-    document.getElementById('upload-button').disabled = true;
-    document.getElementById('useReferenceTime').disabled = true;
 
-    const useReferenceTime = document.getElementById('useReferenceTime').checked;
+onDump(async (blob, name) => {
+    const referenceTime = document.getElementById('useReferenceTime');
+    const useReferenceTime = referenceTime.checked;
+    referenceTime.disabled = true;
+    setStatus(name);
 
-    const files = evt.target.files;
-    const file = files[0];
-    const status = document.getElementById('status');
-    status.textContent = file.name;
-    status.classList.add('visible');
-    const blob = await maybeUncompressDump(file);
     if (await detectRTCStatsDump(blob)) {
         window.importer = new RTCStatsDumpImporter(container);
         importer.process(blob);
@@ -26,4 +21,4 @@ document.getElementById('import').onchange = async (evt) => {
         console.error('Unrecognized format');
     }
     window.rtcStatsDumpImporterSuccess = true;
-};
+});
