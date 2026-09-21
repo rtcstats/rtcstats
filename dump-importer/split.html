@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>WebRTC Dump Splitter - rtcstats</title>
+        <link rel="stylesheet" href="main.css">
+        <style>
+body {
+    max-width: 640px;
+}
+
+#download {
+    display: none;
+}
+
+#origins {
+    display: none;
+    margin-bottom: 40px;
+}
+
+#origins.visible {
+    display: block;
+}
+
+.origin {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+
+.origin input[type="checkbox"] {
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.origin label {
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+}
+
+.origin-name {
+    font-weight: 600;
+    font-size: 0.925rem;
+    word-break: break-all;
+}
+
+.origin-detail {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.selection {
+    font-size: 0.85rem;
+    color: #555;
+    text-align: center;
+    margin-top: 16px;
+}
+        </style>
+        <script type="importmap">
+{
+    "imports": {
+        "@rtcstats/rtcstats-js": "../packages/rtcstats.js",
+        "@rtcstats/rtcstats-shared": "../packages/rtcstats-shared/index.js",
+        "sdp": "./sdp.js"
+    }
+}
+        </script>
+    </head>
+    <body>
+        <h1>WebRTC Dump Splitter</h1>
+        <p class="subtitle">Split a dump that spans several sites and keep only the origins you want to share.</p>
+
+        <div class="upload-area" id="upload-area">
+            <label for="import">Drop a file here, or click to select</label>
+            <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
+            <button type="button" class="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
+            <div class="upload-hint">Accepts webrtc-internals JSON dumps and rtcstats dumps (.json, .jsonl, .txt, .gz)</div>
+            <div class="status" id="status"></div>
+        </div>
+
+        <div id="origins">
+            <h2>Origins in this dump</h2>
+            <div id="origin-list"></div>
+            <div class="selection" id="selection"></div>
+            <div class="checkbox-container">
+                <button type="button" class="upload-button" id="save">Download selection</button>
+            </div>
+        </div>
+        <a id="download"></a>
+
+        <p>Everything runs locally in your browser - no data leaves your machine. To strip IP addresses as well, run the result through the <a href="anonymize.html">dump anonymizer</a>.</p>
+
+        <div class="cta">
+            <p><strong>Split first, then analyze</strong></p>
+            <p>A dump narrowed down to one origin is quicker to upload and makes the analysis on <a href="https://rtcstats.com">rtcstats.com</a> more focused, with interactive visualizations, automatic analysis, and debugging tools for your WebRTC data - so you can find the problem instead of reading raw JSON.</p>
+        </div>
+        <footer>
+            <a href="https://github.com/rtcstats/rtcstats">rtcstats on GitHub</a>
+        </footer>
+    </body>
+    <script type="module" src="split.js"></script>
+</html>
