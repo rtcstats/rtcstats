@@ -7,7 +7,7 @@
 }
 </script>
 <script type="module">
-import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices} from '@rtcstats/rtcstats-js';
+import {wrapRTCPeerConnection, wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId} from '@rtcstats/rtcstats-js';
 import {WebSocketTrace} from '@rtcstats/rtcstats-js';
 
 // Could alternatively use wrapRTCStatsWithDefaultOptions.
@@ -15,6 +15,7 @@ const trace = new WebSocketTrace();
 wrapRTCPeerConnection(trace, window, {getStatsInterval: 500});
 wrapGetUserMedia(trace, window);
 wrapEnumerateDevices(trace, window);
+wrapSetSinkId(trace, window);
 
 // Establish the connection.
 trace.connect('ws://' + window.location.host + '/example' + window.location.search);

@@ -401,12 +401,17 @@ const methodTable = {
     'MediaStreamTrack.onunmute': 74,
     // HTMLMediaElement
     'HTMLMediaElement.resize': 80,
+    // Decompression-only until the next major version bump, see below.
+    // 'HTMLMediaElement.setSinkId': 81,
+    // 'HTMLMediaElement.setSinkIdOnFailure': 82,
 };
 // Properties that are decompressed but for release purpose not yet compressed.
 // These should be moved to the compression table at major version bumps.
 const methodTableDecompression = {
     1: 'getStats',
     68: 'navigator.mediaDevices.getDisplayMediaOnFailure',
+    81: 'HTMLMediaElement.setSinkId',
+    82: 'HTMLMediaElement.setSinkIdOnFailure',
 };
 const reverseMethodTable = Object.keys(methodTable).reduce((table, method) => {
     table[methodTable[method]] = method;
