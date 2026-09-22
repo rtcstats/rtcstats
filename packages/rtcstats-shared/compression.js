@@ -32,6 +32,11 @@ export function statsCompression(baseStatsInput, newStatsInput, statsIdMap) {
             return;
         }
         Object.keys(report).forEach((name) => {
+            if (name === 'timestamp') {
+                // Deleting it drops the whole report from the delta and the decoder
+                // restores it with the collapsed timestamp. Hits audio remote-*.
+                return;
+            }
             if (report[name] === baseStats[id][name]) {
                 delete delta[id][name];
             } else if (Array.isArray(report[name])) {
@@ -49,7 +54,6 @@ export function statsCompression(baseStatsInput, newStatsInput, statsIdMap) {
                     delete report[name];
                 }
             }
-            // TODO: does this ever happen since we have `timestamp`?
             if (Object.keys(report).length === 0) {
                 delete delta[id];
             }

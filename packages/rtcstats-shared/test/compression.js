@@ -38,6 +38,21 @@ describe('compression', () => {
             expect(delta['id1'][timestampProperty]).to.equal(undefined);
             expect(delta['id2'][timestampProperty]).to.equal(1);
         });
+
+        it('by keeping the timestamp of a report that did not change', () => {
+            // An audio remote-inbound-rtp only changes when a RTCP report arrives.
+            const baseStats = {
+                id1: {type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
+                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+            };
+            const secondStats = {
+                id1: {type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
+                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+            };
+            const delta = statsCompression(baseStats, secondStats, idMap);
+            expect(delta[timestampProperty]).to.equal(2000);
+            expect(delta['id2']).to.deep.equal({[timestampProperty]: 400});
+        });
     });
 
     describe('of object values', () => {
@@ -191,6 +206,21 @@ describe('decompression', () => {
             const delta = statsCompression(baseStats, secondStats, idMap);
             const restored = statsDecompression(baseStats, delta);
             expect(restored).to.deep.equal(secondStats);
+        });
+
+        it('keeps the timestamp of a report that did not change at all', () => {
+            const baseStats = {
+                id1: {type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
+                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+            };
+            const secondStats = {
+                id1: {type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
+                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+            };
+            const delta = statsCompression(baseStats, secondStats, idMap);
+            const restored = statsDecompression(baseStats, delta);
+            expect(restored).to.deep.equal(secondStats);
+            expect(restored['id2'].timestamp).to.equal(400);
         });
 
         it('by pulling from the top level', () => {
