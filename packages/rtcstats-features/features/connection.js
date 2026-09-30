@@ -468,6 +468,40 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
     return features;
 }
 
+// Maximum number of concurrently receiving inbound streams of each kind.
+function receivingStreamFeatures(/* clientTrace*/_, peerConnectionTrace) {
+    const previous = {};
+    const max = {audio: 0, video: 0};
+    let hasStats = false;
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        hasStats = true;
+        const receiving = {audio: 0, video: 0};
+        for (const stats of Object.values(traceEvent.value)) {
+            if (stats.type !== 'inbound-rtp') continue;
+            const prev = previous[stats.id];
+            previous[stats.id] = stats;
+            // Stale entries keep their timestamp.
+            if (!prev || !(stats.timestamp > prev.timestamp)) continue;
+            const received = stats.lastPacketReceivedTimestamp !== undefined && prev.lastPacketReceivedTimestamp !== undefined ?
+                stats.lastPacketReceivedTimestamp > prev.lastPacketReceivedTimestamp :
+                stats.bytesReceived > prev.bytesReceived;
+            if (received && receiving[stats.kind] !== undefined) {
+                receiving[stats.kind]++;
+            }
+        }
+        max.audio = Math.max(max.audio, receiving.audio);
+        max.video = Math.max(max.video, receiving.video);
+    }
+    if (!hasStats) {
+        return {};
+    }
+    return {
+        maxReceivingAudioStreams: max.audio,
+        maxReceivingVideoStreams: max.video,
+    };
+}
+
 function numberOfNegotiations(/* clientTrace*/_, peerConnectionTrace) {
     return peerConnectionTrace.filter(traceEvent => traceEvent.type === 'onsignalingstatechange' &&
         traceEvent.value === 'stable').length;
@@ -596,6 +630,7 @@ export function extractConnectionFeatures(clientTrace, peerConnectionTrace) {
         ... candidateFeatures(undefined, peerConnectionTrace),
         ... lastStatsFeatures(undefined, peerConnectionTrace),
         ... location(undefined, peerConnectionTrace),
+        ... receivingStreamFeatures(undefined, peerConnectionTrace),
         // The total number of events in the peer connection trace.
         numberOfEvents: peerConnectionTrace.length,
         // The number of events in the peer connection trace excluding periodic 'getStats'.
