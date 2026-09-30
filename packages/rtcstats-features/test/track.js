@@ -49,6 +49,7 @@ describe('extractTrackFeatures', () => {
             duration: 2,
             firCount: 0,
             frameCount: 100,
+            isScreenshare: false,
             keyFrameCount: 1,
             kind: 'video',
             maxHeight: 240,
@@ -538,6 +539,65 @@ describe('extractTrackFeatures', () => {
             ];
             const features = extractTrackFeatures([], pcTrace, trackInfo);
             expect(features.timeToFirstFrame).to.be.undefined;
+        });
+    });
+
+    describe('screenshareFeatures', () => {
+        const extension = 'a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type\r\n';
+        const description = (type, withExtension, port = 9) => ({
+            type,
+            sdp: 'v=0\r\no=- 1 1 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\n' +
+                `m=video ${port} UDP/TLS/RTP/SAVPF 96\r\na=mid:1\r\n` +
+                (withExtension ? extension : ''),
+        });
+        const inboundVideo = {
+            direction: 'inbound',
+            id: 'track1',
+            kind: 'video',
+            startTime: 1000,
+            statsId: 'inbound1',
+        };
+        const trace = (localExtension, remoteExtension, stats) => [
+            {timestamp: 1000, type: 'setRemoteDescription', value: description('offer', remoteExtension)},
+            {timestamp: 1001, type: 'setLocalDescription', value: description('answer', localExtension)},
+            {timestamp: 2000, type: 'getStats', value: {inbound1: {mid: '1', type: 'inbound-rtp', ...stats}}},
+        ];
+
+        it('detects a screenshare when the extension is negotiated', () => {
+            const features = extractTrackFeatures([], trace(true, true, {contentType: 'screenshare'}), inboundVideo);
+            expect(features.isScreenshare).to.equal(true);
+        });
+
+        it('knows a track is no screenshare when the extension is negotiated', () => {
+            const features = extractTrackFeatures([], trace(true, true, {}), inboundVideo);
+            expect(features.isScreenshare).to.equal(false);
+        });
+
+        it('does not know without the extension', () => {
+            const features = extractTrackFeatures([], trace(true, false, {}), inboundVideo);
+            expect(features.isScreenshare).to.be.undefined;
+        });
+
+        it('uses the m-line when it was first negotiated', () => {
+            const pcTrace = [
+                {timestamp: 900, type: 'setRemoteDescription', value: description('offer', false, 0)},
+                ...trace(true, true, {}),
+                {timestamp: 3000, type: 'setRemoteDescription', value: description('offer', false)},
+                {timestamp: 3001, type: 'setLocalDescription', value: description('answer', false)},
+            ];
+            const features = extractTrackFeatures([], pcTrace, inboundVideo);
+            expect(features.isScreenshare).to.equal(false);
+        });
+
+        it('does not need the extension for outbound tracks', () => {
+            const outboundVideo = {...inboundVideo, direction: 'outbound'};
+            expect(extractTrackFeatures([], trace(false, false, {contentType: 'screenshare'}), outboundVideo).isScreenshare).to.equal(true);
+            expect(extractTrackFeatures([], trace(false, false, {}), outboundVideo).isScreenshare).to.equal(false);
+        });
+
+        it('returns undefined for audio tracks', () => {
+            const features = extractTrackFeatures([], trace(true, true, {contentType: 'screenshare'}), {...inboundVideo, kind: 'audio'});
+            expect(features.isScreenshare).to.be.undefined;
         });
     });
 });
