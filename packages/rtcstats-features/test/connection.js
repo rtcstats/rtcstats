@@ -1017,4 +1017,52 @@ describe('extractConnectionFeatures', () => {
             expect(features.gatheringTimeTurnTls).to.be.undefined;
         });
     });
+
+    describe('receivingStreamFeatures', () => {
+        const inbound = (id, kind, timestamp, lastPacketReceivedTimestamp) => ({
+            id, kind, lastPacketReceivedTimestamp, timestamp, type: 'inbound-rtp',
+        });
+
+        it('counts the peak number of streams receiving packets at once', () => {
+            const pcTrace = [
+                {timestamp: 1000, type: 'getStats', value: {
+                    A1: inbound('A1', 'audio', 1000, 990), A2: inbound('A2', 'audio', 1000, 990), V1: inbound('V1', 'video', 1000, 990),
+                }},
+                {timestamp: 2000, type: 'getStats', value: {
+                    A1: inbound('A1', 'audio', 2000, 1990), A2: inbound('A2', 'audio', 2000, 990), V1: inbound('V1', 'video', 2000, 1990),
+                }},
+                {timestamp: 3000, type: 'getStats', value: {
+                    A1: inbound('A1', 'audio', 3000, 2990), A2: inbound('A2', 'audio', 3000, 2990), V1: inbound('V1', 'video', 3000, 1990),
+                }},
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.maxReceivingAudioStreams).to.equal(2);
+            expect(features.maxReceivingVideoStreams).to.equal(1);
+        });
+
+        it('ignores stale entries whose timestamp did not change', () => {
+            const stale = inbound('V1', 'video', 1000, 990);
+            const pcTrace = [
+                {timestamp: 1000, type: 'getStats', value: {V1: stale}},
+                {timestamp: 2000, type: 'getStats', value: {V1: {...stale, lastPacketReceivedTimestamp: 1990}}},
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.maxReceivingVideoStreams).to.equal(0);
+        });
+
+        it('falls back to bytesReceived', () => {
+            const pcTrace = [
+                {timestamp: 1000, type: 'getStats', value: {V1: {bytesReceived: 10, id: 'V1', kind: 'video', timestamp: 1000, type: 'inbound-rtp'}}},
+                {timestamp: 2000, type: 'getStats', value: {V1: {bytesReceived: 20, id: 'V1', kind: 'video', timestamp: 2000, type: 'inbound-rtp'}}},
+            ];
+            const features = extractConnectionFeatures([], pcTrace);
+            expect(features.maxReceivingVideoStreams).to.equal(1);
+        });
+
+        it('returns undefined without stats', () => {
+            const features = extractConnectionFeatures([], [{timestamp: 1000, type: 'createOffer'}]);
+            expect(features.maxReceivingAudioStreams).to.be.undefined;
+            expect(features.maxReceivingVideoStreams).to.be.undefined;
+        });
+    });
 });
