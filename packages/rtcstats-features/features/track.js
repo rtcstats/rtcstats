@@ -50,6 +50,48 @@ function timeToFirstFrame(peerConnectionTrace, trackInformation) {
     return undefined;
 }
 
+// Non-standard header extension which sets the non-standard contentType stat.
+const CONTENT_TYPE_EXTENSION = 'http://www.webrtc.org/experiments/rtp-hdrext/video-content-type';
+
+function firstMediaSection(peerConnectionTrace, types, mid) {
+    for (const traceEvent of peerConnectionTrace) {
+        if (!types.includes(traceEvent.type)) continue;
+        const sdp = typeof traceEvent.value === 'string' ? traceEvent.value : traceEvent.value?.sdp;
+        if (!sdp) continue;
+        const section = SDPUtils.getMediaSections(sdp).find(mediaSection =>
+            SDPUtils.getMid(mediaSection) === mid && !SDPUtils.isRejected(mediaSection));
+        if (section) return section;
+    }
+    return undefined;
+}
+
+function screenshareFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
+    if (trackInformation.kind !== 'video') {
+        return {};
+    }
+    const trackStats = peerConnectionTrace
+        .filter(traceEvent => traceEvent.type === 'getStats' && traceEvent.value?.[trackInformation.statsId])
+        .map(traceEvent => traceEvent.value[trackInformation.statsId]);
+    if (!trackStats.length) {
+        return {};
+    }
+    const screenshare = trackStats.some(stats => stats.contentType === 'screenshare');
+    // The sender knows its source, the receiver only learns it through the extension.
+    if (trackInformation.direction === 'outbound') {
+        return {isScreenshare: screenshare};
+    }
+    const mid = trackStats.find(stats => stats.mid !== undefined)?.mid;
+    const hasExtension = section => section !== undefined &&
+        SDPUtils.matchPrefix(section, 'a=extmap:').some(line => line.includes(CONTENT_TYPE_EXTENSION));
+    const negotiated =
+        hasExtension(firstMediaSection(peerConnectionTrace, ['setLocalDescription', 'createOfferOnSuccess', 'createAnswerOnSuccess'], mid)) &&
+        hasExtension(firstMediaSection(peerConnectionTrace, ['setRemoteDescription'], mid));
+    return {
+        // Without the extension, the absence of a content type says nothing.
+        isScreenshare: screenshare || (negotiated ? false : undefined),
+    };
+}
+
 function resolutionFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformation) {
     if (trackInformation.kind === 'audio') return {};
     const widths = {};
@@ -235,6 +277,7 @@ export function extractTrackFeatures(clientTrace, peerConnectionTrace, trackInfo
         ...codecFeatures(undefined, peerConnectionTrace, trackInformation),
         ...features,
         ...resolutionFeatures(undefined, peerConnectionTrace, trackInformation),
+        ...screenshareFeatures(undefined, peerConnectionTrace, trackInformation),
         ...audioJitterBufferFeatures(undefined, peerConnectionTrace, trackInformation),
         ...lastStatsFeatures(undefined, peerConnectionTrace, trackInformation),
         ...extractCustomTrackFeatures(clientTrace, peerConnectionTrace, trackInformation),
