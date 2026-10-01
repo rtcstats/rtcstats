@@ -159,3 +159,38 @@ export function wrapSetSinkId(trace, {HTMLMediaElement}) {
     HTMLMediaElement.prototype.setSinkId = wrappedMethod;
 }
 
+
+/**
+ * Wraps the HTMLMediaElement.srcObject setter for RTCStats.
+ * Only MediaStream (or null) values are traced.
+ *
+ * @param {function} trace - RTCStats trace callback.
+ * @param {object} window - window object with HTMLMediaElement.
+ */
+export function wrapSrcObject(trace, {HTMLMediaElement}) {
+    if (!HTMLMediaElement) {
+        return;
+    }
+    const prop = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'srcObject');
+    if (!prop || !prop.get || !prop.set) {
+        return;
+    }
+    if (prop.set.__rtcStats) {
+        // Prevent double-wrapping.
+        return;
+    }
+    const wrappedSetter = function(value) {
+        if (value === null) {
+            trace('HTMLMediaElement.srcObject', null, null);
+        } else if (value && typeof value.getTracks === 'function') {
+            trace('HTMLMediaElement.srcObject', null,
+                value.getTracks().map(t => dumpTrackWithStreams(t, value)));
+        }
+        prop.set.call(this, value);
+    };
+    wrappedSetter.__rtcStats = true;
+    Object.defineProperty(HTMLMediaElement.prototype, 'srcObject', {
+        ...prop,
+        set: wrappedSetter,
+    });
+}
