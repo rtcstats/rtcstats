@@ -291,7 +291,7 @@ export function createCandidateTable(lastStats, parentElement) {
                 row.appendChild(el);
 
                 el = document.createElement('td');
-                el.innerText = candidate.isRemote ? 'remote' : 'local';
+                el.innerText = candidate.type === 'remote-candidate' ? 'remote' : 'local';
                 row.appendChild(el);
 
                 el = document.createElement('td');
