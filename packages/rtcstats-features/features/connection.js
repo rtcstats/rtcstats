@@ -61,7 +61,7 @@ function iceFeatures(/* clientTrace */_, peerConnectionTrace) {
         ...turnGatheringTimes,
         iceConnected: peerConnectionTrace.find(traceEvent => {
             // Whether the ice connection was established.
-            return traceEvent.type === 'oniceconnectionstatechange' && traceEvent.value === 'connected';
+            return traceEvent.type === 'oniceconnectionstatechange' && ['connected', 'completed'].includes(traceEvent.value);
         }) !== undefined,
         iceConnectionTime: (() => {
             // The time it took (in milliseconds) to connect the ICE connection.
@@ -75,7 +75,7 @@ function iceFeatures(/* clientTrace */_, peerConnectionTrace) {
             }
             for (second = first + 1; second < peerConnectionTrace.length; second++) {
                 if (peerConnectionTrace[second].type === 'oniceconnectionstatechange' &&
-                    peerConnectionTrace[second].value === 'connected') {
+                    ['connected', 'completed'].includes(peerConnectionTrace[second].value)) {
                     break;
                 }
             }
