@@ -23,6 +23,10 @@ and <code>contentHint</code>.</li>
 <dt><a href="#wrapSetSinkId">wrapSetSinkId(trace, window)</a></dt>
 <dd><p>Wraps HTMLMediaElement.setSinkId for RTCStats.</p>
 </dd>
+<dt><a href="#wrapSrcObject">wrapSrcObject(trace, window)</a></dt>
+<dd><p>Wraps the HTMLMediaElement.srcObject setter for RTCStats.
+Only MediaStream (or null) values are traced.</p>
+</dd>
 <dt><a href="#wrapRTCRtpTransceiver">wrapRTCRtpTransceiver(trace, window)</a></dt>
 <dd><p>Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:</p>
 <ul>
@@ -168,6 +172,19 @@ Wraps enumerateDevices and the devicechange event for RTCStats.
 
 ## wrapSetSinkId(trace, window)
 Wraps HTMLMediaElement.setSinkId for RTCStats.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trace | <code>function</code> | RTCStats trace callback. |
+| window | <code>object</code> | window object with HTMLMediaElement. |
+
+<a name="wrapSrcObject"></a>
+
+## wrapSrcObject(trace, window)
+Wraps the HTMLMediaElement.srcObject setter for RTCStats.
+Only MediaStream (or null) values are traced.
 
 **Kind**: global function  
 
