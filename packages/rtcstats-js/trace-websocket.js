@@ -77,6 +77,7 @@ export function WebSocketTrace(config = {}) {
                 height: window.innerHeight,
             },
             reloadCount,
+            webdriver: navigator.webdriver,
         });
         connectionStartTime = Date.now();
         connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
