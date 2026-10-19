@@ -100,6 +100,8 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
     wrapRTCRtpSender(trace, window);
     const OrigPeerConnection = window.RTCPeerConnection;
     let peerconnectioncounter = 0;
+    const statsPollers = new Map();
+    let statsInterval;
     // Counters for event correlation.
     const counters = {
         createOffer: 0,
@@ -179,12 +181,13 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         });
 
         let prevStats = {};
-        let statsInterval;
         const statsIdMap = {};
         const getStats = async (reason) => {
             if (pc.signalingState === 'closed' || pc.connectionState === 'closed') {
-                if (statsInterval) {
+                statsPollers.delete(pc);
+                if (!statsPollers.size && statsInterval) {
                     window.clearInterval(statsInterval);
+                    statsInterval = undefined;
                 }
                 return;
             }
@@ -213,10 +216,18 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         pc.addEventListener('connectionstatechange', function firstConnect() {
             if (['connected', 'failed'].includes(pc.connectionState)) {
                 pc.removeEventListener('connectionstatechange', firstConnect);
-                if (getStatsInterval) {
-                    statsInterval = window.setInterval(getStats, getStatsInterval);
-                }
                 getStats(pc.connectionState + '-0');
+                if (getStatsInterval) {
+                    // Delay the periodic getStats to avoid polling too soon after the initial one.
+                    window.setTimeout(() => {
+                        statsPollers.set(pc, getStats);
+                        if (!statsInterval) {
+                            statsInterval = window.setInterval(() => {
+                                statsPollers.forEach(poll => poll());
+                            }, getStatsInterval);
+                        }
+                    }, 0.7 * getStatsInterval);
+                }
             }
         });
         return pc;

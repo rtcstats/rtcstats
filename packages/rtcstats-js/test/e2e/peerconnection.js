@@ -1021,15 +1021,39 @@ describe('RTCPeerConnection', () => {
             await negotiate(pc1, pc2);
             const channel = await onchannel;
             await (new Promise(resolve => setTimeout(resolve, 0.1 * getStatsInterval)));
-            await (new Promise(resolve => setTimeout(resolve, 1.2 * getStatsInterval)));
+            await (new Promise(resolve => setTimeout(resolve, 1.9 * getStatsInterval)));
 
             const events = testSink.reset()
                 .filter(e => e[0] === 'getStats' && e[1] === pc1.__rtcStatsId);
-            expect(events).to.have.length(2);
+            expect(events).to.have.length.at.least(2);
             expect(events[0][0]).to.equal('getStats');
             expect(events[0][2]).to.be.an('object');
             expect(events[1][0]).to.equal('getStats');
             expect(events[1][2]).to.be.an('object');
+        });
+        it('shares the interval and skips a periodic poll right after connect', async () => {
+            const pcA = new RTCPeerConnection();
+            const pcB = new RTCPeerConnection();
+            pcA.createDataChannel('keepalive');
+            await negotiate(pcA, pcB);
+            await (new Promise(resolve => setTimeout(resolve, 0.5 * getStatsInterval)));
+
+            pc1 = new RTCPeerConnection();
+            pc2 = new RTCPeerConnection();
+            pc1.createDataChannel('test');
+            await negotiate(pc1, pc2);
+            await (new Promise(resolve => setTimeout(resolve, 2.5 * getStatsInterval)));
+            pcA.close();
+            pcB.close();
+
+            let time = 0;
+            const events = testSink.reset()
+                .map(e => [...e, time += e[e.length - 1]])
+                .filter(e => e[0] === 'getStats' && e[1] === pc1.__rtcStatsId);
+            expect(events).to.have.length.at.least(2);
+            expect(events[0][3]).to.equal('connected-0');
+            const gap = events[1][events[1].length - 1] - events[0][events[0].length - 1];
+            expect(gap).to.be.at.least(0.7 * getStatsInterval);
         });
         it('stops after the connection is closed', async () => {
             pc1 = new RTCPeerConnection();
