@@ -1,3 +1,11 @@
+This is part of the [monorepo](https://github.com/rtcstats/rtcstats) for rtcstats-js
+(clientside monitoring), rtcstats-server (serverside dump collection) and the updated
+dump-importer (supporting rtcstats and webrtc-internals formats).
+
+It is part of a bigger offering that includes [rtcstats.com](https://rtcstats.com),
+the hosted WebRTC observability service that reads collected dumps and returns Observations,
+an Experience Score, and a plain-English AI summary of what went wrong on the call.
+
 # Feature extraction
 This package contains [feature extraction](https://en.wikipedia.org/wiki/Feature_extraction)
 for peerconnection API traces and getStats data. There are four types of features:
@@ -71,4 +79,19 @@ select * from "rtcstats-server" as server
     join features_connection on features_connection.dump_id = features_metadata.id
     join features_track on features_track.connection_id = features_connection.id
     where server.id = ${id}
+```
+
+## Versioning
+This package follows [semantic versioning](https://semver.org/), with the database schema
+counting as part of its public interface:
+* **Major**: breaking or unsafe database changes, e.g. dropping or renaming a column,
+  changing a column's type, or changing the meaning of an existing feature.
+  Consumers of the feature tables may need to update their queries.
+* **Minor**: new features, i.e. new columns added by a migration. Several features may be
+  batched into a single minor release.
+* **Patch**: bugfixes that change neither the schema nor the meaning of a feature.
+
+Bump the version from the repository root:
+```
+npm version minor -w packages/rtcstats-features
 ```
