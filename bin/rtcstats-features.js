@@ -5,7 +5,7 @@ import config from 'config';
 import {readRTCStatsDump, extractTracks} from '@rtcstats/rtcstats-shared';
 import {createStorage, createDatabase} from '@rtcstats/rtcstats-node-shared';
 
-import {extractClientFeatures, extractConnectionFeatures, extractTrackFeatures} from './features.js';
+import {extractClientFeatures, extractConnectionFeatures, extractTrackFeatures} from '@rtcstats/rtcstats-features';
 
 const storage = createStorage(config.storage);
 const database = createDatabase(config.database);
