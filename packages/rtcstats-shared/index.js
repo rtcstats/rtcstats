@@ -1,4 +1,5 @@
 export * from './compression.js';
+export * from './precision.js';
 export * from './dump.js';
 export * from './timeseries.js';
 export * from './utils.js';
