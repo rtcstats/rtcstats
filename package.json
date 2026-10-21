@@ -36,6 +36,11 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.888.0",
     "@aws-sdk/lib-storage": "^3.888.0",
+    "@rtcstats/rtcstats-features": "*",
+    "@rtcstats/rtcstats-node-shared": "*",
+    "@rtcstats/rtcstats-shared": "*",
+    "config": "^4.1.1",
+    "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "postgres": "^3.4.7",
     "sdp": "^3.2.1"

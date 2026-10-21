@@ -5,16 +5,13 @@
   "author": "rtcstats.com",
   "license": "MIT",
   "type": "module",
+  "main": "features.js",
   "scripts": {
     "lint": "eslint *.js features/ test/",
     "coverage": "c8 --reporter html --reporter lcov mocha test",
-    "test": "npm run lint && npm run coverage",
-    "start": "npm i && NODE_CONFIG_DIR=../../config/ node app.js"
+    "test": "npm run lint && npm run coverage"
   },
   "dependencies": {
-    "@rtcstats/rtcstats-node-shared": "*",
-    "@rtcstats/rtcstats-shared": "*",
-    "config": "^4.1.1",
-    "js-yaml": "^4.1.0"
+    "@rtcstats/rtcstats-shared": "*"
   }
 }

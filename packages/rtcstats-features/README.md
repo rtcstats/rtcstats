@@ -6,13 +6,17 @@ for peerconnection API traces and getStats data. There are four types of feature
 * Features related to a particular RTCPeerConnection and the API calls happening to it.
 * Features related to a inbound or outbound MediaStreamTrack, mostly based on `getStats` API.
 
-Running
+Running (from the monorepo root)
 ```
-npm start
+npm i
+node bin/rtcstats-features.js
 ```
 will query the database for a unprocessed dumps, download it, extract the features and
 insert the features into the database. If no unprocessed dumps are found,
 the process waits five seconds before trying again.
+
+The database and storage are taken from the toplevel [`config/`](../../config) directory,
+depending on `NODE_ENV`.
 
 ## Database structure
 The feature extraction polls for new records from the `rtcstats-server` table for features that
