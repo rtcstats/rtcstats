@@ -1,6 +1,6 @@
 import { expect } from '@esm-bundle/chai';
 
-import {wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId} from '../../media.js';
+import {wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId, wrapSrcObject} from '../../media.js';
 import {createTestSink} from '../sink.js';
 import {dumpTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
@@ -13,6 +13,7 @@ before(() => {
         wrapGetUserMedia(testSink.trace, {});
         wrapEnumerateDevices(testSink.trace, {});
         wrapSetSinkId(testSink.trace, {});
+        wrapSrcObject(testSink.trace, {});
         // Wrap with empty navigator.mediaDevices for coverage.
         wrapGetUserMedia(testSink.trace, {navigator: {mediaDevices: {}}});
         wrapEnumerateDevices(testSink.trace, {navigator: {mediaDevices: {}}});
@@ -21,6 +22,7 @@ before(() => {
         wrapGetUserMedia(testSink.trace, window);
         wrapEnumerateDevices(testSink.trace, window);
         wrapSetSinkId(testSink.trace, window);
+        wrapSrcObject(testSink.trace, window);
     });
     beforeEach(() => {
         testSink.reset();
@@ -265,5 +267,54 @@ describe('setSinkId', () => {
         expect(events[1][1]).to.equal(null);
         expect(events[1][2]).to.equal(err.toString());
         expect(events[1][3]).to.equal('nonexistent-device-id');
+    });
+});
+
+describe('srcObject', () => {
+    it('prevents double-wrapping', async () => {
+        wrapSrcObject(testSink.trace, window);
+
+        const el = document.createElement('video');
+        el.srcObject = null;
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(1);
+    });
+
+    it('serializes setting a MediaStream', async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+        testSink.reset();
+
+        const el = document.createElement('video');
+        el.srcObject = stream;
+        expect(el.srcObject).to.equal(stream);
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(1);
+        expect(events[0][0]).to.equal('HTMLMediaElement.srcObject');
+        expect(events[0][1]).to.equal(null);
+        expect(events[0][2]).to.deep.equal(stream.getTracks().map(t => dumpTrackWithStreams(t, stream)));
+        stream.getTracks().forEach(t => t.stop());
+    });
+
+    it('serializes setting null', () => {
+        const el = document.createElement('video');
+        el.srcObject = null;
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(1);
+        expect(events[0][0]).to.equal('HTMLMediaElement.srcObject');
+        expect(events[0][1]).to.equal(null);
+        expect(events[0][2]).to.equal(null);
+    });
+
+    it('does not serialize non-MediaStream values', () => {
+        const el = document.createElement('video');
+        expect(() => {
+            el.srcObject = {};
+        }).to.throw(TypeError);
+
+        const events = testSink.reset();
+        expect(events.length).to.equal(0);
     });
 });
