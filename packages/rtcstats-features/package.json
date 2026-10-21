@@ -10,6 +10,9 @@
     "coverage": "c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@rtcstats/rtcstats-shared": "*"
   }
