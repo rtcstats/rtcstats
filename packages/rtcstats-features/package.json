@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "main": "features.js",
+  "types": "index.d.ts",
   "scripts": {
     "lint": "eslint *.js features/ test/",
     "coverage": "c8 --reporter html --reporter lcov mocha test",
@@ -14,6 +15,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@rtcstats/rtcstats-shared": "*"
+    "@rtcstats/rtcstats-shared": "^2.0.2",
+    "sdp": "^3.2.1"
   }
 }

@@ -11,6 +11,7 @@ jobs:
     - run: npm install
     - run: npm run lint --workspaces --if-present
     - run: npx tsc --noEmit --strict --lib es2022,dom packages/rtcstats-shared/index.d.ts
+    - run: npx tsc --noEmit --strict --lib es2022,dom packages/rtcstats-features/index.d.ts
   coverage-rtcstats-shared:
     runs-on: ubuntu-latest
     needs: lint
