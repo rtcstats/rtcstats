@@ -291,7 +291,9 @@ export async function extractTracks(peerConnectionTrace) {
             trackInformation.direction = 'outbound';
             tracks.push(trackInformation);
         } else if (traceEvent.type === 'ontrack') {
-            const trackInformation = parseTrackWithStreams(traceEvent.value);
+            const trackInformation = Array.isArray(traceEvent.value)
+                ? parseTrackWithStreams(traceEvent.value)
+                : traceEvent.value;
             trackInformation.startTime = traceEvent.timestamp;
             trackInformation.direction = 'inbound';
             if (tracks.find(info => info.direction === 'inbound' &&

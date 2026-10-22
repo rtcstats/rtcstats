@@ -654,6 +654,27 @@ describe('webrtc-internals dump', () => {
             expect(result.peerConnections['23-3'][0].timestamp).to.equal(1778229287516);
         });
 
+        it('extracts tracks from webrtc-internals ontrack events', async () => {
+            const blob = new Blob([JSON.stringify({
+                timestamp: 1792661189820,
+                PeerConnections: {'45-1': {rtcConfiguration: '{}', stats: {}, updateLog: [{
+                    type: 'ontrack',
+                    value: '{"kind":"audio","id":"c04c351a","label":"remote audio","streams":["6eb892f8"]}',
+                    timestamp: 1792661186858.198,
+                }]}},
+            })]);
+            const result = await readDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['45-1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'inbound',
+                id: 'c04c351a',
+                kind: 'audio',
+                label: 'remote audio',
+                startTime: 1792661186858.198,
+                streams: ['6eb892f8'],
+            }]);
+        });
+
         it('reads a gzipped dump', async () => {
             const blob = new Blob(['RTCStatsDump\n' +
                 JSON.stringify({fileFormat: 3}) + '\n' +
