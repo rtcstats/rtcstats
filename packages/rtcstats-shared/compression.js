@@ -219,6 +219,13 @@ export function statsDecompression(baseStatsInput, delta) {
         });
     }
 
+    // The compression removes the id as it is the key.
+    Object.keys(newStats).forEach((id) => {
+        if (newStats[id] && typeof newStats[id] === 'object') {
+            newStats[id].id = id;
+        }
+    });
+
     return newStats;
 }
 

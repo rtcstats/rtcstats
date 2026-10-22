@@ -188,7 +188,7 @@ describe('decompression', () => {
     it('decompresses an empty object to base stats', () => {
         const compressed = {id: {a: 1}};
         const restored = statsDecompression({}, compressed);
-        expect(restored).to.deep.equal(compressed);
+        expect(restored).to.deep.equal({id: {a: 1, id: 'id'}});
     });
 
     describe('handles timestamps', () => {
@@ -196,12 +196,12 @@ describe('decompression', () => {
             // remote-inbound-rtp timestamps are the RTCP arrival time and
             // lag the poll timestamp of the other reports.
             const baseStats = {
-                id1: {type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
-                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+                id1: {id: 'id1', type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
+                id2: {id: 'id2', type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
             };
             const secondStats = {
-                id1: {type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
-                id2: {type: 'remote-inbound-rtp', timestamp: 1400, roundTripTime: 0.06},
+                id1: {id: 'id1', type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
+                id2: {id: 'id2', type: 'remote-inbound-rtp', timestamp: 1400, roundTripTime: 0.06},
             };
             const delta = statsCompression(baseStats, secondStats, idMap);
             const restored = statsDecompression(baseStats, delta);
@@ -210,12 +210,12 @@ describe('decompression', () => {
 
         it('keeps the timestamp of a report that did not change at all', () => {
             const baseStats = {
-                id1: {type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
-                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+                id1: {id: 'id1', type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100},
+                id2: {id: 'id2', type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
             };
             const secondStats = {
-                id1: {type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
-                id2: {type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
+                id1: {id: 'id1', type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200},
+                id2: {id: 'id2', type: 'remote-inbound-rtp', timestamp: 400, roundTripTime: 0.05},
             };
             const delta = statsCompression(baseStats, secondStats, idMap);
             const restored = statsDecompression(baseStats, delta);
@@ -238,10 +238,12 @@ describe('decompression', () => {
             const restored = statsDecompression({}, compressed);
             expect(restored).to.deep.equal({
                 id1: {
+                    id: 'id1',
                     timestamp: 3,
                     something: 'abc',
                 },
                 id2: {
+                    id: 'id2',
                     timestamp: 1,
                     otherthing: 'def',
                 }
@@ -250,10 +252,12 @@ describe('decompression', () => {
     });
     describe('of object values', () => {
         const baseStats = {id: {
+            id: 'id',
             qualityLimitationDurationsCustom: {other:0, cpu:0, bandwidth: 2.93, none:0.073},
             timestamp: 1,
         }};
         const secondStats = {id: {
+            id: 'id',
             qualityLimitationDurationsCustom: {other:0, cpu:0, bandwidth: 2.93, none:0.073},
             timestamp: 2,
         }};
@@ -271,6 +275,7 @@ describe('decompression', () => {
 
         it('handles additions', () => {
             const thirdStats = {id: {
+                id: 'id',
                 qualityLimitationDurationsCustom: {other:0, cpu:0, bandwidth: 3.00, none:0.073, newthing: 0.1},
                 timestamp: 3,
             }};
@@ -281,10 +286,12 @@ describe('decompression', () => {
     });
     describe('of array values', () => {
         const baseStats = {id: {
+            id: 'id',
             trackIdsCustom: [ 'S3' ],
             timestamp: 1,
         }};
         const secondStats = {id: {
+            id: 'id',
             trackIdsCustom: [ 'S3', 'S4' ],
             timestamp: 2,
         }};
@@ -302,11 +309,13 @@ describe('decompression', () => {
     });
     it('restores values that changed to falsy values like 0 or false', () => {
         const baseStats = {id: {
+            id: 'id',
             framesPerSecond: 30,
             activeCustom: true,
             timestamp: 1,
         }};
         const secondStats = {id: {
+            id: 'id',
             framesPerSecond: 0,
             activeCustom: false,
             timestamp: 2,
@@ -336,6 +345,13 @@ describe('decompression', () => {
         };
         const restored = statsDecompression(baseStats, delta);
         expect(restored['id2']).to.equal(undefined);
+    });
+    it('restores the id from the key', () => {
+        const baseStats = {id1: {type: 'inbound-rtp', timestamp: 1000, packetsReceived: 100}};
+        const secondStats = {id1: {type: 'inbound-rtp', timestamp: 2000, packetsReceived: 200}};
+        const delta = statsCompression(baseStats, secondStats, idMap);
+        const restored = statsDecompression(statsDecompression({}, baseStats), delta);
+        expect(restored['id1'].id).to.equal('id1');
     });
 });
 
