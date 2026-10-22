@@ -1,6 +1,28 @@
 const CHUNK_SIZE = 1024 * 1024; // 1MB
+const RETRY_DELAYS = [1000, 2000, 4000];
 
-export async function uploadToRtcStatsCom(fileHandle, name, endpoint, token, fetchFunction) {
+function isRetryable(status) {
+    return status === 429 || status >= 500;
+}
+
+async function fetchWithRetry(fetchFunction, endpoint, options, retryDelays) {
+    for (let attempt = 0; ; attempt++) {
+        let response;
+        try {
+            response = await fetchFunction(endpoint, options);
+        } catch (e) {
+            if (attempt >= retryDelays.length) {
+                throw e;
+            }
+        }
+        if (response && (response.ok || !isRetryable(response.status) || attempt >= retryDelays.length)) {
+            return response;
+        }
+        await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+    }
+}
+
+export async function uploadToRtcStatsCom(fileHandle, name, endpoint, token, fetchFunction, retryDelays = RETRY_DELAYS) {
     const {size} = await fileHandle.stat();
     // Upload individual chunks.
     const totalChunks = Math.ceil(size / CHUNK_SIZE);
@@ -16,13 +38,13 @@ export async function uploadToRtcStatsCom(fileHandle, name, endpoint, token, fet
         formData.append('chunkIndex', i.toString());
         formData.append('totalChunks', totalChunks.toString());
         formData.append('fileName', name);
-        const response = await fetchFunction(endpoint, {
+        const response = await fetchWithRetry(fetchFunction, endpoint, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
             body: formData,
-        });
+        }, retryDelays);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Chunk upload failed');
@@ -60,6 +82,6 @@ export function createRtcStatsUploader(config) {
         if (randomFunction() >= randomPercentage) {
             return;
         }
-        return uploadToRtcStatsCom(fileHandle, name, config.endpoint, config.token, fetchFunction);
+        return uploadToRtcStatsCom(fileHandle, name, config.endpoint, config.token, fetchFunction, config.retryDelays);
     };
 }
