@@ -100,7 +100,7 @@ async function extract(id, dump) {
     */
 }
 
-async function process() {
+async function processDumps() {
     while (true) {
         const result = await sql`update ${sql(config.database.postgres.tableName)}
             set features_processing_start = now()
@@ -128,7 +128,7 @@ async function process() {
 }
 
 while (true) {
-    await process()
+    await processDumps()
         .catch(err => {
             console.error('An error occurred during processing:', err);
         })
