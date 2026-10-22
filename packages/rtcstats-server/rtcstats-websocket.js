@@ -16,7 +16,7 @@ export async function extractMetadata(upgradeRequest, options = {}) {
     const forwardedFor = upgradeRequest.headers['x-forwarded-for'];
     let remoteAddresses;
     if (forwardedFor) {
-        const forwardedIPs = forwardedFor.split(',');
+        const forwardedIPs = forwardedFor.split(',').map(ip => ip.trim());
         remoteAddresses = forwardedIPs;
     } else {
         const {remoteAddress} = upgradeRequest.connection;
