@@ -344,6 +344,12 @@ export async function extractTracks(peerConnectionTrace) {
                         report[stats.mediaSourceId].trackIdentifier);
                 });
                 if (!associatedTrack) {
+                    // Another simulcast layer of an already associated track.
+                    const layerTrack = stats.type === 'outbound-rtp' && tracks.find(trackInformation =>
+                        trackInformation.id === report[stats.mediaSourceId]?.trackIdentifier);
+                    if (layerTrack) {
+                        tracks.push({...layerTrack, statsId: id});
+                    }
                     return;
                 }
                 associatedTrack.statsId = id;

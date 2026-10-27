@@ -535,6 +535,72 @@ describe('RTCStats dump', () => {
                 streams: [ 'streamId' ],
             }]);
         });
+        const simulcastStats = (trackId) => ({
+            7: {type: 'outbound-rtp', rid: 'q', mediaSourceId: '10'},
+            8: {type: 'outbound-rtp', rid: 'h', mediaSourceId: '10'},
+            9: {type: 'outbound-rtp', rid: 'f', mediaSourceId: '10'},
+            10: {type: 'media-source', trackIdentifier: trackId},
+        });
+        const simulcastTrack = {
+            direction: 'outbound',
+            id: 'trackId',
+            kind: 'video',
+            label: 'trackLabel',
+            startTime: 1,
+            streams: [ 'streamId' ],
+        };
+        it('extracts one entry per simulcast layer', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['addTransceiver','1',[['video','trackId','trackLabel'],{streams:['streamId']}],1]) + '\n',
+                JSON.stringify(['getStats','1',simulcastStats('trackId'),2]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([
+                {...simulcastTrack, statsId: '7'},
+                {...simulcastTrack, statsId: '8'},
+                {...simulcastTrack, statsId: '9'},
+            ]);
+        });
+        it('does not duplicate simulcast layers across getStats', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['addTransceiver','1',[['video','trackId','trackLabel'],{streams:['streamId']}],1]) + '\n',
+                JSON.stringify(['getStats','1',simulcastStats('trackId'),2]) + '\n',
+                JSON.stringify(['getStats','1',simulcastStats('trackId'),3]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo.map(info => info.statsId)).to.deep.equal(['7', '8', '9']);
+        });
+        it('keeps simulcast layers on the original track after replaceTrack', async () => {
+            const blob = new Blob([
+                'RTCStatsDump\n',
+                JSON.stringify({fileFormat: 3}) + '\n',
+                JSON.stringify(['addTransceiver','1',[['video','trackId','trackLabel'],{streams:['streamId']}],1]) + '\n',
+                JSON.stringify(['getStats','1',simulcastStats('trackId'),2]) + '\n',
+                JSON.stringify(['replaceTrack','1',[['video','trackId','trackLabel'], ['video', 'newTrackId', 'newTrackLabel']],3]) + '\n',
+                JSON.stringify(['getStats','1',simulcastStats('newTrackId'),4]) + '\n',
+            ]);
+            const result = await readRTCStatsDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['1']);
+            expect(trackInfo).to.deep.equal([
+                {...simulcastTrack, statsId: '7'},
+                {...simulcastTrack, statsId: '8'},
+                {...simulcastTrack, statsId: '9'},
+                {
+                    direction: 'outbound',
+                    id: 'newTrackId',
+                    kind: 'video',
+                    label: 'newTrackLabel',
+                    startTime: 6,
+                    streams: [],
+                },
+            ]);
+        });
     });
 });
 
