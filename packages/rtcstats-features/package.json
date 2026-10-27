@@ -1,6 +1,6 @@
 {
   "name": "@rtcstats/rtcstats-features",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "rtcstats.com",
   "license": "MIT",
   "type": "module",
@@ -15,7 +15,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@rtcstats/rtcstats-shared": "^2.0.2",
+    "@rtcstats/rtcstats-shared": "^2.6.5",
     "sdp": "^3.2.1"
   }
 }
