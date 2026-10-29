@@ -98,6 +98,26 @@ trace(method name, e.g. `:userRating`,
 * A dump-importer should still display a generic rendering of the event.
 * Compression should not be used for custom methods.
 
+### Tracing without a WebSocket
+`EventTrace` instantiates a trace function that dispatches each line as an `rtcstats` event
+instead of sending it to a server. The listener decides where the line goes, for example over
+IPC to the main process of an Electron app:
+```
+import {EventTrace, wrapRTCPeerConnection} from '@rtcstats/rtcstats-js';
+
+const trace = new EventTrace();
+trace.addEventListener('rtcstats', (e) => {
+    // e.detail is {timestamp, method, pcId, line, pc?}.
+    window.electronBridge.send(e.detail);
+});
+wrapRTCPeerConnection(trace, window, {getStatsInterval: 1000});
+// Writes the first 'create' line, with the same metadata as WebSocketTrace.connect().
+trace.connect();
+```
+* `line` is ready to write: the same JSON array as WebSocketTrace, time delta included.
+  `connect()` restarts the deltas, so the `create` line carries an absolute timestamp.
+* `pc` is `'created'` on the first line and `'closed'` on the `close` line of a peer connection.
+
 ### Using a JWT to connect to rtcstats-server
 See [the server README](https://github.com/rtcstats/rtcstats/blob/main/packages/rtcstats-server/README.md) for how to
 generate JWT token with information about the user, session and conference.
