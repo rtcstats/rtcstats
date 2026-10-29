@@ -1,6 +1,7 @@
 import {wrapRTCPeerConnection} from './peerconnection.js';
 import {wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId} from './media.js';
 import {WebSocketTrace} from './trace-websocket.js';
+import {EventTrace} from './trace-event.js';
 
 /**
  * Wrap RTCStats WebSocket trace with default options.
@@ -28,4 +29,5 @@ export {
     wrapEnumerateDevices,
     wrapSetSinkId,
     WebSocketTrace,
+    EventTrace,
 };
