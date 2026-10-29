@@ -1,5 +1,7 @@
 import {compressMethod} from '@rtcstats/rtcstats-shared';
 
+import {getClientMetadata} from './trace-common.js';
+
 const PROTOCOL_VERSION = '5.0';
 const RELOAD_COUNT_KEY = 'rtcstatsReloadCount';
 
@@ -63,19 +65,7 @@ export function WebSocketTrace(config = {}) {
             connection = null;
         }
         trace('create', null, {
-            hardwareConcurrency: navigator.hardwareConcurrency,
-            userAgentData: navigator.userAgentData,
-            deviceMemory: navigator.deviceMemory,
-            cpuPerformance: navigator.cpuPerformance,
-            screen: {
-                width: window.screen?.availWidth,
-                height: window.screen?.availHeight,
-                devicePixelRatio: window.devicePixelRatio,
-            },
-            window: {
-                width: window.innerWidth,
-                height: window.innerHeight,
-            },
+            ...getClientMetadata(),
             reloadCount,
         });
         connectionStartTime = Date.now();
