@@ -33,7 +33,7 @@ describe('ObfuscateStream', () => {
             'RTCStatsDump',
             JSON.stringify(['g', 'PC_0', {
                 1: {address: '192.168.2.x'},
-                2: {address: '1234:1234:1234x:x:x:x:x:x'},
+                2: {address: '1234:1234:1234:x:x:x:x:x'},
             }]),
         ].join('\n') + '\n');
     });
@@ -51,7 +51,7 @@ describe('ObfuscateStream', () => {
             'RTCStatsDump',
             JSON.stringify(['g', 'PC_0', {
                 1: {[compressStatsProperty('address')]: '192.168.2.x'},
-                2: {[compressStatsProperty('address')]: '1234:1234:1234x:x:x:x:x:x'},
+                2: {[compressStatsProperty('address')]: '1234:1234:1234:x:x:x:x:x'},
             }]),
         ].join('\n') + '\n');
     });
