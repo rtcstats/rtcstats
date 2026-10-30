@@ -11,8 +11,12 @@ export function obfuscateIpOrAddress(ipOrAddress) {
         return ipOrAddress;
     }
     if (ipOrAddress.indexOf(':') !== -1) { // IPv6
-        const parts = ipOrAddress.split(':');
-        return parts.slice(0, 3).join(':') + 'x:x:x:x:x:x';
+        const head = ipOrAddress.split('::')[0];
+        const parts = head ? head.split(':') : [];
+        while (parts.length < 3) {
+            parts.push('0');
+        }
+        return parts.slice(0, 3).join(':') + ':x:x:x:x:x';
     }
     const parts = ipOrAddress.split('.');
     if (parts.length === 4) { // IPv4

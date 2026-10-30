@@ -48,6 +48,11 @@ describe('address obfuscation', () => {
         obfuscateAddress('publicIP', e);
         expect(e[2]).to.deep.equal(['8.8.8.x', '1.1.1.x']);
     });
+    it('obfuscates IPv6 public ips', () => {
+        const e = ['publicIP', null, ['2001:db8:85a3:1:2:3:4:5', 'fe80::1', '2001:db8:85a3::1']];
+        obfuscateAddress('publicIP', e);
+        expect(e[2]).to.deep.equal(['2001:db8:85a3:x:x:x:x:x', 'fe80:0:0:x:x:x:x:x', '2001:db8:85a3:x:x:x:x:x']);
+    });
     ['onicecandidate', 'addIceCandidate'].forEach(method => {
         describe(method, () => {
             it('obfuscateAddresѕ IPv4 addresses', () => {
@@ -70,8 +75,8 @@ describe('address obfuscation', () => {
                 obfuscateAddress(method, e);
 
                 const obfuscateAddressdCandidate = SDPUtils.parseCandidate(e[2].candidate);
-                expect(obfuscateAddressdCandidate.address).to.equal('2001:DB8:x:x:x:x:x:x');
-                expect(obfuscateAddressdCandidate.ip).to.equal('2001:DB8:x:x:x:x:x:x');
+                expect(obfuscateAddressdCandidate.address).to.equal('2001:DB8:0:x:x:x:x:x');
+                expect(obfuscateAddressdCandidate.ip).to.equal('2001:DB8:0:x:x:x:x:x');
             });
 
             it('does not obfuscate hostnames', () => {
