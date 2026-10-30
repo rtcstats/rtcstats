@@ -67,6 +67,7 @@ export function WebSocketTrace(config = {}) {
         trace('create', null, {
             ...getClientMetadata(),
             reloadCount,
+            webdriver: navigator.webdriver,
         });
         connectionStartTime = Date.now();
         connection = new WebSocket(wsURL, 'rtcstats#' + PROTOCOL_VERSION);
