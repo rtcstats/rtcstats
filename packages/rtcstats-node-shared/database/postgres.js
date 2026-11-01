@@ -25,19 +25,21 @@ export function createPostgres(config) {
             let userId;
             let conferenceId;
             let sessionId;
+            let tags;
             if (authData && authData.rtcStats) {
                 userId = authData.rtcStats.user;
                 conferenceId = authData.rtcStats.conference;
                 sessionId = authData.rtcStats.session;
+                tags = authData.rtcStats.tags;
             }
             const result = await sql`insert into ${sql(config.tableName)}
                     (session_start,
                      rtcstats_user, rtcstats_conference, rtcstats_session,
-                     host_identifier)
+                     rtcstats_tags, host_identifier)
                     values
                     (${startDate.toISOString()},
                      ${userId || null}, ${conferenceId || null}, ${sessionId || null},
-                     ${hostIdentifier || null}
+                     ${tags || null}, ${hostIdentifier || null}
                     )
                     returning id`;
             return result[0].id;

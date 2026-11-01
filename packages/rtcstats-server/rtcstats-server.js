@@ -135,6 +135,12 @@ export class RTCStatsServer {
                     console.warn('JWT authorization failed', err);
                     return resolve(false);
                 }
+                if (res.rtcStats) {
+                    const tags = Array.isArray(res.rtcStats.tags)
+                        ? [...new Set(res.rtcStats.tags.filter(tag => typeof tag === 'string' && /^[a-zA-Z0-9_.:-]{1,32}$/.test(tag)))].slice(0, 16)
+                        : [];
+                    res.rtcStats.tags = tags.length ? tags : null;
+                }
                 resolve(res);
             });
         });

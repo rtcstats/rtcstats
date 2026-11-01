@@ -244,6 +244,28 @@ describe('RTCStatsServer', () => {
             await openPromise;
             await server.close();
         });
+
+        it('passes the token payload to the database', async () => {
+            const conf = structuredClone(baseConfig);
+            conf.authorization = {jwtSecret};
+            server = new RTCStatsServer(conf);
+            let insertedAuthData;
+            const inserted = new Promise(resolve => {
+                server.database.insert = async (startTime, authData) => {
+                    insertedAuthData = authData;
+                    resolve();
+                    return 'dbId';
+                };
+            });
+            await server.listen();
+
+            const token = await generateAuthToken({user: 'testUser', tags: ['a', 'b']}, jwtSecret);
+            const ws = new WebSocket('ws://localhost:' + config.server.httpPort + '?rtcstats-token=' + token);
+            ws.on('open', () => ws.close());
+            await inserted;
+            expect(insertedAuthData.rtcStats).to.deep.equal({user: 'testUser', tags: ['a', 'b']});
+            await server.close();
+        });
     });
 
     describe('HTTP upload JWT authorization', () => {
