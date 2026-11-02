@@ -22,7 +22,7 @@ async function fetchWithRetry(fetchFunction, endpoint, options, retryDelays) {
     }
 }
 
-export async function uploadToRtcStatsCom(fileHandle, name, endpoint, token, fetchFunction, retryDelays = RETRY_DELAYS) {
+export async function uploadToRtcStatsCom(fileHandle, name, tags, endpoint, token, fetchFunction, retryDelays = RETRY_DELAYS) {
     const {size} = await fileHandle.stat();
     // Upload individual chunks.
     const totalChunks = Math.ceil(size / CHUNK_SIZE);
@@ -53,7 +53,7 @@ export async function uploadToRtcStatsCom(fileHandle, name, endpoint, token, fet
     // Notify server to assemble.
     const assembleResponse = await fetchFunction(endpoint, {
         method: 'POST',
-        body: JSON.stringify({ fileId, assemble: true, fileName: name }),
+        body: JSON.stringify({ fileId, assemble: true, fileName: name, tags: tags || undefined }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -78,10 +78,10 @@ export function createRtcStatsUploader(config) {
     // Only for testing.
     const fetchFunction = config.fetch || fetch;
     const randomFunction = config.random || Math.random;
-    return (fileHandle, name) => {
+    return (fileHandle, name, tags) => {
         if (randomFunction() >= randomPercentage) {
             return;
         }
-        return uploadToRtcStatsCom(fileHandle, name, config.endpoint, config.token, fetchFunction, config.retryDelays);
+        return uploadToRtcStatsCom(fileHandle, name, tags, config.endpoint, config.token, fetchFunction, config.retryDelays);
     };
 }

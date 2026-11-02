@@ -89,6 +89,27 @@ describe('Storage', () => {
             await uploader(testFile, 'testname');
             expect(fetchArgs).to.have.length(2);
         });
+        describe('tags', () => {
+            const assembleBody = () => JSON.parse(fetchArgs[fetchArgs.length - 1][1].body);
+            it('sends tags', async () => {
+                const uploader = createRtcStatsUploader({
+                    token: 'abc',
+                    endpoint: 'http://example.com/',
+                    fetch: fetchMock,
+                });
+                await uploader(testFile, 'testname', ['qa', 'prod']);
+                expect(assembleBody().tags).to.deep.equal(['qa', 'prod']);
+            });
+            it('does not send empty tags', async () => {
+                const uploader = createRtcStatsUploader({
+                    token: 'abc',
+                    endpoint: 'http://example.com/',
+                    fetch: fetchMock,
+                });
+                await uploader(testFile, 'testname', null);
+                expect(assembleBody()).not.to.have.property('tags');
+            });
+        });
         describe('chunk retries', () => {
             const fetchSequence = (...results) => (...args) => {
                 fetchArgs.push(args);
