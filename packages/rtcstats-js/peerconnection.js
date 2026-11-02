@@ -5,6 +5,7 @@ import {
     computePressureTable,
 } from '@rtcstats/rtcstats-shared';
 import {map2obj, dumpTrackWithStreams, copyAndSanitizeConfig} from '@rtcstats/rtcstats-shared';
+import {dumpTrack} from './media.js';
 
 /**
  * Wraps a RTCRtpTransceiver for RTCStats. Currently applied to these methods:
@@ -39,7 +40,7 @@ function wrapRTCRtpTransceiver(trace, window) {
  * @param {function} trace - RTCStats trace callback
  * @param {object} window - window object from which to take the RTCRtpSender prototype.
  */
-function wrapRTCRtpSender(trace, window) {
+function wrapRTCRtpSender(trace, window, excludeDeviceLabels) {
     if (!window.RTCRtpSender) {
         return;
     }
@@ -61,8 +62,8 @@ function wrapRTCRtpSender(trace, window) {
         if (!nativeMethod) return;
         window.RTCRtpSender.prototype[method] = function(track, ...args) {
             const serializedArgs = [
-                this.track === null ? null : dumpTrackWithStreams(this.track),
-                track === null ? null : dumpTrackWithStreams(track),
+                this.track === null ? null : dumpTrack(excludeDeviceLabels, this.track),
+                track === null ? null : dumpTrack(excludeDeviceLabels, track),
             ];
             trace(method, this.__rtcStatsId,
                 serializedArgs,
@@ -80,8 +81,9 @@ function wrapRTCRtpSender(trace, window) {
  * @param {object} window - window object from which to take the RTCPeerConnection prototype.
  * @param {object} configuration - various configurable properties. Currently:
  * * getStatsInterval {number} - interval at which getStats will be polled.
+ * * excludeDeviceLabels {boolean} - replaces local track labels with empty strings.
  */
-export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
+export function wrapRTCPeerConnection(trace, window, {getStatsInterval, excludeDeviceLabels}) {
     if (!window.RTCPeerConnection) {
         return;
     }
@@ -97,7 +99,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         observer.observe('cpu', {sampleInterval: getStatsInterval});
     }
     wrapRTCRtpTransceiver(trace, window);
-    wrapRTCRtpSender(trace, window);
+    wrapRTCRtpSender(trace, window, excludeDeviceLabels);
     const OrigPeerConnection = window.RTCPeerConnection;
     let peerconnectioncounter = 0;
     const statsPollers = new Map();
@@ -256,7 +258,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         if (!nativeMethod) return;
         OrigPeerConnection.prototype[method] = function(track, ...args) {
             const streams = args;
-            trace(method, this.__rtcStatsId, dumpTrackWithStreams(track, ...streams));
+            trace(method, this.__rtcStatsId, dumpTrack(excludeDeviceLabels, track, ...streams));
             const sender = nativeMethod.apply(this, [track, ...args]);
             sender.__rtcStatsId = this.__rtcStatsId;
             const transceiver = this.getTransceivers().find(t => t.sender === sender);
@@ -274,7 +276,7 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval}) {
         if (!nativeMethod) return;
         OrigPeerConnection.prototype[method] = function(trackOrKind, ...args) {
             const serializedArgs = [
-                typeof(trackOrKind) === 'string' ? trackOrKind : dumpTrackWithStreams(trackOrKind),
+                typeof(trackOrKind) === 'string' ? trackOrKind : dumpTrack(excludeDeviceLabels, trackOrKind),
             ];
             if (args[0]) {
                 serializedArgs.push(JSON.parse(JSON.stringify(args[0])));
