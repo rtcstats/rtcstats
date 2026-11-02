@@ -1245,3 +1245,26 @@ describe('excludeDeviceLabels', () => {
         expect(sink.reset()[0][2]).to.deep.equal([['audio', 'track', ''], ['audio', 'track', '']]);
     });
 });
+
+it('removes the address of remote prflx candidates from stats', async () => {
+    const sink = createTestSink();
+    let onconnectionstatechange;
+    class FakePeerConnection {
+        addEventListener(name, cb) {
+            if (name === 'connectionstatechange') onconnectionstatechange = cb;
+        }
+        removeEventListener() {}
+        async getStats() {
+            return new Map([['c', {id: 'c', type: 'remote-candidate', candidateType: 'prflx', address: '192.168.0.1'}]]);
+        }
+    }
+    const fakeWindow = {RTCPeerConnection: FakePeerConnection};
+    wrapRTCPeerConnection(sink.trace, fakeWindow, {});
+    const pc = new fakeWindow.RTCPeerConnection();
+    pc.connectionState = 'connected';
+    onconnectionstatechange();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    const event = sink.reset().find(e => e[0] === 'getStats');
+    expect(JSON.stringify(event[2])).not.to.contain('192.168.0.1');
+});

@@ -197,6 +197,12 @@ export function wrapRTCPeerConnection(trace, window, {getStatsInterval, excludeD
             if (pc.signalingState === 'closed') {
                 return;
             }
+            // Firefox < 158 exposes unsignaled remote prflx addresses.
+            Object.values(stats).forEach(report => {
+                if (report.type === 'remote-candidate' && report.candidateType === 'prflx') {
+                    delete report.address;
+                }
+            });
             if (lastComputePressureRecord) {
                 const record = lastComputePressureRecord;
                 stats['rtcStatsComputePressure'] = {

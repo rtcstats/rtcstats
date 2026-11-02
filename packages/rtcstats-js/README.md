@@ -160,3 +160,42 @@ have been stopped.
 * the (internal) API docs [here](docs/index.md) - note that these may not be fully up-to-date.
 * the [WebRTC Stats Reference](https://rtcstats.com/kb/webrtc-stats-reference-page) which tells you what each getStats() metric means, expected values, and common issues.
 
+## Privacy considerations
+
+rtcstats-js records what the WebRTC and media APIs expose, with little filtering.
+Dumps should be treated as personal data, with access control and retention to match.
+In particular, a dump may contain:
+
+* **IP addresses.** ICE candidates in the SDP, `onicecandidate` events and the
+  getStats candidate stats contain the local, server-reflexive and relay addresses
+  of the client as well as the addresses of the remote peer(s). These are the same
+  addresses the application already sends through its signaling server:
+  browsers hide local addresses behind mDNS names unless the page has
+  camera or microphone permission and do not expose the addresses of remote
+  peer-reflexive candidates in getStats.
+  rtcstats-server obfuscates them before storing the dump (`obfuscateIpAddresses`,
+  enabled by default) by keeping only the first three parts of IPv4 and IPv6 addresses,
+  e.g. `192.168.0.x`. Addresses of TURN servers are kept.
+  Storing them for diagnostics is a different purpose than signaling, so even
+  obfuscated they should be covered by the application's privacy policy.
+* **Device labels and identifiers.** `enumerateDevices` results and track labels
+  are serialized. Labels can contain personal names (e.g. "rtcstats's device").
+  See [Excluding device labels](#excluding-device-labels) for how to remove them.
+  `deviceId` and `groupId` are stable per-origin identifiers that can be used
+  to recognize the same device across sessions, and they also appear in
+  `getUserMedia` constraints.
+* **Client characteristics.** The user agent data, number of CPU cores, device memory,
+  screen and window size are collected, which together contribute to fingerprinting.
+* **TURN usernames.** TURN credentials are removed from the RTCConfiguration but the
+  `username` is kept. TURN usernames may embed a user identifier.
+* **Application-provided data.** Custom trace events, data channel labels and the
+  information in the JWT (user, session and conference identifiers) are stored as given.
+
+In addition the server sees the client's IP address and request headers such as the
+`User-Agent` and `Origin` when the WebSocket connects, like any other HTTP server.
+The IP address is obfuscated the same way before it is stored.
+
+rtcstats-js does not record media or data channel contents.
+
+The optional reload counter (`countReloads`) writes to `sessionStorage` which may
+be relevant for consent requirements.
