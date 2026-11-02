@@ -25,6 +25,7 @@ export default defineConfig([{
         'comma-style': [2, 'last'],
         'comma-spacing': 2,
         'consistent-return': 0,
+        'default-param-last': 'error',
         curly: [2, 'all'],
 
         'dot-notation': [0, {

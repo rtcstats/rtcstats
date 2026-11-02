@@ -3,6 +3,7 @@ import { defineConfig } from 'eslint/config';
 export default defineConfig([{
     rules: {
         'no-underscore-dangle': 0,
+        'default-param-last': 'error',
         'no-eq-null': 'error',
         // "no-console": "error",
         'no-alert': 'error',
