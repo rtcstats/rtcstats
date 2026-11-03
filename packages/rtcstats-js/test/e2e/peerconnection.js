@@ -334,8 +334,7 @@ describe('RTCPeerConnection', () => {
             pc = new RTCPeerConnection();
             await pc.setRemoteDescription({type: 'offer', sdp});
 
-            // TODO: remove once unmute bug is fixed on Chrome.
-            const events = testSink.reset().filter(e => e[0] !== 'MediaStreamTrack.onunmute');
+            const events = testSink.reset();
             expect(events).to.have.length(5);
             expect(events[1][0]).to.equal('setRemoteDescription');
             expect(events[1][2]).to.deep.equal({type: 'offer', sdp});
@@ -546,8 +545,7 @@ describe('RTCPeerConnection', () => {
             await pc.setRemoteDescription({type: 'offer', sdp});
             await pc.addIceCandidate({sdpMid: 'audio', sdpMLineIndex: 0, candidate: candidateSdp});
 
-            // TODO: remove once unmute bug is fixed on Chrome.
-            const events = testSink.reset().filter(e => e[0] !== 'MediaStreamTrack.onunmute');
+            const events = testSink.reset();
             expect(events).to.have.length(7);
             expect(events[5][0]).to.equal('addIceCandidate');
             expect(events[5][2].sdpMid).to.equal('audio');
