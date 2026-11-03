@@ -94,7 +94,9 @@ There are no `getStats` reports in the `clientTrace`; everything is derived from
 
 Any other fields present on the `create` event's `value` are also spread into the result.
 
-### `getUserMedia`
+### Media capture and devices
+
+#### `getUserMedia`
 
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
@@ -108,7 +110,7 @@ Any other fields present on the `create` event's `value` are also spread into th
 | `audioDeviceUsbId` | string | first event | USB `vendor:product` id of the first audio device acquired via `getUserMedia`. |
 | `videoDeviceUsbId` | string | first event | USB `vendor:product` id of the first video device acquired via `getUserMedia`. |
 
-### `getDisplayMedia`
+#### `getDisplayMedia`
 
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
@@ -118,19 +120,7 @@ Any other fields present on the `create` event's `value` are also spread into th
 | `getDisplayMediaErrorCount` | number | count | Number of failed `getDisplayMedia` calls. |
 | `getDisplayMediaSuccessCount` | number | count | Number of successful `getDisplayMedia` calls. |
 
-### `enumerateDevices`
-
-| Feature | Type | Source | Description |
-| --- | --- | --- | --- |
-| `enumerateDevicesCount` | number | count | How often `enumerateDevices` was called. |
-
-### WebSocket
-
-| Feature | Type | Source | Description |
-| --- | --- | --- | --- |
-| `webSocketConnectionTime` | number | first event | Connection time (ms) reported by rtcstats-js for its upload websocket. `value.connectionTime` of the first `websocket` event. |
-
-### Tracks (not bound to a peer connection)
+#### Tracks (not bound to a peer connection)
 
 Tracks from `getUserMedia` are matched by id between
 `navigator.mediaDevices.getUserMediaOnSuccess` and `MediaStreamTrack.onended`. Field names are
@@ -142,6 +132,18 @@ prefixed with the track `kind` (e.g. `audio`, `video`).
 | `<kind>ShortDuration` | boolean | time delta | A track of that kind ended less than 1000ms after `getUserMediaOnSuccess` for the same id. |
 
 Both fields are absent (rather than `false`) when the corresponding condition is not met.
+
+#### `enumerateDevices`
+
+| Feature | Type | Source | Description |
+| --- | --- | --- | --- |
+| `enumerateDevicesCount` | number | count | How often `enumerateDevices` was called. |
+
+### WebSocket
+
+| Feature | Type | Source | Description |
+| --- | --- | --- | --- |
+| `webSocketConnectionTime` | number | first event | Connection time (ms) reported by rtcstats-js for its upload websocket. `value.connectionTime` of the first `websocket` event. |
 
 ---
 
@@ -187,33 +189,35 @@ The call is paired with its `OnSuccess` event using the `extra` correlation id s
 | `setRemoteDescriptionDelay` | number | time delta | Time (ms) the first `setRemoteDescription` call took to resolve. |
 | `setRemoteDescriptionRole` | string | first event | `value.type` of that first `setRemoteDescription` (`offer` or `answer`). |
 
-### DTLS / connection state
+### ICE / DTLS / connection state
 
-DTLS fields are read from the [`RTCTransportStats`](https://w3c.github.io/webrtc-stats/#transportstats-dict*) dictionary; see [`dtlsRole`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole), [`tlsVersion`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion) and [`srtpCipher`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-srtpcipher). [`connectionState`](https://w3c.github.io/webrtc-pc/#dom-rtcpeerconnectionstate) is defined in webrtc-pc.
-
-| Feature | Type | Source | Description |
-| --- | --- | --- | --- |
-| `connected` | boolean | presence | Whether `connectionState` reached `'connected'` at least once. |
-| `connectionTime` | number | time delta | Time (ms) to complete the DTLS handshake (`connectionState='connecting'` to `'connected'`). |
-| `dtlsRole` | string | first getStats | DTLS role from the first `transport` stats entry that has a `tlsVersion`. Set after O/A. |
-| `dtlsVersion` | string | first getStats | DTLS version (`tlsVersion`) from that same transport entry. Requires the handshake to be complete. |
-| `srtpCipher` | string | first getStats | SRTP cipher (derived from DTLS) from that same transport entry. |
-
-### ICE state and signaling
-
-[`iceConnectionState`](https://w3c.github.io/webrtc-pc/#dom-rtciceconnectionstate) and the [ICE restart](https://w3c.github.io/webrtc-pc/#dom-rtcofferoptions-icerestart) flag are defined in webrtc-pc.
+[`iceConnectionState`](https://w3c.github.io/webrtc-pc/#dom-rtciceconnectionstate), [`connectionState`](https://w3c.github.io/webrtc-pc/#dom-rtcpeerconnectionstate) and the [ICE restart](https://w3c.github.io/webrtc-pc/#dom-rtcofferoptions-icerestart) flag are defined in webrtc-pc. DTLS fields are read from the [`RTCTransportStats`](https://w3c.github.io/webrtc-stats/#transportstats-dict*) dictionary; see [`dtlsRole`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-dtlsrole), [`tlsVersion`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-tlsversion) and [`srtpCipher`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-srtpcipher).
 
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
 | `iceConnected` | boolean | presence | Whether ICE state reached `'connected'` at least once. |
 | `iceConnectionTime` | number | time delta | Time (ms) for ICE checks to complete (`iceConnectionState='checking'` to `'connected'`). |
+| `connected` | boolean | presence | Whether `connectionState` reached `'connected'` at least once. |
+| `connectionTime` | number | time delta | Time (ms) to complete the DTLS handshake (`connectionState='connecting'` to `'connected'`). |
+| `dtlsRole` | string | first getStats | DTLS role from the first `transport` stats entry that has a `tlsVersion`. Set after O/A. |
+| `dtlsVersion` | string | first getStats | DTLS version (`tlsVersion`) from that same transport entry. Requires the handshake to be complete. |
+| `srtpCipher` | string | first getStats | SRTP cipher (derived from DTLS) from that same transport entry. |
 | `iceRestart` | boolean | presence | Whether a local ICE restart was attempted (`createOffer({iceRestart: true})`). |
 | `iceRestartFollowedBySetRemoteDescription` | boolean | presence | Whether the ICE restart completed the offer/answer exchange (followed by `setLocalDescription({type:'offer'})` then `setRemoteDescription({type:'answer'})`). |
 | `usingIceLite` | boolean | presence | Whether the remote peer is ICE-lite, typically a server (a remote SDP contains `a=ice-lite`). |
 
-### Configured ICE servers
+### Configuration
 
-All fields are derived from the [`RTCConfiguration`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration) (specifically [`iceServers`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-iceservers) and [`iceTransportPolicy`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-icetransportpolicy)) captured in the `create` event. Absent if the configuration has no `iceServers`.
+Derived from the [`RTCConfiguration`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration) captured in the `create` event. Absent if the member was not set.
+
+| Feature | Type | Source | Description |
+| --- | --- | --- | --- |
+| `configuredBundlePolicy` | string | create event | The configured [`bundlePolicy`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-bundlepolicy) (`balanced`, `max-compat` or `max-bundle`). |
+| `configuredAlwaysNegotiateDataChannels` | boolean | create event | The configured [`alwaysNegotiateDataChannels`](https://w3c.github.io/webrtc-extensions/#dom-rtcconfiguration-alwaysnegotiatedatachannels) (WebRTC extensions). |
+
+#### ICE servers
+
+Derived from [`iceServers`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-iceservers) and [`iceTransportPolicy`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-icetransportpolicy). Absent if the configuration has no `iceServers`.
 
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
@@ -224,16 +228,7 @@ All fields are derived from the [`RTCConfiguration`](https://w3c.github.io/webrt
 | `configuredIceServersTurnUdp` | boolean | create event | At least one `turn:...?transport=udp` URL was configured. |
 | `configuredIceServersTurnTcp` | boolean | create event | At least one `turn:...?transport=tcp` URL was configured. |
 
-### Configuration
-
-Derived from other [`RTCConfiguration`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration) members captured in the `create` event. Absent if the member was not set.
-
-| Feature | Type | Source | Description |
-| --- | --- | --- | --- |
-| `configuredBundlePolicy` | string | create event | The configured [`bundlePolicy`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguration-bundlepolicy) (`balanced`, `max-compat` or `max-bundle`). |
-| `configuredAlwaysNegotiateDataChannels` | boolean | create event | The configured [`alwaysNegotiateDataChannels`](https://w3c.github.io/webrtc-extensions/#dom-rtcconfiguration-alwaysnegotiatedatachannels) (WebRTC extensions). |
-
-### Added / gathered candidates
+### Candidates
 
 `added*` look at `addIceCandidate` calls (remote candidates given to us). `gathered*` look at
 `onicecandidate` events (local candidates we produced). Candidate types are parsed with
@@ -251,7 +246,7 @@ Derived from other [`RTCConfiguration`](https://w3c.github.io/webrtc-pc/#dom-rtc
 | `gatheredSrflxCandidate` | boolean | presence | A `srflx` candidate was gathered locally. |
 | `gatheredTurnCandidate` | boolean | presence | A `relay` candidate was gathered locally. |
 
-### TURN gathering times
+#### TURN gathering times
 
 Time between [`icegatheringstatechange`](https://w3c.github.io/webrtc-pc/#event-icegatheringstatechange) becoming `gathering` and the first local `relay` candidate allocated over the respective TURN transport. The transport comes from [`relayProtocol`](https://w3c.github.io/webrtc-pc/#dom-rtcicecandidate-relayprotocol) which `rtcstats-js` serializes on the `onicecandidate` event. Only the first gathering phase is measured: the window opens on `gathering` and ends for good on `complete`, so candidates gathered after an ICE restart do not contribute.
 
