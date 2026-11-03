@@ -325,7 +325,8 @@ sharing the same `trackIdentifier`; `rid` and `encodingIndex` tell them apart.
 | `direction` | string | trackInformation | Whether the track is being sent (`'outbound'`) or received (`'inbound'`). |
 | `trackIdentifier` | string | trackInformation | The track's `id`. |
 | `startTime` | number | trackInformation | Timestamp at which the track was added to the connection. |
-| `hasNullVideoDecoder` | boolean | aggregated getStats | Whether the null video decoder was used at any point (`decoderImplementation === 'NullVideoDecoder'`). Inbound video only; otherwise `undefined`. |
+| `hasNullVideoDecoder` | boolean | aggregated getStats | Whether the null video decoder was used at any point (`decoderImplementation === 'NullVideoDecoder'`). Inbound video only. |
+| `hasDecoderFallback` | boolean | aggregated getStats | Whether [`powerEfficientDecoder`](https://w3c.github.io/webrtc-stats/#dom-rtcinboundrtpstreamstats-powerefficientdecoder) went from `true` to `false` on the same codec (software fallback). Inbound video only. |
 | `isScreenshare` | boolean | aggregated getStats | `true` if any report has the non-standard `contentType: 'screenshare'`. |
 | `timeToFirstFrame` | number | time delta | Milliseconds between the `ontrack` event and the track's first `unmute` event. Inbound only. |
 
