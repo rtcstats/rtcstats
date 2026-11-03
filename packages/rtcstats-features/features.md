@@ -241,6 +241,7 @@ Derived from [`iceServers`](https://w3c.github.io/webrtc-pc/#dom-rtcconfiguratio
 | `addedSrflxCandidate` | boolean | presence | A `srflx` candidate was added. |
 | `addedTurnCandidate` | boolean | presence | A `relay` candidate was added. |
 | `addedNullCandidate` | boolean | presence | End-of-candidates was signalled by the remote (`addIceCandidate(null)`). |
+| `addedConnectableIceTcpCandidate` | boolean | presence | A passive TCP candidate was added, either via `addIceCandidate` or in a remote SDP. |
 | `gatheredHostCandidate` | boolean | presence | A `host` candidate was gathered locally. |
 | `gatheredMdnsCandidate` | boolean | presence | An mDNS `host` candidate was gathered locally. |
 | `gatheredSrflxCandidate` | boolean | presence | A `srflx` candidate was gathered locally. |
