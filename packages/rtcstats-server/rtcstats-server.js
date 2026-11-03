@@ -1,3 +1,4 @@
+import {once} from 'node:events';
 import { pipeline } from 'node:stream/promises';
 import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
@@ -25,6 +26,14 @@ async function lookupAddress(ipAddress, maxmindPath) {
         maxmindLookup = await maxmind.open(maxmindPath);
     }
     return maxmindLookup.get(ipAddress);
+}
+
+async function discardWorkFile(writeStream, workPath) {
+    if (!writeStream.closed) {
+        writeStream.destroy();
+        await once(writeStream, 'close');
+    }
+    await fsPromises.unlink(workPath);
 }
 
 export class RTCStatsServer {
@@ -80,12 +89,12 @@ export class RTCStatsServer {
                 console.error('Uploading failed', workPath, e);
                 response.writeHead(500, { 'Content-Type': 'text/plain' });
                 response.end('Internal Server Error');
-                await fsPromises.unlink(workPath);
+                await discardWorkFile(writeStream, workPath);
                 return;
             }
             if (!result || result.numberOfMessages === 0) {
-                // Drop empty files.
-                await fsPromises.unlink(workPath);
+                // Drop rejected and empty uploads.
+                await discardWorkFile(writeStream, workPath);
                 return;
             }
             const {metadata} = result;
