@@ -51,14 +51,14 @@ export async function uploadToRtcStatsCom(fileHandle, name, endpoint, token, fet
         }
     }
     // Notify server to assemble.
-    const assembleResponse = await fetchFunction(endpoint, {
+    const assembleResponse = await fetchWithRetry(fetchFunction, endpoint, {
         method: 'POST',
         body: JSON.stringify({ fileId, assemble: true, fileName: name }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
-    });
+    }, retryDelays);
     if (!assembleResponse.ok) {
         const errorData = await assembleResponse.json();
         console.error(errorData.error || 'File assembly failed');

@@ -126,6 +126,11 @@ describe('Storage', () => {
                 expect((await rejection(uploader(testFile, 'testname'))).message).to.equal('Chunk upload failed');
                 expect(fetchArgs).to.have.length(1);
             });
+            it('retries the assemble call after a 5xx response', async () => {
+                await createUploader(fetchSequence(200, 502, 200))(testFile, 'testname');
+                expect(fetchArgs).to.have.length(3);
+                expect(fetchArgs[1][1].body).to.equal(fetchArgs[2][1].body);
+            });
             it('gives up after the last retry', async () => {
                 const uploader = createUploader(fetchSequence(503));
                 expect((await rejection(uploader(testFile, 'testname'))).message).to.equal('Chunk upload failed');
