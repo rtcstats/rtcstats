@@ -84,11 +84,13 @@ export class RTCStatsServer {
             const writeStream = fs.createWriteStream(workPath);
             let result;
             try {
-                result = await handleFileupload(clientId, request, response, writeStream);
+                result = await handleFileupload(request, response, writeStream);
             } catch (e) {
                 console.error('Uploading failed', workPath, e);
-                response.writeHead(500, { 'Content-Type': 'text/plain' });
-                response.end('Internal Server Error');
+                if (!response.headersSent) {
+                    response.writeHead(500, { 'Content-Type': 'text/plain' });
+                    response.end('Internal Server Error');
+                }
                 await discardWorkFile(writeStream, workPath);
                 return;
             }
@@ -110,6 +112,8 @@ export class RTCStatsServer {
                 await fsPromises.unlink(workPath);
                 return;
             }
+            response.writeHead(200, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ message: 'Upload successful', clientId }));
             process.nextTick(async() => {
                 console.log('Connection with uuid', clientId, 'uploaded via HTTP, starting to process data');
                 this.process(clientId, startTime, endTime, dbId);
