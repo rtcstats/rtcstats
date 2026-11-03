@@ -88,7 +88,7 @@ class ExtractFileTransform extends Transform {
     }
 }
 
-export async function handleFileupload(clientId, request, response, writeStream) {
+export async function handleFileupload(request, response, writeStream) {
     const contentType = request.headers['content-type'];
     if (!contentType || !contentType.includes('multipart/form-data')) {
         response.writeHead(400, { 'Content-Type': 'text/plain' });
@@ -128,8 +128,6 @@ export async function handleFileupload(clientId, request, response, writeStream)
         };
     }
 
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ message: 'Upload successful', clientId }));
     return {
         numberOfMessages: extractor.numberOfMessages,
         metadata: extractor.metadata,

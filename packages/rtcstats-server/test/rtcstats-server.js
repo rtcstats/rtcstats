@@ -181,6 +181,24 @@ describe('RTCStatsServer', () => {
             await waitForEmptyWorkDirectory();
             await server.close();
         });
+        it('removes the work file when the database insert fails', async() => {
+            const conf = structuredClone(baseConfig);
+            conf.authorization = {};
+            conf.server.httpUploadPath = '/upload';
+            server = new RTCStatsServer(conf);
+            server.database = {insert: () => Promise.reject(new Error('database down'))};
+            await server.listen();
+
+            const formData = new FormData();
+            formData.append('dump', blob, 'test.jsonl');
+            const result = await fetch('http://localhost:' + conf.server.httpPort + '/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            expect(result.status).to.equal(500);
+            await waitForEmptyWorkDirectory();
+            await server.close();
+        });
         it('accepts a valid http upload', async () => {
             const conf = structuredClone(baseConfig);
             conf.authorization = {};
