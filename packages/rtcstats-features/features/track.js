@@ -37,6 +37,27 @@ function hasNullVideoDecoder(peerConnectionTrace, trackInformation) {
     return false;
 }
 
+function hasDecoderFallback(peerConnectionTrace, trackInformation) {
+    if (trackInformation.kind !== 'video' || trackInformation.direction !== 'inbound') {
+        return undefined;
+    }
+    let powerEfficientCodecId;
+    for (const traceEvent of peerConnectionTrace) {
+        if (traceEvent.type !== 'getStats' || !traceEvent.value) continue;
+        const report = traceEvent.value;
+        if (!report[trackInformation.statsId]) continue;
+        const {codecId, framesDecoded, powerEfficientDecoder} = report[trackInformation.statsId];
+        if (!(framesDecoded >= 1)) continue;
+        if (powerEfficientDecoder === true) {
+            powerEfficientCodecId = codecId;
+        } else if (powerEfficientDecoder === false && powerEfficientCodecId !== undefined &&
+                codecId === powerEfficientCodecId) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function timeToFirstFrame(peerConnectionTrace, trackInformation) {
     if (trackInformation.direction !== 'inbound') {
         return undefined;
@@ -266,6 +287,7 @@ export function extractTrackFeatures(clientTrace, peerConnectionTrace, trackInfo
     // getStats events which are associated with trackInformation.statsId.
     const features = {
         direction: trackInformation.direction,
+        hasDecoderFallback: hasDecoderFallback(peerConnectionTrace, trackInformation),
         hasNullVideoDecoder: hasNullVideoDecoder(peerConnectionTrace, trackInformation),
         kind: trackInformation.kind,
         startTime: trackInformation.startTime,

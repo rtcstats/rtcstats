@@ -371,6 +371,40 @@ describe('extractTrackFeatures', () => {
         });
     });
 
+    describe('hasDecoderFallback', () => {
+        const trackInfo = {
+            direction: 'inbound',
+            id: 'track1',
+            kind: 'video',
+            startTime: 1000,
+            statsId: 'track1_stats',
+        };
+        const trace = (...stats) => stats.map((stat, i) => ({
+            timestamp: 1001 + i,
+            type: 'getStats',
+            value: {
+                'track1_stats': {codecId: 'codec1', framesDecoded: 1, ...stat},
+            },
+        }));
+        const efficient = {powerEfficientDecoder: true};
+        const inefficient = {powerEfficientDecoder: false};
+
+        it('should return true when switching from true to false', () => {
+            const features = extractTrackFeatures([], trace(efficient, efficient, inefficient), trackInfo);
+            expect(features.hasDecoderFallback).to.equal(true);
+        });
+
+        it('should return false when the codec changes', () => {
+            const features = extractTrackFeatures([], trace(efficient, {...inefficient, codecId: 'codec2'}), trackInfo);
+            expect(features.hasDecoderFallback).to.equal(false);
+        });
+
+        it('should return undefined for outbound tracks', () => {
+            const features = extractTrackFeatures([], trace(efficient, inefficient), {...trackInfo, direction: 'outbound'});
+            expect(features.hasDecoderFallback).to.be.undefined;
+        });
+    });
+
     describe('audio concealment features', () => {
         const trackInfo = {
             direction: 'inbound',
