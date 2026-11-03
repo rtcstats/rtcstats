@@ -314,6 +314,8 @@ have a geolocation database such as MaxMind configured.
 Track features describe a single inbound or outbound media track. The extractor takes a
 `trackInformation` descriptor and pulls the track's `getStats` entry by `statsId` from each
 `getStats` report in the peer connection trace.
+Outbound tracks sent with simulcast yield one entry per layer (one per `outbound-rtp`), all
+sharing the same `trackIdentifier`; `rid` and `encodingIndex` tell them apart.
 
 ### Top-level fields
 

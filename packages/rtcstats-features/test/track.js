@@ -122,6 +122,39 @@ describe('extractTrackFeatures', () => {
             expect(features.powerEfficientEncoder).to.equal(false);
             expect(features.encoderImplementation).to.equal('bogus');
         });
+
+        it('should extract features per simulcast layer', () => {
+            const layers = [
+                {...trackInfo, statsId: 'layer_q'},
+                {...trackInfo, statsId: 'layer_f'},
+            ];
+            const layerStats = {
+                layer_q: {
+                    type: 'outbound-rtp',
+                    rid: 'q',
+                    frameWidth: 320,
+                    frameHeight: 180,
+                    qualityLimitationDurations: {bandwidth: 1000, none: 1000},
+                },
+                layer_f: {
+                    type: 'outbound-rtp',
+                    rid: 'f',
+                    frameWidth: 1280,
+                    frameHeight: 720,
+                    qualityLimitationDurations: {bandwidth: 0, none: 2000},
+                },
+            };
+            const pcTrace = [
+                { type: 'getStats', timestamp: 1001, value: layerStats },
+            ];
+            const [q, f] = layers.map(layer => extractTrackFeatures([], pcTrace, layer));
+            expect(q.rid).to.equal('q');
+            expect(q.maxWidth).to.equal(320);
+            expect(q.bandwidthQualityLimitationPercentage).to.equal(0.5);
+            expect(f.rid).to.equal('f');
+            expect(f.maxWidth).to.equal(1280);
+            expect(f.bandwidthQualityLimitationPercentage).to.equal(0);
+        });
     });
 
     describe('for inbound tracks', () => {
