@@ -114,6 +114,22 @@ describe('address obfuscation', () => {
             expect(e[2].sdp).not.to.contain('c=IN IP4 8.8.8.8');
             expect(e[2].sdp).to.contain('c=IN IP4 0.0.0.0');
         });
+        it('obfuscates the o= line', () => {
+            const e = ['setRemoteDescription', null, {
+                type: 'offer',
+                sdp: sdp.replace('IN IP4 127.0.0.1', 'IN IP4 10.104.0.139'),
+            }];
+            obfuscateAddress('setRemoteDescription', e);
+            expect(e[2].sdp).to.contain('o=- 0 3 IN IP4 10.104.0.x\r\n');
+        });
+        it('keeps 127.0.0.1 in the o= line', () => {
+            const e = ['setRemoteDescription', null, {
+                type: 'offer',
+                sdp,
+            }];
+            obfuscateAddress('setRemoteDescription', e);
+            expect(e[2].sdp).to.contain('o=- 0 3 IN IP4 127.0.0.1\r\n');
+        });
         it('obfuscateѕ the a=rtcp: line', () => {
             const e = ['setRemoteDescription', null, {
                 type: 'offer',

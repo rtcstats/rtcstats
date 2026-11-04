@@ -41,12 +41,16 @@ function obfuscateCandidate(candidate) {
     return SDPUtils.writeCandidate(cand);
 }
 
-// Obfuscate the IP in SDP, candidate lines, c= and a=rtcp lines.
+// Obfuscate the IP in SDP, candidate lines, o=, c= and a=rtcp lines.
 function obfuscateSDP(sdp) {
     return SDPUtils.splitLines(sdp).map(line => {
         // obfuscate a=candidate, c= and a=rtcp
         if (line.startsWith('a=candidate:')) {
             return 'a=' + obfuscateCandidate(line);
+        } else if (line.startsWith('o=')) {
+            const parts = line.split(' ');
+            parts[parts.length - 1] = obfuscateIpOrAddress(parts[parts.length - 1]);
+            return parts.join(' ');
         } else if (line.startsWith('c=')) {
             return 'c=IN IP4 0.0.0.0';
         } else if (line.startsWith('a=rtcp:')) {
