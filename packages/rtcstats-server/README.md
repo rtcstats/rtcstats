@@ -103,6 +103,16 @@ following fields to the database:
 * **user**: a long-lived service-defined identifer for the user
 * **session**: a short-lived service-defined identifier for the user session.
 * **conference**: a service-defined identifier for a conference or call. This can be used to search and groups dumps with multiple users.
+* **tags**: an array of strings to filter or group dumps by, e.g. `["env:qa", "call-failed"]`.
+  The following restrictions apply:
+  * each tag is 1 to 32 characters long.
+  * allowed characters are ASCII letters (`a-z`, `A-Z`), digits (`0-9`), underscore (`_`),
+    dot (`.`), colon (`:`) and hyphen (`-`). Whitespace, commas, quotes and non-ASCII characters
+    are not allowed.
+  * tags are case-sensitive, `env:QA` and `env:qa` are different tags.
+  * at most 16 tags are stored per token.
+
+  Tags not following these rules are silently ignored.
 
 See the [example](/example/) for how such a integration looks like.
 
@@ -112,6 +122,7 @@ the configured `authorization.jwtSecret` and prints a signed token:
 ```
 node bin/generate-token.js --lifetime 600
 ```
+Use `--user`, `--conference`, `--session` and a repeatable `--tag` to fill the `rtcStats` object.
 Pass `--url wss://example.com` to print a full WebSocket URL with the
 `rtcstats-token` query parameter already appended.
 

@@ -13,6 +13,10 @@ const {values} = parseArgs({
     options: {
         lifetime: {type: 'string', short: 'l', default: '600'},
         url: {type: 'string', short: 'u'},
+        user: {type: 'string'},
+        conference: {type: 'string'},
+        session: {type: 'string'},
+        tag: {type: 'string', short: 't', multiple: true},
     },
 });
 
@@ -26,7 +30,13 @@ if (!config.authorization?.jwtSecret) {
     process.exit(1);
 }
 
-const token = await generateAuthToken({}, config.authorization.jwtSecret, lifetime);
+const rtcStatsData = {
+    user: values.user,
+    conference: values.conference,
+    session: values.session,
+    tags: values.tag,
+};
+const token = await generateAuthToken(rtcStatsData, config.authorization.jwtSecret, lifetime);
 
 if (values.url) {
     console.log(values.url + '/?rtcstats-token=' + encodeURIComponent(token));
