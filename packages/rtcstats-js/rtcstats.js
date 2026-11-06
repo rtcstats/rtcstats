@@ -14,9 +14,9 @@ export function wrapRTCStatsWithDefaultOptions(config = {getStatsInterval: 1000}
     // Wrap RTCPeerConnection-related APIs and events
     wrapRTCPeerConnection(trace, target, config);
     // Wrap getUserMedia, getDisplayMedia and related events.
-    wrapGetUserMedia(trace, target);
+    wrapGetUserMedia(trace, target, config);
     // Wrap enumerateDevices.
-    wrapEnumerateDevices(trace, target);
+    wrapEnumerateDevices(trace, target, config);
     // Wrap HTMLMediaElement.setSinkId.
     wrapSetSinkId(trace, target);
 

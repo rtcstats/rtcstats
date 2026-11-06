@@ -1196,3 +1196,50 @@ describe('getStats compression', () => {
         });
     });
 });
+
+describe('excludeDeviceLabels', () => {
+    const track = {kind: 'audio', id: 'track', label: 'rtcstats\'s device'};
+    const stream = {id: 'stream'};
+    let sink;
+    let pc;
+    let fakeWindow;
+    beforeEach(() => {
+        sink = createTestSink();
+        class FakePeerConnection {
+            addEventListener() {}
+            getTransceivers() {
+                return [];
+            }
+            addTrack() {
+                return {};
+            }
+            addTransceiver() {
+                return {sender: {}, receiver: {track: {id: 'receiver'}}};
+            }
+        }
+        class FakeRtpSender {
+            replaceTrack() {}
+        }
+        fakeWindow = {RTCPeerConnection: FakePeerConnection, RTCRtpSender: FakeRtpSender};
+        wrapRTCPeerConnection(sink.trace, fakeWindow, {excludeDeviceLabels: true});
+        pc = new fakeWindow.RTCPeerConnection();
+        sink.reset();
+    });
+
+    it('removes the label in addTrack', () => {
+        pc.addTrack(track, stream);
+        expect(sink.reset()[0][2]).to.deep.equal(['audio', 'track', '', 'stream']);
+    });
+
+    it('removes the label in addTransceiver', () => {
+        pc.addTransceiver(track);
+        expect(sink.reset()[0][2]).to.deep.equal([['audio', 'track', '']]);
+    });
+
+    it('removes the label in replaceTrack', () => {
+        const sender = new fakeWindow.RTCRtpSender();
+        sender.track = track;
+        sender.replaceTrack(track);
+        expect(sink.reset()[0][2]).to.deep.equal([['audio', 'track', ''], ['audio', 'track', '']]);
+    });
+});

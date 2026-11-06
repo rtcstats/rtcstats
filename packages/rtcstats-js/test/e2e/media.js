@@ -225,6 +225,41 @@ describe('mediaDevices', () => {
     });
 });
 
+describe('excludeDeviceLabels', () => {
+    const label = 'rtcstats\'s device';
+    let sink;
+    let fakeNavigator;
+    beforeEach(() => {
+        sink = createTestSink();
+        const track = {kind: 'audio', id: 'track', label, addEventListener: () => {}};
+        const stream = {id: 'stream', getTracks: () => [track]};
+        fakeNavigator = {mediaDevices: {
+            getUserMedia: async () => stream,
+            enumerateDevices: async () => [{deviceId: 'device', kind: 'audioinput', label, groupId: 'group'}],
+        }};
+        const options = {excludeDeviceLabels: true};
+        wrapGetUserMedia(sink.trace, {navigator: fakeNavigator, MediaStreamTrack: {prototype: {}}}, options);
+        wrapEnumerateDevices(sink.trace, {navigator: fakeNavigator}, options);
+    });
+
+    it('removes the label in getUserMediaOnSuccess', async () => {
+        const stream = await fakeNavigator.mediaDevices.getUserMedia({audio: true});
+
+        const events = sink.reset();
+        expect(events[1][0]).to.equal('navigator.mediaDevices.getUserMediaOnSuccess');
+        expect(events[1][2]).to.deep.equal([['audio', 'track', '', 'stream']]);
+        expect(stream.getTracks()[0].label).to.equal(label);
+    });
+
+    it('removes the label in enumerateDevices', async () => {
+        const devices = await fakeNavigator.mediaDevices.enumerateDevices();
+
+        const events = sink.reset();
+        expect(events[0][2]).to.deep.equal([{deviceId: 'device', kind: 'audioinput', label: '', groupId: 'group'}]);
+        expect(devices[0].label).to.equal(label);
+    });
+});
+
 describe('setSinkId', () => {
     it('prevents double-wrapping', async () => {
         wrapSetSinkId(testSink.trace, window);

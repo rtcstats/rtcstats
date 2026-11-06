@@ -1,6 +1,19 @@
 import {compressMethod, dumpTrackWithStreams} from '@rtcstats/rtcstats-shared';
 
 /**
+ * Serializes a track like dumpTrackWithStreams, optionally replacing the label with an empty string.
+ *
+ * @protected
+ */
+export function dumpTrack(excludeDeviceLabels, track, ...streams) {
+    const dumped = dumpTrackWithStreams(track, ...streams);
+    if (excludeDeviceLabels) {
+        dumped[2] = '';
+    }
+    return dumped;
+}
+
+/**
  * Wrap the setter for MediaStreamTrack.{property}.
  * Does not work on the prototype but needs a track instance.
  * Only done for local tracks where this is most useful.
@@ -43,8 +56,9 @@ function wrapTrackProperty(track, property, trace, MediaStreamTrack) {
  * @protected
  * @param {function} trace - RTCStats trace callback.
  * @param {object} window - window object with navigator and MediaStreamTrack.
+ * @param {object} options - excludeDeviceLabels {boolean} replaces track labels with empty strings.
  */
-export function wrapGetUserMedia(trace, {navigator, MediaStreamTrack}) {
+export function wrapGetUserMedia(trace, {navigator, MediaStreamTrack}, {excludeDeviceLabels} = {}) {
     const counters = {getUserMedia: 0, getDisplayMedia: 0};
     if (!(navigator && navigator.mediaDevices)) {
         return;
@@ -65,7 +79,7 @@ export function wrapGetUserMedia(trace, {navigator, MediaStreamTrack}) {
             return origMethod.apply(navigator.mediaDevices, args)
                 .then((stream) => {
                     trace('navigator.mediaDevices.' + method + 'OnSuccess', null,
-                        stream.getTracks().map(t => dumpTrackWithStreams(t, stream)),
+                        stream.getTracks().map(t => dumpTrack(excludeDeviceLabels, t, stream)),
                         trackingId);
                     stream.getTracks().forEach(track => {
                         track.__rtcStatsId = trackingId;
@@ -103,8 +117,9 @@ export function wrapGetUserMedia(trace, {navigator, MediaStreamTrack}) {
  *
  * @param {function} trace - RTCStats trace callback.
  * @param {object} window - window object with navigator.
+ * @param {object} options - excludeDeviceLabels {boolean} replaces device labels with empty strings.
  */
-export function wrapEnumerateDevices(trace, {navigator}) {
+export function wrapEnumerateDevices(trace, {navigator}, {excludeDeviceLabels} = {}) {
     if (!(navigator && 'mediaDevices' in navigator && navigator.mediaDevices.enumerateDevices)) {
         return;
     }
@@ -116,8 +131,11 @@ export function wrapEnumerateDevices(trace, {navigator}) {
     const wrappedMethod = (...args) => {
         return origMethod.apply(navigator.mediaDevices, args)
             .then((devices) => {
-                trace('navigator.mediaDevices.enumerateDevices', null,
-                    JSON.parse(JSON.stringify(devices)));
+                const serialized = JSON.parse(JSON.stringify(devices));
+                if (excludeDeviceLabels) {
+                    serialized.forEach(d => d.label = '');
+                }
+                trace('navigator.mediaDevices.enumerateDevices', null, serialized);
                 return devices;
             });
     };

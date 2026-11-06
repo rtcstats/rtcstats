@@ -80,6 +80,25 @@ really wrong. This feature does not count actual page reloads which would requir
 listeners but the number of times the trace function has been instantiated which should be once
 per page load.
 
+### Excluding device labels
+
+Device labels can contain personal names such as "rtcstats's device".
+rtcstats-js can replace them with empty strings when enabled with
+```
+const trace = wrapRTCStatsWithDefaultOptions({getStatsInterval: 1000, excludeDeviceLabels: true});
+```
+When wrapping individually, pass `{excludeDeviceLabels: true}` as the third argument to
+`wrapRTCPeerConnection`, `wrapGetUserMedia` and `wrapEnumerateDevices`.
+
+Labels are then excluded from
+* the `getUserMedia` and `getDisplayMedia` results,
+* the `enumerateDevices` result and
+* the tracks passed to `addTrack`, `addTransceiver` and `replaceTrack`.
+
+Note that this reduces visibility into problems with specific camera and microphone models.
+In particular the USB vendor and product id at the end of the label, e.g. `(046d:085e)` in
+"Logitech BRIO (046d:085e)", is no longer available for analysis.
+
 ### Tracing custom events
 Sometimes you may want to send your own events to RTCStats to have them all in one dump file.
 This can be accomplished with the `trace` function as well. The method signature for this is
