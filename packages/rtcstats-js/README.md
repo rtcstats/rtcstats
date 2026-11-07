@@ -40,6 +40,16 @@ This repository is the current iteration of the [2015 rtcstats.js](https://githu
 * Trace all RTCPeerConnection and getUserMedia API calls and events.
 * Send them to a server over Websocket.
 
+## Agent setup
+
+To let a coding agent (Claude Code, Cursor, Codex, ...) add rtcstats-js to your app, give it this prompt:
+```
+Add WebRTC monitoring with rtcstats-js to this app. Fetch and follow
+https://raw.githubusercontent.com/rtcstats/rtcstats/main/skills/rtcstats-js-setup/SKILL.md
+Use only @rtcstats/rtcstats-js; do not use the legacy fippo/rtcstats or jitsi/rtcstats APIs.
+Ask me for the rtcstats-server URL, do not invent one.
+```
+
 ## Usage
 
 The main rtcstats.js exports a number of methods that facilitate this:
