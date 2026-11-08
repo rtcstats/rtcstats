@@ -169,6 +169,8 @@ handful come from periodic [`getStats`](https://w3c.github.io/webrtc-pc/#dom-rtc
 | `signalingDelay` | number | time delta | First offer/answer round-trip time, from `setLocalDescription({type:'offer'})` to the first subsequent `setRemoteDescription({type:'answer'})`. |
 | `statsTruncated` | boolean | aggregated getStats | Whether the beginning of the `getStats` timeseries is missing because chrome://webrtc-internals only keeps 1000 samples per stats property. |
 | `clockSkew` | number | first getStats | Skew (ms) between the first `getStats` call time (`Date.now()`) and the `peer-connection` stats timestamp in that report. Large when the page was open across an OS suspend. |
+| `ccfbMessagesReceived` | number | last getStats | Transport [`ccfbMessagesReceived`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-ccfbmessagesreceived). NULL unless RFC 8888 feedback is used. |
+| `ccfbMessagesSent` | number | last getStats | Transport [`ccfbMessagesSent`](https://w3c.github.io/webrtc-stats/#dom-rtctransportstats-ccfbmessagessent). NULL unless RFC 8888 feedback is used. |
 
 ### API failures
 
