@@ -5,6 +5,10 @@ import {onDump, setStatus} from './upload.js';
 
 const container = document.getElementById('tables');
 
+function showPostImport() {
+    document.getElementById('post-import').classList.add('visible');
+}
+
 onDump(async (blob, name) => {
     const referenceTime = document.getElementById('useReferenceTime');
     const useReferenceTime = referenceTime.checked;
@@ -14,9 +18,11 @@ onDump(async (blob, name) => {
     if (await detectRTCStatsDump(blob)) {
         window.importer = new RTCStatsDumpImporter(container);
         importer.process(blob);
+        showPostImport();
     } else if (await detectWebRTCInternalsDump(blob)) {
         window.importer = new WebRTCInternalsDumpImporter(container, {useReferenceTime});
         importer.process(blob);
+        showPostImport();
     } else {
         console.error('Unrecognized format');
     }
