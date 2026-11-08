@@ -240,6 +240,8 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
             features['packetsReceivedWithEct1'] = pluckStat(lastRemoteInbound, ['packetsReceivedWithEct1']);
             features['packetsReceivedWithCe'] = pluckStat(lastRemoteInbound, ['packetsReceivedWithCe']);
             features['packetsWithBleachedEct1Marking'] = pluckStat(lastRemoteInbound, ['packetsWithBleachedEct1Marking']);
+            features['packetsReportedAsLost'] = pluckStat(lastRemoteInbound, ['packetsReportedAsLost']);
+            features['packetsReportedAsLostButRecovered'] = pluckStat(lastRemoteInbound, ['packetsReportedAsLostButRecovered']);
         }
     } else {
         // Inbound.
@@ -260,6 +262,12 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace, trackInformat
 
         features['framesAssembledFromMultiplePackets'] = pluckStat(lastTrackStats, ['framesAssembledFromMultiplePackets']);
         features['totalAssemblyTime'] = pluckStat(lastTrackStats, ['totalAssemblyTime']);
+
+        // L4S.
+        features['packetsReceivedWithEct1'] = pluckStat(lastTrackStats, ['packetsReceivedWithEct1']);
+        features['packetsReceivedWithCe'] = pluckStat(lastTrackStats, ['packetsReceivedWithCe']);
+        features['packetsReportedAsLost'] = pluckStat(lastTrackStats, ['packetsReportedAsLost']);
+        features['packetsReportedAsLostButRecovered'] = pluckStat(lastTrackStats, ['packetsReportedAsLostButRecovered']);
 
         // Audio concealment.
         features['concealedSamples'] = pluckStat(lastTrackStats, ['concealedSamples']);
