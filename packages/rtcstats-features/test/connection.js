@@ -1065,4 +1065,22 @@ describe('extractConnectionFeatures', () => {
             expect(features.maxReceivingVideoStreams).to.be.undefined;
         });
     });
+    describe('ccfb', () => {
+        const stats = (ccfbMessagesReceived, ccfbMessagesSent) => ({type: 'getStats', value: {
+            T01: {type: 'transport', selectedCandidatePairId: 'CP01', ccfbMessagesReceived, ccfbMessagesSent},
+            CP01: {type: 'candidate-pair'},
+        }, timestamp: 1000});
+        it('is read from the last getStats', () => {
+            const features = extractConnectionFeatures([], [stats(1, 2), stats(42, 43)]);
+            expect(features.ccfbMessagesReceived).to.equal(42);
+            expect(features.ccfbMessagesSent).to.equal(43);
+        });
+        it('is undefined when not reported', () => {
+            for (const trace of [[stats(undefined, undefined)], [{type: 'getStats', value: {}, timestamp: 1000}]]) {
+                const features = extractConnectionFeatures([], trace);
+                expect(features.ccfbMessagesReceived).to.be.undefined;
+                expect(features.ccfbMessagesSent).to.be.undefined;
+            }
+        });
+    });
 });

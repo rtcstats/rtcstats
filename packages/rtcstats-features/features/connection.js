@@ -459,6 +459,9 @@ function lastStatsFeatures(/* clientTrace*/_, peerConnectionTrace) {
         roundTripTimeTotals.responsesReceived += pluckStat(candidatePairStats, ['responsesReceived']) || 0;
         roundTripTimeTotals.totalRoundTripTime += pluckStat(candidatePairStats, ['totalRoundTripTime']) || 0;
     }
+    // Only present when RFC 8888 congestion control feedback is in use.
+    features['ccfbMessagesReceived'] = pluckStat(lastTransportStats, ['ccfbMessagesReceived']);
+    features['ccfbMessagesSent'] = pluckStat(lastTransportStats, ['ccfbMessagesSent']);
     features['averageStunRoundTripTime'] = divideStat(roundTripTimeTotals, 'totalRoundTripTime', 'responsesReceived');
     if (firstStatsEvent && firstStatsEvent.timestamp < lastStatsEvent.timestamp) {
         const deltaSeconds = (lastStatsEvent.timestamp - firstStatsEvent.timestamp) / 1000;
