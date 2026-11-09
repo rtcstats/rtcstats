@@ -1,7 +1,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Import rtcstats dumps</title>
+        <title>RTCStats WebRTC Dump Importer</title>
         <!-- highcharts is used under the terms of
             http://shop.highsoft.com/faq/non-commercial
         -->
@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="main.css">
         <style>
 .centered {
-    max-width: 640px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 details[open] pre {
@@ -61,9 +61,9 @@ table details.srflx summary:after {
     </head>
     <body>
         <div class="centered">
-            <h1>WebRTC Dump Importer</h1>
-            <p>Visualize dumps from chrome://webrtc-internals or rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a detailed walkthrough of the data.</p>
+            <div class="hero">
             <div class="upload-area" id="upload-area">
+                <p class="upload-intro">Visualize dumps from chrome://webrtc-internals or rtcstats. See <a href="https://bloggeek.me/webrtc-internals/">this blog post</a> for a detailed walkthrough of the data.</p>
                 <label for="import">Drop a file here, or click to select</label>
                 <input type="file" id="import" accept=".json,.txt,.gz,.jsonl">
                 <button type="button" class="upload-button" id="upload-button" onclick="document.getElementById('import').click()">Choose file</button>
@@ -77,14 +77,19 @@ table details.srflx summary:after {
             <div class="cta">
                 <div class="cta-box">
                     <div class="cta-text">
-                        <p><strong>Want more from your dump?</strong> <a href="https://www.rtcstats.com">rtcstats.com</a> cuts through the noise to get you to a root cause fast - and makes WebRTC debugging accessible even if you're not a WebRTC expert. Quality scores, automatic observations, AI-powered analysis - free to use.</p>
+                        <p><strong>Want more from your dump?</strong> <a href="https://www.rtcstats.com/?utm_source=dump-importer&utm_content=top">rtcstats.com</a> cuts through the noise to get you to a root cause fast - and makes WebRTC debugging accessible even if you're not a WebRTC expert. Quality scores, automatic observations, AI-powered analysis - free to use.</p>
                     </div>
+                    <a href="https://www.rtcstats.com/?utm_source=dump-importer&utm_content=image"><img class="cta-image" src="https://www.rtcstats.com/opengraph-image.png" alt="rtcStats: stop guessing why WebRTC calls fail"></a>
                 </div>
+            </div>
             </div>
         </div>
         <div id="tables">
         </div>
         <footer>
+            <div class="cta post-import" id="post-import">
+                <p><strong>Nice graphs. Want answers?</strong> Upload this dump to <a href="https://www.rtcstats.com/?utm_source=dump-importer&utm_content=post-import">rtcstats.com</a> for quality scores, automatic observations and an AI root-cause analysis. Free to use.</p>
+            </div>
             <a href="https://github.com/rtcstats/rtcstats">rtcstats on GitHub</a>
         </footer>
     </body>
