@@ -366,7 +366,7 @@ All fields below are read from the last `getStats` report containing the track's
 
 ### Outbound-only
 
-All fields below are read from the last `getStats` report containing the track's [`outbound-rtp`](https://w3c.github.io/webrtc-stats/#outboundrtpstats-dict*) entry. The L4S `packetsReceived*` and `packetsWith*` fields come from the linked [`remote-inbound-rtp`](https://w3c.github.io/webrtc-stats/#remoteinboundrtpstats-dict*) entry (looked up via `outboundRtp.remoteId` in the same report).
+All fields below are read from the last `getStats` report containing the track's [`outbound-rtp`](https://w3c.github.io/webrtc-stats/#outboundrtpstats-dict*) entry. The L4S `packetsReceived*`, `packetsWith*` and `packetsReportedAs*` fields come from the linked [`remote-inbound-rtp`](https://w3c.github.io/webrtc-stats/#remoteinboundrtpstats-dict*) entry (looked up via `outboundRtp.remoteId` in the same report).
 
 | Feature | Type | Source | Description |
 | --- | --- | --- | --- |
@@ -385,6 +385,8 @@ All fields below are read from the last `getStats` report containing the track's
 | `packetsReceivedWithEct1` | number | last getStats | L4S: cumulative packets received with ECT(1) (from the linked `remote-inbound-rtp`). |
 | `packetsReceivedWithCe` | number | last getStats | L4S: cumulative packets received with the CE (congestion-experienced) marking (from the linked `remote-inbound-rtp`). |
 | `packetsWithBleachedEct1Marking` | number | last getStats | L4S: cumulative packets whose ECT(1) marking was cleared in transit (from the linked `remote-inbound-rtp`). |
+| `packetsReportedAsLost` | number | last getStats | L4S: packets reported as lost by the remote. |
+| `packetsReportedAsLostButRecovered` | number | last getStats | L4S: packets reported as lost but recovered. |
 
 ### Inbound-only
 
@@ -406,6 +408,10 @@ All fields below are read from the last `getStats` report containing the track's
 | `totalProcessingDelay` | number | last getStats | Cumulative processing delay. |
 | `framesAssembledFromMultiplePackets` | number | last getStats | Cumulative frames that required multiple packets to assemble. |
 | `totalAssemblyTime` | number | last getStats | Cumulative time spent assembling frames from packets. |
+| `packetsReceivedWithEct1` | number | last getStats | L4S: packets received with ECT(1). |
+| `packetsReceivedWithCe` | number | last getStats | L4S: packets received with CE. |
+| `packetsReportedAsLost` | number | last getStats | L4S: packets we reported as lost. |
+| `packetsReportedAsLostButRecovered` | number | last getStats | L4S: packets we reported as lost but recovered. |
 | `averageDecodeTime` | number | last getStats ratio | Average decode time per frame (`totalDecodeTime / framesDecoded`). |
 | `averageInterFrameDelay` | number | last getStats ratio | Average inter-frame delay (`totalInterFrameDelay / framesDecoded`). |
 | `averageJitterBufferDelay` | number | last getStats ratio | Average jitter buffer delay per emitted frame/sample (`jitterBufferDelay / jitterBufferEmittedCount`). |
