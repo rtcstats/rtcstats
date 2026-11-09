@@ -1,7 +1,10 @@
 {
   "name": "@rtcstats/rtcstats-node-shared",
-  "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtcstats/rtcstats.git"
+  },
   "author": "rtcstats.com",
   "license": "MIT",
   "type": "module",
@@ -16,8 +19,11 @@
     "coverage": "c8 --reporter html --reporter lcov mocha test",
     "test": "npm run lint && npm run coverage"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@rtcstats/rtcstats-shared": "*",
+    "@rtcstats/rtcstats-shared": "^2.6.5",
     "@aws-sdk/client-s3": "^3.888.0",
     "@aws-sdk/lib-storage": "^3.888.0",
     "postgres": "^3.4.7",

@@ -1,6 +1,10 @@
 {
   "name": "@rtcstats/rtcstats-features",
   "version": "2.2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rtcstats/rtcstats.git"
+  },
   "author": "rtcstats.com",
   "license": "MIT",
   "type": "module",
