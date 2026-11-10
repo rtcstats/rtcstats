@@ -1,6 +1,6 @@
 {
   "name": "@rtcstats/rtcstats-node-shared",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rtcstats/rtcstats.git"
@@ -9,6 +9,7 @@
   "license": "MIT",
   "type": "module",
   "main": "index.js",
+  "types": "index.d.ts",
   "exports": {
     ".": "./index.js",
     "./storage": "./storage/index.js",
