@@ -22,7 +22,7 @@ async function fetchWithRetry(fetchFunction, endpoint, options, retryDelays) {
     }
 }
 
-export async function uploadToRtcStatsCom(fileHandle, name, tags, endpoint, token, fetchFunction, retryDelays = RETRY_DELAYS) {
+export async function uploadToRtcStatsCom(fileHandle, name, metadata, endpoint, token, fetchFunction, retryDelays = RETRY_DELAYS) {
     const {size} = await fileHandle.stat();
     // Upload individual chunks.
     const totalChunks = Math.ceil(size / CHUNK_SIZE);
@@ -53,7 +53,7 @@ export async function uploadToRtcStatsCom(fileHandle, name, tags, endpoint, toke
     // Notify server to assemble.
     const assembleResponse = await fetchWithRetry(fetchFunction, endpoint, {
         method: 'POST',
-        body: JSON.stringify({ fileId, assemble: true, fileName: name, tags: tags || undefined }),
+        body: JSON.stringify({ fileId, assemble: true, fileName: name, ...metadata }),
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -78,10 +78,21 @@ export function createRtcStatsUploader(config) {
     // Only for testing.
     const fetchFunction = config.fetch || fetch;
     const randomFunction = config.random || Math.random;
-    return (fileHandle, name, tags) => {
+    return (fileHandle, name, rtcStats) => {
         if (randomFunction() >= randomPercentage) {
             return;
         }
-        return uploadToRtcStatsCom(fileHandle, name, tags, config.endpoint, config.token, fetchFunction, config.retryDelays);
+        const metadata = {};
+        if (rtcStats?.tags) {
+            metadata.tags = rtcStats.tags;
+        }
+        if (config.uploadIdentifiers) {
+            for (const [key, field] of [['user', 'rtcstatsUser'], ['conference', 'rtcstatsConference'], ['session', 'rtcstatsSession']]) {
+                if (typeof rtcStats?.[key] === 'string') {
+                    metadata[field] = rtcStats[key];
+                }
+            }
+        }
+        return uploadToRtcStatsCom(fileHandle, name, metadata, config.endpoint, config.token, fetchFunction, config.retryDelays);
     };
 }

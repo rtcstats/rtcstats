@@ -9,6 +9,7 @@ import {generateAuthToken, setupDirectory} from '../utils.js';
 const baseConfig = structuredClone(config);
 baseConfig.storage = {};
 baseConfig.database = {};
+baseConfig.rtcstats = {};
 
 const blob = new Blob([
     'RTCStatsDump\n' +
@@ -369,6 +370,46 @@ describe('RTCStatsServer', () => {
             });
             expect(result.ok).to.be.true;
             expect(result.status).to.equal(200);
+            await server.close();
+        });
+
+        it('uploads to rtcstats.com and stores the response', async () => {
+            const conf = structuredClone(baseConfig);
+            conf.authorization = {jwtSecret};
+            conf.server.httpUploadPath = '/upload';
+            let lastRequest;
+            conf.rtcstats = {
+                token: 'abc',
+                endpoint: 'http://rtcstats.example.com/',
+                fetch: async (url, options) => {
+                    lastRequest = options;
+                    return {ok: true, json: async () => ({embedUrl: 'http://embed.example.com/', data: {}})};
+                },
+            };
+            server = new RTCStatsServer(conf);
+            const stored = {};
+            server.database.setRtcStatsEmbedUrl = (dbId, embedUrl) => {
+                stored.embedUrl = embedUrl;
+            };
+            server.database.insertRtcStatsAnalysis = (dbId, response) => {
+                stored.analysis = response;
+            };
+            const processed = new Promise(resolve => {
+                server.database.update = resolve;
+            });
+            await server.listen();
+
+            const formData = new FormData();
+            formData.append('dump', blob, 'test.jsonl');
+            const token = await generateAuthToken({user: 'testUser', tags: ['a']}, jwtSecret);
+            await fetch('http://localhost:' + conf.server.httpPort + '/upload' + '?rtcstats-token=' + token, {
+                method: 'POST',
+                body: formData,
+            });
+            await processed;
+            expect(JSON.parse(lastRequest.body).tags).to.deep.equal(['a']);
+            expect(stored.embedUrl).to.equal('http://embed.example.com/');
+            expect(stored.analysis.data).to.deep.equal({});
             await server.close();
         });
     });

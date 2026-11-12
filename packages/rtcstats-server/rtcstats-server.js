@@ -116,7 +116,7 @@ export class RTCStatsServer {
             response.end(JSON.stringify({ message: 'Upload successful', clientId }));
             process.nextTick(async() => {
                 console.log('Connection with uuid', clientId, 'uploaded via HTTP, starting to process data');
-                this.process(clientId, startTime, endTime, dbId, authData.rtcStats?.tags);
+                this.process(clientId, startTime, endTime, dbId, authData.rtcStats);
             });
             return;
         }
@@ -198,13 +198,13 @@ export class RTCStatsServer {
         const endTime = Date.now();
         process.nextTick(async() => {
             console.log('Connection with uuid', clientId, 'disconnected, starting to process data');
-            this.process(clientId, startTime, endTime, dbId, authData.rtcStats?.tags);
+            this.process(clientId, startTime, endTime, dbId, authData.rtcStats);
         });
     }
 
-    async process(clientId, startTime, endTime, dbId, tags) {
+    async process(clientId, startTime, endTime, dbId, rtcStats) {
         const destPath = await this.postProcess(clientId);
-        const blobUrl = await this.uploadDump(clientId, destPath, dbId, tags);
+        const blobUrl = await this.uploadDump(clientId, destPath, dbId, rtcStats);
         await this.database.update(dbId, endTime, blobUrl);
         console.log('Processed data from connection with uuid', clientId, 'dbId', dbId);
     }
@@ -229,7 +229,7 @@ export class RTCStatsServer {
         return destPath;
     }
 
-    async uploadDump(clientId, destPath, dbId, tags) {
+    async uploadDump(clientId, destPath, dbId, rtcStats) {
         // Upload to storage and unlink the destination path.
         const blobLocation = await this.storage.put(clientId, destPath);
 
@@ -238,7 +238,7 @@ export class RTCStatsServer {
             let response;
             const fileHandle = await fsPromises.open(destPath);
             try {
-                response = await this.rtcstatsUploader(fileHandle, clientId, tags);
+                response = await this.rtcstatsUploader(fileHandle, clientId, rtcStats);
             } catch (e) {
                 // Should an error prevent deletion?
                 console.error('Uploading to rtcstats.com failed', e);
