@@ -669,6 +669,15 @@ describe('webrtc-internals dump', () => {
             expect(sld.value).to.deep.equal({type: 'offer', sdp: 'v=0\r\n'});
         });
 
+        it('renames addIceCandidateFailed to addIceCandidateOnFailure', () => {
+            const pc = sample.PeerConnections['23-3'];
+            const {peerConnections} = internalsToRtcstats({...sample, PeerConnections: {'23-3': {...pc, updateLog: [
+                {type: 'addIceCandidateFailed', value: 'error', timestamp: 1778229282215},
+            ]}}});
+            expect(peerConnections['23-3'].map(e => e.type)).to.include('addIceCandidateOnFailure');
+            expect(peerConnections['23-3'].map(e => e.type)).not.to.include('addIceCandidateFailed');
+        });
+
         it('ignores track_info of tracks that were not requested', () => {
             const {peerConnections} = internalsToRtcstats({...sample, getUserMedia: [{
                 request_type: 'getUserMedia',

@@ -178,6 +178,10 @@ export async function readWebRTCInternalsDump(blob) {
     return JSON.parse(textBlob);
 }
 
+const internalsEventRenames = {
+    addIceCandidateFailed: 'addIceCandidateOnFailure', // Renamed in Chrome M160.
+};
+
 // Convert a webrtc-internals dump into the same shape readRTCStatsDump returns
 // so the existing feature extractors (mostly) work.
 export function internalsToRtcstats(data) {
@@ -236,7 +240,7 @@ export function internalsToRtcstats(data) {
                 try { value = JSON.parse(value); } catch (_) { /* keep as string */ }
             }
             trace.push({
-                type: ev.type,
+                type: internalsEventRenames[ev.type] || ev.type,
                 value,
                 timestamp: ev.timestamp || (ev.time ? new Date(ev.time).getTime() : 0),
                 extra: [],
