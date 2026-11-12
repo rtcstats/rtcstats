@@ -84,6 +84,15 @@ The system architecture is shown below:
        +-------------------+
 ```
 
+# Installing the client SDK
+
+The client-side SDK is published on npm as
+[`@rtcstats/rtcstats-js`](https://www.npmjs.com/package/@rtcstats/rtcstats-js):
+```
+npm install @rtcstats/rtcstats-js
+```
+See the [rtcstats-js README](packages/rtcstats-js/README.md) for integration details.
+
 # End-to-end example
 
 To start the local example version, run
@@ -132,6 +141,8 @@ Note: while using supabase, the migrations are plain SQL and can be applied with
 
 This repository contains the current version of the legacy
 [rtcstats-js](https://github.com/fippo/rtcstats) and [rtcstats-server](https://github.com/fippo/rtcstats-server).
-The old versions are no longer maintained, friendly forks such as the [Jitsi one](https://github.com/jitsi/rtcstats) exist.
+
+The old versions as well as the unscoped [rtcstats](https://www.npmjs.com/package/rtcstats) package on npm
+are no longer maintained. Friendly forks such as the [Jitsi one](https://github.com/jitsi/rtcstats) exist.
 
 We invite you to use this version. We plan on keeping it well maintained, modernized and well behaved for all WebRTC applications.
