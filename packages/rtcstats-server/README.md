@@ -185,6 +185,8 @@ rtcstats:
     # If set to a number between 0 and 1 a random percentage of dumps will be uploaded.
     # Defaults to 1 to disable randomness.
     randomPercentage: 1.0
+    # Also send the user, conference and session identifiers from the JWT.
+    uploadIdentifiers: false
 ```
 The **endpoint url** shown is the official rtcstats.com upload endpoint. It points to
 the production endpoint and rarely needs to be changed.
@@ -197,4 +199,8 @@ The **randomPercentage** parameter controls upload sampling. Set it to a value i
 `[0, 1)` to upload that fraction of dumps (e.g. `0.3` uploads 30%). The default of
 `1.0` uploads every dump. Use sampling for high-volume deployments where uploading
 every dump is unnecessary.
+
+Tags from the JWT are always forwarded. The `user`, `conference` and `session`
+identifiers from the JWT are only forwarded when **uploadIdentifiers** is set to
+`true` since they may identify end users.
 
