@@ -1,8 +1,9 @@
 {
   "name": "@rtcstats/rtcstats-js",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "gather WebRTC API traces and statistics",
   "main": "rtcstats.js",
+  "types": "rtcstats.d.ts",
   "type": "module",
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
