@@ -19,6 +19,7 @@ export function createInternalsTimeSeries(connection) {
             statsId = t.join('-');
         }
         if (statsProperty === 'type') continue;
+        if (statsId in Object.prototype) continue;
         const stats = connection.stats[reportname];
 
         if (!series.hasOwnProperty(statsId)) {

@@ -706,6 +706,15 @@ describe('webrtc-internals dump', () => {
             });
             expect(getStats[1].value.OT01.bytesSent).to.equal(3424);
         });
+
+        it('does not modify built-ins', () => {
+            const stats = {
+                'constructor-timestamp': {statsType: 'x', values: '[1]'},
+                'constructor-keys': {statsType: 'x', values: '[5]'},
+            };
+            internalsToRtcstats({PeerConnections: {pc: {stats, updateLog: []}}});
+            expect(Object.keys).to.be.a('function');
+        });
     });
 
     describe('readDump', () => {
