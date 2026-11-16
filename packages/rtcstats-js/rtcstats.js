@@ -1,5 +1,5 @@
 import {wrapRTCPeerConnection} from './peerconnection.js';
-import {wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId} from './media.js';
+import {wrapGetUserMedia, wrapEnumerateDevices, wrapSetSinkId, wrapSrcObject} from './media.js';
 import {WebSocketTrace} from './trace-websocket.js';
 import {getClientMetadata} from './trace-common.js';
 
@@ -19,6 +19,8 @@ export function wrapRTCStatsWithDefaultOptions(config = {getStatsInterval: 1000}
     wrapEnumerateDevices(trace, target, config);
     // Wrap HTMLMediaElement.setSinkId.
     wrapSetSinkId(trace, target);
+    // Wrap HTMLMediaElement.srcObject setter.
+    wrapSrcObject(trace, target);
 
     return trace;
 }
@@ -28,6 +30,7 @@ export {
     wrapGetUserMedia,
     wrapEnumerateDevices,
     wrapSetSinkId,
+    wrapSrcObject,
     WebSocketTrace,
     getClientMetadata,
 };
