@@ -60,6 +60,7 @@ export function createRtcStatsTimeSeries(trace) {
         }
         const stats = traceEvent.value;
         for (const id in stats) {
+            if (id in Object.prototype) continue;
             const report = stats[id];
             if (!series[id]) {
                 series[id] = {};
@@ -67,6 +68,7 @@ export function createRtcStatsTimeSeries(trace) {
             }
             for (const statsProperty in report) {
                 if (['timestamp', 'type', 'id'].includes(statsProperty)) continue;
+                if (statsProperty in Object.prototype) continue;
                 const timeSeries = series[id];
                 if (!timeSeries[statsProperty]) {
                     timeSeries[statsProperty] = [];
