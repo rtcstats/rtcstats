@@ -155,6 +155,11 @@ export function statsDecompression(baseStatsInput, delta) {
 
     // Decompress property names using a static table.
     Object.keys(newStats).forEach((id) => {
+        // Ids like __proto__ or constructor would resolve to built-ins.
+        if (id in Object.prototype) {
+            delete newStats[id];
+            return;
+        }
         const report = newStats[id];
         if (report === null) {
             return;
