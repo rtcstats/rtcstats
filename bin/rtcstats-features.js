@@ -53,8 +53,8 @@ async function extract(id, dump) {
         const clientTrace = dump.peerConnections['null'];
         const clientFeatures = extractClientFeatures(clientTrace);
         const clientData = {
+            ...clientFeatures,
             dumpId,
-            ...clientFeatures
         };
         await sql`insert into ${sql('features_client')} ${sql(clientData)}`;
 
@@ -66,9 +66,9 @@ async function extract(id, dump) {
             const peerConnectionTrace = dump.peerConnections[peerConnectionId];
             const connectionFeatures = extractConnectionFeatures(clientTrace, peerConnectionTrace);
             const connectionData = {
+                ...connectionFeatures,
                 dumpId,
                 connectionIdentifier: peerConnectionId,
-                ...connectionFeatures
             };
             result = await sql`insert into ${sql('features_connection')} ${sql(connectionData)} returning id`;
             const connectionId = result[0].id;
@@ -78,8 +78,8 @@ async function extract(id, dump) {
             for (const trackInformation of tracks) {
                 const trackFeatures = extractTrackFeatures(clientTrace, peerConnectionTrace, trackInformation);
                 const trackData = {
+                    ...trackFeatures,
                     connectionId,
-                    ...trackFeatures
                 };
                 await sql`insert into ${sql('features_track')} ${sql(trackData)}`;
             }

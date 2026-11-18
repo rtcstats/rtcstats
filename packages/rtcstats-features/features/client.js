@@ -131,8 +131,10 @@ export function extractClientFeatures(clientTrace) {
     // A trace will always have at least one event.
     const create = clientTrace.find(traceEvent => traceEvent.type === 'create').value;
 
+    // Drop id and dumpId so a client cannot pick the database row or dump it belongs to.
+    const {id, dumpId, ...clientMetadata} = create;
     return {
-        ...create,
+        ...clientMetadata,
         // The lifetime of the client in milliseconds.
         duration: clientTrace[clientTrace.length - 1].timestamp - clientTrace[0].timestamp,
         // Normalized OS family from navigator.userAgentData.platform; undefined for non-Chromium browsers.
