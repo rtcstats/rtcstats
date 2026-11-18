@@ -44,6 +44,16 @@ describe('extractClientFeatures', () => {
         });
     });
 
+    it('ignores row keys in the create event', () => {
+        const clientTrace = [
+            { type: 'create', value: { id: 1, dumpId: 2, startTime: 0, hardwareConcurrency: 4 }, timestamp: 1000 },
+        ];
+        const features = extractClientFeatures(clientTrace);
+        expect(features).to.not.have.any.keys('id', 'dumpId');
+        expect(features.startTime).to.equal(1000);
+        expect(features.hardwareConcurrency).to.equal(4);
+    });
+
     it('should handle traces with no getUserMedia or getDisplayMedia calls', () => {
         const clientTrace = [
             { type: 'create', value: { startTime: 1000, duration: 500, userAgentData: 'ua', hardwareConcurrency: 4, deviceMemory: 8, screen: 'screen', window: 'window' }, timestamp: 1000 },
