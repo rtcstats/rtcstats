@@ -111,6 +111,13 @@ describe('timeseries', () => {
                 }
             });
         });
+
+        it('ignores built-in names as ids and properties', () => {
+            const value = JSON.parse('{"__proto__": {"type": "x", "polluted": 1}, "constructor": {"type": "x"}, "1": {"type": "y", "constructor": 1, "a": 2}}');
+            const result = createRtcStatsTimeSeries([{type: 'getStats', value}]);
+            expect(result).to.deep.equal({1: {type: 'y', a: [[undefined, 2]]}});
+            expect({}.polluted).to.equal(undefined);
+        });
     });
 
     describe('insertNullForGapsIntoTimeSeries', () => {

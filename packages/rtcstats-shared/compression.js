@@ -181,6 +181,7 @@ export function statsDecompression(baseStatsInput, delta) {
 
     // Core delta decompression.
     Object.keys(baseStats).forEach(id => {
+        if (id in Object.prototype) return;
         if (newStats[id] === null) {
             // This id was removed and is no longer valid.
             delete newStats[id];

@@ -205,6 +205,13 @@ describe('decompression', () => {
         expect(Object.prototype.hasOwnProperty.call).to.be.a('function');
     });
 
+    it('ignores built-in names in the base stats', () => {
+        const baseStats = JSON.parse('{"__proto__": {"polluted": 1}, "constructor": {"polluted": 1}}');
+        expect(statsDecompression(baseStats, {})).to.deep.equal({});
+        expect({}.polluted).to.equal(undefined);
+        expect(Object.polluted).to.equal(undefined);
+    });
+
     describe('handles timestamps', () => {
         it('keeps per-report timestamps carried explicitly in the delta', () => {
             // remote-inbound-rtp timestamps are the RTCP arrival time and
