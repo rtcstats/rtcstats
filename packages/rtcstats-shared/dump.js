@@ -290,10 +290,15 @@ export async function extractTracks(peerConnectionTrace) {
     const tracks = [];
     for (const traceEvent of peerConnectionTrace) {
         if (traceEvent.type === 'addTrack') {
-            const trackInformation = parseTrackWithStreams(traceEvent.value);
+            const trackInformation = Array.isArray(traceEvent.value)
+                ? parseTrackWithStreams(traceEvent.value)
+                : traceEvent.value;
             trackInformation.startTime = traceEvent.timestamp;
             trackInformation.direction = 'outbound';
-            tracks.push(trackInformation);
+            if (tracks.find(info => info.direction === 'outbound' &&
+                    info.id === trackInformation.id) === undefined) {
+                tracks.push(trackInformation);
+            }
         } else if (traceEvent.type === 'ontrack') {
             const trackInformation = Array.isArray(traceEvent.value)
                 ? parseTrackWithStreams(traceEvent.value)
@@ -370,7 +375,10 @@ export async function extractTracks(peerConnectionTrace) {
                     label: value.sender.track,
                     streams: value.sender.streams,
                 };
-                tracks.push(trackInformation);
+                if (tracks.find(info => info.direction === 'outbound' &&
+                        info.id === trackInformation.id) === undefined) {
+                    tracks.push(trackInformation);
+                }
             } else if (traceEvent.value?.reason === 'setRemoteDescription') {
                 const trackInformation = {
                     startTime: traceEvent.timestamp,
