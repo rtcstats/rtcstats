@@ -759,6 +759,75 @@ describe('webrtc-internals dump', () => {
             }]);
         });
 
+        it('extracts tracks from webrtc-internals addTrack events', async () => {
+            const blob = new Blob([JSON.stringify({
+                timestamp: 1795181107618,
+                PeerConnections: {'7-1': {rtcConfiguration: '{}', stats: {}, updateLog: [{
+                    type: 'addTrack',
+                    value: '{"kind":"audio","id":"c695139f","streams":["fc315fe9"]}',
+                    timestamp: 1795181108000,
+                }]}},
+            })]);
+            const result = await readDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['7-1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'c695139f',
+                kind: 'audio',
+                startTime: 1795181108000,
+                streams: ['fc315fe9'],
+            }]);
+        });
+
+        it('deduplicates webrtc-internals addTrack after transceiverAdded', async () => {
+            const blob = new Blob([JSON.stringify({
+                timestamp: 1795181107618,
+                PeerConnections: {'7-1': {rtcConfiguration: '{}', stats: {}, updateLog: [{
+                    type: 'transceiverAdded',
+                    value: '{"reason":"addTrack","kind":"audio","sender":{"track":"c695139f","streams":["fc315fe9"]}}',
+                    timestamp: 1795181107900,
+                }, {
+                    type: 'addTrack',
+                    value: '{"kind":"audio","id":"c695139f","streams":["fc315fe9"]}',
+                    timestamp: 1795181108000,
+                }]}},
+            })]);
+            const result = await readDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['7-1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'c695139f',
+                kind: 'audio',
+                label: 'c695139f',
+                startTime: 1795181107900,
+                streams: ['fc315fe9'],
+            }]);
+        });
+
+        it('deduplicates webrtc-internals transceiverAdded after addTrack', async () => {
+            const blob = new Blob([JSON.stringify({
+                timestamp: 1795181107618,
+                PeerConnections: {'7-1': {rtcConfiguration: '{}', stats: {}, updateLog: [{
+                    type: 'addTrack',
+                    value: '{"kind":"audio","id":"c695139f","streams":["fc315fe9"]}',
+                    timestamp: 1795181107900,
+                }, {
+                    type: 'transceiverAdded',
+                    value: '{"reason":"addTrack","kind":"audio","sender":{"track":"c695139f","streams":["fc315fe9"]}}',
+                    timestamp: 1795181108000,
+                }]}},
+            })]);
+            const result = await readDump(blob);
+            const trackInfo = await extractTracks(result.peerConnections['7-1']);
+            expect(trackInfo).to.deep.equal([{
+                direction: 'outbound',
+                id: 'c695139f',
+                kind: 'audio',
+                startTime: 1795181107900,
+                streams: ['fc315fe9'],
+            }]);
+        });
+
         it('reads a gzipped dump', async () => {
             const blob = new Blob(['RTCStatsDump\n' +
                 JSON.stringify({fileFormat: 3}) + '\n' +
