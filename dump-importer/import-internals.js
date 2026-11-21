@@ -195,7 +195,7 @@ export class WebRTCInternalsDumpImporter extends EventTarget {
         el.innerText = traceEvent.type;
         details.appendChild(el);
 
-        if (['іcecandidate', 'addIceCandidate'].includes(traceEvent.type) && traceEvent.value) {
+        if (['onicecandidate', 'addIceCandidate', /* legacy */ 'icecandidate'].includes(traceEvent.type) && traceEvent.value) {
             const toShow = [];
             if (traceEvent.value.startsWith('{')) {
                 const parts = JSON.parse(traceEvent.value);

@@ -340,7 +340,7 @@ export function descriptionDecompression(baseDescription, newDescription) {
 const methodTable = {
     // Main peerconnection APIs.
     // These are very common so ordered specifically such that
-    // they get ѕingle-digit ids.
+    // they get single-digit ids.
     getStats: 'g',
     // TODO: getStats: 1, at next major version bump.
     createOffer: 2,

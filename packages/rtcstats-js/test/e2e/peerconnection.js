@@ -738,7 +738,7 @@ describe('RTCPeerConnection', () => {
             expect(ev[2]).to.equal('connecting');
         });
 
-        it('serializeѕ ontrack', async () => {
+        it('serializes ontrack', async () => {
             pc = new RTCPeerConnection();
             await pc.setRemoteDescription({type: 'offer', sdp});
             const track = pc.getReceivers()[0].track;
@@ -750,7 +750,7 @@ describe('RTCPeerConnection', () => {
             expect(trackEvent[2]).to.deep.equal(['audio',  track.id, 'remote audio', 'streamid']);
         });
 
-        it('serializeѕ MediaStreamTrack.on(un)mute', async () => {
+        it('serializes MediaStreamTrack.on(un)mute', async () => {
             pc1 = new RTCPeerConnection();
             pc2 = new RTCPeerConnection();
             const stream = await navigator.mediaDevices.getUserMedia({video: true});
