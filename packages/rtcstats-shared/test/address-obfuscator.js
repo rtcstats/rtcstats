@@ -55,7 +55,7 @@ describe('address obfuscation', () => {
     });
     ['onicecandidate', 'addIceCandidate'].forEach(method => {
         describe(method, () => {
-            it('obfuscateAddresѕ IPv4 addresses', () => {
+            it('obfuscateAddress IPv4 addresses', () => {
                 const e = [method, null, {
                     sdpMid: 0,
                     candidate: candidateSdp,
@@ -105,7 +105,7 @@ describe('address obfuscation', () => {
         });
     });
     describe('SDP', () => {
-        it('obfuscateѕ the c= line', () => {
+        it('obfuscates the c= line', () => {
             const e = ['setRemoteDescription', null, {
                 type: 'offer',
                 sdp,
@@ -114,7 +114,7 @@ describe('address obfuscation', () => {
             expect(e[2].sdp).not.to.contain('c=IN IP4 8.8.8.8');
             expect(e[2].sdp).to.contain('c=IN IP4 0.0.0.0');
         });
-        it('obfuscateѕ the a=rtcp: line', () => {
+        it('obfuscates the a=rtcp: line', () => {
             const e = ['setRemoteDescription', null, {
                 type: 'offer',
                 sdp,

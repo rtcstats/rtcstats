@@ -40,7 +40,7 @@ describe('utils', () => {
     });
 
     describe('copyAndSanitizeConfig', () => {
-        it('serializeѕ the empty config', () => {
+        it('serializes the empty config', () => {
             expect(copyAndSanitizeConfig()).to.equal(undefined);
         });
         it('sanitizes iceServers and removes credentials', () => {
@@ -49,7 +49,7 @@ describe('utils', () => {
                     credential: 'hide me',
                 }]})).to.deep.equal({iceServers: [{}]});
         });
-        it('serializeѕ certificates', () => {
+        it('serializes certificates', () => {
             const cert = {
                 expires: 123,
                 getFingerprints: () => [1],
