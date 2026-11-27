@@ -97,7 +97,7 @@ describe('Storage', () => {
                     endpoint: 'http://example.com/',
                     fetch: fetchMock,
                 });
-                await uploader(testFile, 'testname', ['qa', 'prod']);
+                await uploader(testFile, 'testname', {tags: ['qa', 'prod']});
                 expect(assembleBody().tags).to.deep.equal(['qa', 'prod']);
             });
             it('does not send empty tags', async () => {
@@ -106,8 +106,42 @@ describe('Storage', () => {
                     endpoint: 'http://example.com/',
                     fetch: fetchMock,
                 });
-                await uploader(testFile, 'testname', null);
+                await uploader(testFile, 'testname', {tags: null});
                 expect(assembleBody()).not.to.have.property('tags');
+            });
+        });
+        describe('identifiers', () => {
+            const assembleBody = () => JSON.parse(fetchArgs[fetchArgs.length - 1][1].body);
+            const rtcStats = {user: 'u', conference: 'c', session: 's', tags: ['qa']};
+            it('does not send identifiers by default', async () => {
+                const uploader = createRtcStatsUploader({
+                    token: 'abc',
+                    endpoint: 'http://example.com/',
+                    fetch: fetchMock,
+                });
+                await uploader(testFile, 'testname', rtcStats);
+                expect(assembleBody()).not.to.have.any.keys('rtcstatsUser', 'rtcstatsConference', 'rtcstatsSession');
+                expect(assembleBody().tags).to.deep.equal(['qa']);
+            });
+            it('sends identifiers when enabled', async () => {
+                const uploader = createRtcStatsUploader({
+                    token: 'abc',
+                    endpoint: 'http://example.com/',
+                    fetch: fetchMock,
+                    uploadIdentifiers: true,
+                });
+                await uploader(testFile, 'testname', rtcStats);
+                expect(assembleBody()).to.include({rtcstatsUser: 'u', rtcstatsConference: 'c', rtcstatsSession: 's'});
+            });
+            it('skips non-string identifiers', async () => {
+                const uploader = createRtcStatsUploader({
+                    token: 'abc',
+                    endpoint: 'http://example.com/',
+                    fetch: fetchMock,
+                    uploadIdentifiers: true,
+                });
+                await uploader(testFile, 'testname', {user: 42, conference: {}});
+                expect(assembleBody()).not.to.have.any.keys('rtcstatsUser', 'rtcstatsConference', 'rtcstatsSession');
             });
         });
         describe('chunk retries', () => {

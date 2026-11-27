@@ -70,3 +70,6 @@ rtcstats:
     # If set to a number between 0 and 1 a random percentage of dumps will be uploaded.
     # Defaults to 1 to disable randomness.
     randomPercentage: 1.0
+    # Also send the user, conference and session identifiers from the JWT.
+    # These may contain PII.
+    uploadIdentifiers: false
